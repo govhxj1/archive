@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>우리들의 소중한 추억</title>
+    <title>Gomi's Shared Pink Diary</title>
     <style>
         @font-face {
             font-family: 'Pretendard-Regular';
@@ -75,7 +75,7 @@
         .main-title-container {
             text-align: center;
             margin-top: 4.5vh; 
-            margin-bottom: 12px; 
+            margin-bottom: 10px; 
             animation: fadeInDown 0.8s ease;
             width: 100%;
         }
@@ -153,7 +153,6 @@
         .date-cell.saturday .date-num { color: var(--saturday-blue); }
         .date-cell.holiday .date-num { color: var(--holiday-red) !important; font-weight: 900; }
         
-        /* 기념일 문구: 하단 중앙 */
         .anniv-label { 
             position: absolute; bottom: 3px; left: 50%; 
             transform: translateX(-50%) scale(0.85); 
@@ -312,15 +311,20 @@
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // 1. Firebase Config (배포 시 본인의 설정값으로 교체 필수!)
-    const firebaseConfig = typeof __firebase_config !== 'undefined' 
-        ? JSON.parse(__firebase_config) 
-        : { apiKey: "YOUR_KEY", authDomain: "...", projectId: "...", storageBucket: "...", messagingSenderId: "...", appId: "..." };
+    // 1. Firebase Config 적용
+    const firebaseConfig = {
+        apiKey: "AIzaSyB-hq1CBtux14k5zin3RlqpsnE-AOFKPoc",
+        authDomain: "archive-3e5da.firebaseapp.com",
+        projectId: "archive-3e5da",
+        storageBucket: "archive-3e5da.firebasestorage.app",
+        messagingSenderId: "585863845966",
+        appId: "1:585863845966:web:ddc811abff636222590b1f"
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'shared-gomi-diary-app';
+    const appId = 'shared-gomi-diary-app'; 
 
     let user = null;
     let cloudRecords = {}; 
@@ -329,9 +333,11 @@
     const dateContainer = document.getElementById('calendar-dates'), monthTitle = document.getElementById('month-title'), stickerWrapper = document.getElementById('sticker-wrapper'), dots = document.querySelectorAll('.dot'), commentListContainer = document.getElementById('comment-list'), diaryInput = document.getElementById('diary-input'), imgPreview = document.getElementById('img-preview'), previewBox = document.getElementById('preview-box'), ddayText = document.getElementById('dday-text'), ddayLabel = document.getElementById('dday-label'), loadingOverlay = document.getElementById('loading-overlay');
 
     const hideLoading = () => { loadingOverlay.style.opacity = '0'; setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500); };
-    setTimeout(hideLoading, 5000); 
+    
+    // 타임아웃 세이프티 (에러 발생 시 무한 로딩 방지)
+    setTimeout(() => { if (loadingOverlay.style.display !== 'none') hideLoading(); }, 8000);
 
-    // 공용 저장소 동기화
+    // 공용 저장소 실시간 동기화
     onAuthStateChanged(auth, async (u) => {
         user = u;
         if (user) {
@@ -340,13 +346,30 @@
                 cloudRecords = {};
                 snapshot.forEach(doc => { cloudRecords[doc.id] = doc.data(); });
                 renderCalendar(); updateDday(); hideLoading();
-            }, (err) => { console.error(err); hideLoading(); });
+            }, (err) => { 
+                console.error("Firestore Error:", err); 
+                hideLoading(); 
+            });
         }
     });
 
+    // 인증 초기화: 커스텀 토큰 불일치 에러 해결 로직 포함
     const initAuth = async () => {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { await signInWithCustomToken(auth, __initial_auth_token); } 
-        else { await signInAnonymously(auth); }
+        try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try {
+                    // 사용자 정의 config와 시스템 토큰 불일치 시 catch로 넘어감
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } catch (tokenErr) {
+                    await signInAnonymously(auth);
+                }
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (e) {
+            console.error("Auth Exception:", e);
+            hideLoading();
+        }
     };
     initAuth();
 
@@ -372,7 +395,7 @@
         dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
     };
 
-    // Swipe Logic
+    // 스티커 슬라이드 제스처
     let touchStartX = 0;
     const stickerSlider = document.getElementById('sticker-slider');
     stickerSlider.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive: true});
@@ -392,7 +415,7 @@
     }
     document.getElementById('dday-container').onclick = () => { isDateMode = !isDateMode; updateDday(); };
 
-    // 2026 Holidays list
+    // 2026 공휴일 (지방선거 및 대체공휴일 포함)
     const holidays2026 = {
         "01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", 
         "03-01": "삼일절", "03-02": "대체공휴일", "05-05": "어린이날", "05-24": "부처님오신날", 
@@ -412,8 +435,7 @@
             const dStr = String(i).padStart(2, '0');
             const dateKey = `${viewYear}-${mStr}-${dStr}`;
             const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
-            const cell = document.createElement('div'); 
-            cell.className = 'date-cell';
+            const cell = document.createElement('div'); cell.className = 'date-cell';
 
             const dayOfWeek = (i + firstDay - 1) % 7;
             if (dayOfWeek === 0) cell.classList.add('sunday');
@@ -421,7 +443,7 @@
             if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) cell.classList.add('holiday');
             if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
 
-            // Anniversary Logic: 100, 200, 300 only. 1 Jan every year for years.
+            // 기념일: 300일까지만 100단위 표시, 그후엔 주년만
             const diff = Math.floor((new Date(viewYear, viewMonth, i) - new Date(2026, 0, 10)) / 86400000) + 1;
             let anniv = "";
             if (diff > 0 && diff <= 300 && diff % 100 === 0) anniv = `${diff}일`;
@@ -460,6 +482,8 @@
             };
         }; reader.readAsDataURL(file);
     };
+
+    document.getElementById('remove-img').onclick = () => { selectedImgBase64 = ""; previewBox.style.display = 'none'; };
 
     const updateStickerUI = () => document.querySelectorAll('.sticker-option').forEach(opt => opt.classList.toggle('selected', opt.innerText === selectedSticker));
     
