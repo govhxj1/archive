@@ -24,7 +24,6 @@
             --anniv-text-color: #FFC107;
             --container-width: 92%;
             --container-max-width: 400px;
-            /* 테두리 곡률 변수 15px로 설정 */
             --main-radius: 15px;
         }
 
@@ -41,15 +40,16 @@
             background-color: var(--bg-pink);
             display: flex;
             flex-direction: column;
-            justify-content: center; 
+            justify-content: space-between; /* 상하 요소 균형 배치 */
             align-items: center;
             color: var(--text-gray);
-            padding: 5px 0;
+            padding: 10px 0 0 0; /* 하단 패딩 제거 (디데이 바가 밀착되도록) */
             box-sizing: border-box;
         }
 
         .main-title-container {
             text-align: center;
+            margin-top: 10px;
             margin-bottom: 8px;
             animation: fadeInDown 0.8s ease;
         }
@@ -75,12 +75,12 @@
             width: var(--container-width);
             max-width: var(--container-max-width);
             background: white;
-            border-radius: var(--main-radius); /* 15px 적용 */
+            border-radius: var(--main-radius);
             box-shadow: 0 8px 25px rgba(255, 143, 171, 0.15);
             overflow: hidden;
             padding-bottom: 10px;
-            margin-bottom: 10px;
             box-sizing: border-box;
+            flex-shrink: 0;
         }
 
         .header {
@@ -170,41 +170,42 @@
         .record-heart { position: absolute; right: 3px; top: -1px; font-size: 0.55rem; color: var(--heart-yellow); }
         .sticker-display { font-size: 1.25rem; margin-top: 2px; }
 
-        /* D-day 디스플레이 스타일 */
+        /* D-day 디스플레이 (화면 밖으로 쭉 뻗은 디자인) */
         .dday-container {
-            width: var(--container-width);
-            max-width: var(--container-max-width);
+            width: 100vw; /* 화면 전체 너비 */
             background: white;
-            border-radius: var(--main-radius); /* 15px 적용 */
-            padding: 12px 15px;
-            box-shadow: 0 6px 20px rgba(255, 143, 171, 0.1);
+            padding: 15px 0;
+            box-shadow: 0 -4px 15px rgba(255, 143, 171, 0.1);
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 2px;
-            animation: fadeInUp 1s ease;
-            box-sizing: border-box;
+            cursor: pointer; /* 클릭 가능 표시 */
+            transition: background 0.3s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .dday-container:active {
+            background: #fff9fa;
         }
 
         .dday-label { 
             font-size: 0.75rem; 
             color: var(--text-gray); 
             font-weight: 700; 
+            transition: all 0.3s;
         }
         
         .dday-value { 
             font-size: 1.4rem; 
             color: var(--point-pink); 
             font-weight: 900; 
+            transition: all 0.3s;
         }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 모달 스타일 */
+        /* --- 모달 스타일 --- */
         .overlay {
             display: none;
             position: fixed;
@@ -319,8 +320,8 @@
     <div class="dates" id="calendar-dates"></div>
 </div>
 
-<div class="dday-container">
-    <div class="dday-label">우리가 함께한 소중한 시간</div>
+<div class="dday-container" onclick="toggleDdayDisplay()">
+    <div class="dday-label" id="dday-label">우리가 함께한 소중한 시간</div>
     <div class="dday-value" id="dday-text">D-0</div>
 </div>
 
@@ -368,6 +369,7 @@
     const imgPreview = document.getElementById('img-preview');
     const previewBox = document.getElementById('preview-box');
     const ddayText = document.getElementById('dday-text');
+    const ddayLabel = document.getElementById('dday-label');
     
     let viewYear = 2026;
     let viewMonth = 1; 
@@ -375,6 +377,7 @@
     let selectedSticker = "";
     let comments = [];
     let selectedImgBase64 = "";
+    let isDateMode = false; // 디데이 모드 여부 확인용
 
     const holidays2026 = {
         "01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴",
@@ -429,12 +432,24 @@
         return "";
     }
 
+    // 디데이 업데이트 및 클릭 전환 로직
     function updateDday() {
-        const baseDate = new Date(2026, 0, 10);
-        const now = new Date();
-        const diffTime = now - baseDate;
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; 
-        ddayText.innerText = `D-${diffDays}`;
+        if (isDateMode) {
+            ddayLabel.innerText = "우리가 시작한 소중한 날짜";
+            ddayText.innerText = "2026.01.10";
+        } else {
+            const baseDate = new Date(2026, 0, 10);
+            const now = new Date();
+            const diffTime = now - baseDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+            ddayLabel.innerText = "우리가 함께한 소중한 시간";
+            ddayText.innerText = `D-${diffDays}`;
+        }
+    }
+
+    function toggleDdayDisplay() {
+        isDateMode = !isDateMode;
+        updateDday();
     }
 
     function renderCalendar() {
