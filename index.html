@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>우리들의 행복한 다이어리</title>
+    <title>Gomi's Shared Pink Diary</title>
     <style>
         @font-face {
             font-family: 'Pretendard-Regular';
@@ -27,7 +27,7 @@
             --main-radius: 15px;
         }
 
-        /* Prevent scroll and fix viewport */
+        /* 기본 레이아웃 및 터치 방지 */
         html, body {
             height: 100%;
             margin: 0;
@@ -48,7 +48,7 @@
             box-sizing: border-box;
         }
 
-        /* Loading */
+        /* 로딩 화면 */
         #loading-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -71,7 +71,7 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Title closer to calendar */
+        /* 타이틀 위치 조정 */
         .main-title-container {
             text-align: center;
             margin-top: 4vh; 
@@ -149,6 +149,11 @@
 
         .date-num { font-size: 0.7rem; color: #aaa; font-weight: 700; }
         
+        /* 날짜 색상 클래스 */
+        .date-cell.sunday .date-num { color: var(--holiday-red); }
+        .date-cell.saturday .date-num { color: var(--saturday-blue); }
+        .date-cell.holiday .date-num { color: var(--holiday-red) !important; font-weight: 900; }
+        
         .anniv-label { 
             position: absolute; bottom: 3px; left: 50%; 
             transform: translateX(-50%) scale(0.85); 
@@ -161,7 +166,7 @@
         .record-heart { position: absolute; right: 3px; top: -1px; font-size: 0.55rem; color: var(--heart-yellow); }
         .sticker-display { font-size: 1.25rem; margin-top: 2px; }
 
-        /* Full width D-day Bar */
+        /* D-day 바 (화면 전체 너비) */
         .dday-container {
             width: 100vw; 
             background: white;
@@ -181,7 +186,7 @@
         .dday-label { font-size: 0.75rem; color: var(--text-gray); font-weight: 700; }
         .dday-value { font-size: 1.4rem; color: var(--point-pink); font-weight: 900; }
 
-        /* Modal */
+        /* 모달 스타일 */
         .overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); z-index: 100;
@@ -200,7 +205,7 @@
         .modal-header { display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
         .modal-title { color: var(--point-pink); margin: 0; font-size: 1.1rem; font-weight: 900; }
 
-        /* Sticker Slider */
+        /* 스티커 슬라이더 */
         .sticker-slider-container {
             width: 100%; overflow: hidden; position: relative; background: var(--bg-pink);
             border-radius: 15px; margin-bottom: 10px; padding: 10px 0;
@@ -226,7 +231,7 @@
         .dot { width: 6px; height: 6px; background: #ddd; border-radius: 50%; cursor: pointer; }
         .dot.active { background: var(--main-pink); transform: scale(1.3); }
 
-        /* Comments */
+        /* 기록 리스트 */
         .comment-section { flex: 1; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; }
         .comment-item { background: var(--bg-pink); padding: 10px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px; }
         .comment-img { width: 100%; border-radius: 8px; display: block; border: 2px solid white; }
@@ -240,7 +245,6 @@
         .add-btn { background: var(--main-pink); color: white; border: none; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 900; font-size: 0.85rem; flex-shrink: 0; }
 
         .close-modal-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.2rem; color: #ccc; cursor: pointer; z-index: 110; }
-        .img-preview-container { display: none; margin-bottom: 10px; position: relative; }
         #img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 2px solid var(--main-pink); }
         .remove-img-btn { position: absolute; top: -8px; left: 45px; background: var(--point-pink); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
     </style>
@@ -249,7 +253,7 @@
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <div id="loading-text">사랑의 다이어리 연결 중... 🌸</div>
+    <div id="loading-text">공동 일기장 연결 중... 🌸</div>
 </div>
 
 <div class="main-title-container">
@@ -287,10 +291,10 @@
         <div class="dot" data-page="2"></div>
     </div>
 
-    <div class="comment-section"><div id="comment-list"></div></div>
+    <div class="comment-section"><div id="comment-list" class="comment-list"></div></div>
 
     <div class="input-area">
-        <div class="img-preview-container" id="preview-box">
+        <div class="img-preview-container" id="preview-box" style="display:none; position: relative; margin-bottom: 10px;">
             <img id="img-preview" src="" alt="미리보기">
             <div class="remove-img-btn" id="remove-img">✕</div>
         </div>
@@ -308,7 +312,7 @@
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // [Firebase Config] Fill in your project settings here!
+    // [Firebase Config] 깃허브 배포 시 본인의 설정값으로 교체 필수!
     const firebaseConfig = typeof __firebase_config !== 'undefined' 
         ? JSON.parse(__firebase_config) 
         : {
@@ -334,11 +338,10 @@
     const hideLoading = () => { loadingOverlay.style.opacity = '0'; setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500); };
     setTimeout(hideLoading, 5000); 
 
-    // Firebase Auth & Shared Data Sync
+    // 공용 데이터 실시간 동기화
     onAuthStateChanged(auth, async (u) => {
         user = u;
         if (user) {
-            // Using Shared Path: artifacts/{appId}/public/data/diaryRecords
             const diaryRef = collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords');
             onSnapshot(diaryRef, (snapshot) => {
                 cloudRecords = {};
@@ -354,7 +357,7 @@
     };
     initAuth();
 
-    // 72 Stickers
+    // 72종 스티커
     const allStickers = ['💛', '💖', '❤️', '🧡', '💚', '💙', '💜', '❣️', '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇', '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️', '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️', '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕', '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤', '🐱', '🐶', '🧸', '🦄', '🐰', '🐥', '🐼', '🦁', '🎧', '🎬', '🎮', '⚽', '📚', '💻', '🎸', '📷', '🎈', '🎁', '💎', '💌', '🌻', '🌳', '🐚', '🏔️'];
 
     function initStickers() {
@@ -376,7 +379,7 @@
         dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
     };
 
-    // Touch Swipe for Stickers
+    // 터치 스와이프
     let touchStartX = 0;
     const stickerSlider = document.getElementById('sticker-slider');
     stickerSlider.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive: true});
@@ -387,6 +390,7 @@
 
     dots.forEach(dot => dot.onclick = () => window.goToStickerPage(parseInt(dot.dataset.page)));
 
+    // 디데이 및 날짜 전환
     function updateDday() {
         if (isDateMode) { ddayLabel.innerText = "우리가 시작한 소중한 날짜"; ddayText.innerText = "2026.01.10"; } 
         else {
@@ -396,25 +400,51 @@
     }
     document.getElementById('dday-container').onclick = () => { isDateMode = !isDateMode; updateDday(); };
 
-    const holidays2026 = {"01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", "03-01": "삼일절", "05-05": "어린이날", "05-24": "부처님오신날", "06-06": "현충일", "08-15": "광복절", "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", "10-03": "개천절", "10-09": "한글날", "12-25": "성탄절"};
+    // 2026년 공휴일 및 대체공휴일 (지방선거 포함)
+    const holidays2026 = {
+        "01-01": "신정", 
+        "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", 
+        "03-01": "삼일절", "03-02": "대체공휴일", // 3.1절 일요일 -> 월요일 대체
+        "05-05": "어린이날", 
+        "05-24": "부처님오신날", "05-25": "대체공휴일", // 부처님오신날 일요일 -> 월요일 대체
+        "06-03": "지방선거", 
+        "06-06": "현충일", 
+        "08-15": "광복절", "08-17": "대체공휴일", // 광복절 토요일 -> 월요일 대체
+        "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", 
+        "10-03": "개천절", "10-05": "대체공휴일", // 개천절 토요일 -> 월요일 대체
+        "10-09": "한글날", 
+        "12-25": "성탄절"
+    };
 
     function renderCalendar() {
         dateContainer.innerHTML = ""; monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
         const firstDay = new Date(viewYear, viewMonth, 1).getDay();
         const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
         const today = new Date();
+        
         for (let i = 0; i < firstDay; i++) { dateContainer.appendChild(Object.assign(document.createElement('div'), {className: 'date-cell empty'})); }
+        
         for (let i = 1; i <= daysInMonth; i++) {
             const mStr = String(viewMonth + 1).padStart(2, '0');
             const dStr = String(i).padStart(2, '0');
             const dateKey = `${viewYear}-${mStr}-${dStr}`;
             const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
-            const cell = document.createElement('div'); cell.className = 'date-cell';
-            if ((i + firstDay - 1) % 7 === 0) cell.style.color = 'var(--holiday-red)';
-            if ((i + firstDay - 1) % 7 === 6) cell.style.color = 'var(--saturday-blue)';
-            if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) cell.style.color = 'var(--holiday-red)';
+            const cell = document.createElement('div'); 
+            cell.className = 'date-cell';
+
+            // 요일 계산
+            const dayOfWeek = (i + firstDay - 1) % 7;
+            if (dayOfWeek === 0) cell.classList.add('sunday');
+            if (dayOfWeek === 6) cell.classList.add('saturday');
+            
+            // 공휴일 체크
+            if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) {
+                cell.classList.add('holiday');
+            }
+            
             if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
 
+            // 기념일 텍스트
             const diff = Math.floor((new Date(viewYear, viewMonth, i) - new Date(2026, 0, 10)) / 86400000) + 1;
             let anniv = (diff > 0 && diff % 100 === 0) ? `${diff}일` : (viewMonth === 0 && i === 10 && viewYear > 2026) ? `${viewYear-2026}주년` : "";
 
@@ -487,5 +517,3 @@
 </script>
 </body>
 </html>
-
-
