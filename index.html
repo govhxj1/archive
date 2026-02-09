@@ -21,10 +21,14 @@
             --heart-yellow: #ffde59;
             --holiday-red: #ff4d6d; 
             --saturday-blue: #4da3ff;
-            --anniv-text-color: #fbc02d;
+            --anniv-text-color: #FFC107;
+            --container-width: 92%;
+            --container-max-width: 400px;
+            /* 테두리 곡률 변수 15px로 설정 */
+            --main-radius: 15px;
         }
 
-        /* 스크롤 제거 및 한 화면 고정 */
+        /* 스크롤 방지 및 전체 화면 고정 */
         html, body {
             height: 100%;
             margin: 0;
@@ -37,24 +41,23 @@
             background-color: var(--bg-pink);
             display: flex;
             flex-direction: column;
-            justify-content: center; /* 세로 중앙 정렬 */
+            justify-content: center; 
             align-items: center;
             color: var(--text-gray);
-            padding: 10px 0;
+            padding: 5px 0;
             box-sizing: border-box;
         }
 
-        /* 메인 타이틀 여백 축소 */
         .main-title-container {
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             animation: fadeInDown 0.8s ease;
         }
 
         .main-title {
-            font-size: clamp(1.2rem, 4.5vw, 1.6rem);
+            font-size: clamp(1.1rem, 4vw, 1.4rem);
             color: var(--point-pink);
-            font-weight: 900; /* 아주 두껍게 */
+            font-weight: 900;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -67,22 +70,23 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 달력 컨테이너 크기 최적화 */
+        /* 달력 컨테이너 */
         .calendar-container {
-            width: 92%;
-            max-width: 420px;
+            width: var(--container-width);
+            max-width: var(--container-max-width);
             background: white;
-            border-radius: 25px;
+            border-radius: var(--main-radius); /* 15px 적용 */
             box-shadow: 0 8px 25px rgba(255, 143, 171, 0.15);
             overflow: hidden;
-            padding-bottom: 15px;
-            margin-bottom: 12px;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
         }
 
         .header {
             background: var(--main-pink);
             color: white;
-            padding: 12px 15px;
+            padding: 10px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -92,41 +96,39 @@
             background: none;
             border: none;
             color: white;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             cursor: pointer;
             padding: 5px 10px;
         }
 
-        /* 년/월 폰트 매우 두껍게 강조 */
         .header h2 { 
             margin: 0; 
-            font-size: 1.15rem; 
+            font-size: 1.1rem; 
             letter-spacing: 1px;
             font-weight: 900; 
         }
 
-        /* 요일 폰트 매우 두껍게 강조 */
         .days {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
-            padding: 12px 5px 8px 5px;
+            padding: 10px 5px; 
             font-weight: 900; 
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #fff5f7;
         }
 
         .days div:nth-child(1) { color: var(--holiday-red); }
         .days div:nth-child(n+2):nth-child(-n+6) { color: var(--text-dark); }
         .days div:nth-child(7) { color: var(--saturday-blue); }
 
-        /* 날짜 영역 높이 유연하게 조절 */
         .dates {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             grid-template-rows: repeat(6, 1fr); 
             gap: 4px;
-            padding: 0 10px;
-            height: clamp(280px, 70vw, 360px);
+            padding: 10px 10px 0 10px;
+            height: clamp(320px, 82vw, 420px); 
         }
 
         .date-cell {
@@ -138,7 +140,7 @@
             cursor: pointer;
             border: 1px solid #ffe5ec;
             background: #fff;
-            padding-top: 3px;
+            padding-top: 4px;
             position: relative;
         }
 
@@ -150,18 +152,31 @@
         .date-cell.holiday .date-num { color: var(--holiday-red) !important; font-weight: 900; }
 
         .date-header { width: 100%; display: flex; justify-content: center; align-items: center; position: relative; }
-        .date-num { font-size: 0.65rem; color: #aaa; font-weight: 700; }
-        .anniv-label { position: absolute; left: 2px; top: 1px; font-size: 0.5rem; font-weight: 900; color: var(--anniv-text-color); transform: scale(0.85); transform-origin: left top; }
-        .record-heart { position: absolute; right: 2px; top: -1px; font-size: 0.55rem; color: var(--heart-yellow); }
-        .sticker-display { font-size: 1.1rem; margin-top: 1px; }
+        .date-num { font-size: 0.7rem; color: #aaa; font-weight: 700; }
+        
+        .anniv-label { 
+            position: absolute; 
+            bottom: 3px; 
+            left: 50%; 
+            transform: translateX(-50%) scale(0.85); 
+            font-size: 0.55rem; 
+            font-weight: 900; 
+            color: var(--anniv-text-color); 
+            white-space: nowrap;
+            z-index: 1;
+            text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.05);
+        }
 
-        /* D-day 영역 여백 최적화 */
+        .record-heart { position: absolute; right: 3px; top: -1px; font-size: 0.55rem; color: var(--heart-yellow); }
+        .sticker-display { font-size: 1.25rem; margin-top: 2px; }
+
+        /* D-day 디스플레이 스타일 */
         .dday-container {
-            width: 92%;
-            max-width: 420px;
+            width: var(--container-width);
+            max-width: var(--container-max-width);
             background: white;
-            border-radius: 20px;
-            padding: 12px;
+            border-radius: var(--main-radius); /* 15px 적용 */
+            padding: 12px 15px;
             box-shadow: 0 6px 20px rgba(255, 143, 171, 0.1);
             text-align: center;
             display: flex;
@@ -169,17 +184,27 @@
             align-items: center;
             gap: 2px;
             animation: fadeInUp 1s ease;
+            box-sizing: border-box;
         }
 
-        .dday-label { font-size: 0.7rem; color: var(--text-gray); }
-        .dday-value { font-size: 1.4rem; color: var(--point-pink); font-weight: 900; }
+        .dday-label { 
+            font-size: 0.75rem; 
+            color: var(--text-gray); 
+            font-weight: 700; 
+        }
+        
+        .dday-value { 
+            font-size: 1.4rem; 
+            color: var(--point-pink); 
+            font-weight: 900; 
+        }
 
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 모달 스타일 유지 */
+        /* 모달 스타일 */
         .overlay {
             display: none;
             position: fixed;
@@ -197,7 +222,7 @@
             background: white;
             width: 90%;
             max-width: 380px;
-            max-height: 80vh;
+            max-height: 85vh;
             padding: 20px;
             border-radius: 25px;
             z-index: 101;
@@ -208,6 +233,54 @@
 
         .modal-header { display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
         .modal-title { color: var(--point-pink); margin: 0; font-size: 1.1rem; font-weight: 900; }
+
+        .sticker-slider-container {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            background: var(--bg-pink);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            padding: 10px 0;
+        }
+
+        .sticker-wrapper {
+            display: flex;
+            transition: transform 0.3s ease-out;
+            width: 300%;
+        }
+
+        .sticker-page {
+            width: 33.333%;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 4px;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        .sticker-option {
+            font-size: 1.15rem;
+            cursor: pointer;
+            text-align: center;
+            padding: 6px 0;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .sticker-option.selected { background: var(--main-pink); }
+
+        .pagination-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .dot { width: 6px; height: 6px; background: #ddd; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        .dot.active { background: var(--main-pink); transform: scale(1.3); }
+
         .comment-section { flex: 1; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; }
         .comment-item { background: var(--bg-pink); padding: 10px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px; }
         .comment-img { width: 100%; border-radius: 8px; display: block; border: 2px solid white; }
@@ -220,9 +293,6 @@
         .icon-btn { font-size: 1.3rem; cursor: pointer; color: var(--point-pink); padding: 5px; flex-shrink: 0; }
         .add-btn { background: var(--main-pink); color: white; border: none; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 900; font-size: 0.85rem; flex-shrink: 0; }
 
-        .sticker-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 10px; padding: 8px; background: var(--bg-pink); border-radius: 12px; }
-        .sticker-option { font-size: 1.1rem; cursor: pointer; text-align: center; padding: 4px; border-radius: 6px; }
-        .sticker-option.selected { background: var(--main-pink); }
         .close-modal-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.2rem; color: #ccc; cursor: pointer; z-index: 110; }
         .img-preview-container { display: none; margin-bottom: 10px; position: relative; }
         #img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 2px solid var(--main-pink); }
@@ -260,11 +330,20 @@
     <div class="modal-header">
         <h3 id="selected-date" class="modal-title">날짜</h3>
     </div>
-    <span style="font-size: 0.65rem; color: #aaa; margin-bottom: 4px; padding-left: 5px;">기분 스티커</span>
-    <div class="sticker-grid" id="sticker-grid"></div>
+    
+    <div class="sticker-slider-container">
+        <div class="sticker-wrapper" id="sticker-wrapper"></div>
+    </div>
+    <div class="pagination-dots" id="pagination-dots">
+        <div class="dot active" onclick="goToStickerPage(0)"></div>
+        <div class="dot" onclick="goToStickerPage(1)"></div>
+        <div class="dot" onclick="goToStickerPage(2)"></div>
+    </div>
+
     <div class="comment-section">
         <div id="comment-list" class="comment-list"></div>
     </div>
+
     <div class="input-area">
         <div class="img-preview-container" id="preview-box">
             <img id="img-preview" src="" alt="미리보기">
@@ -282,7 +361,8 @@
 <script>
     const dateContainer = document.getElementById('calendar-dates');
     const monthTitle = document.getElementById('month-title');
-    const stickerGrid = document.getElementById('sticker-grid');
+    const stickerWrapper = document.getElementById('sticker-wrapper');
+    const dots = document.querySelectorAll('.dot');
     const commentListContainer = document.getElementById('comment-list');
     const diaryInput = document.getElementById('diary-input');
     const imgPreview = document.getElementById('img-preview');
@@ -304,7 +384,39 @@
         "10-05": "대체공휴일", "10-09": "한글날", "12-25": "성탄절"
     };
 
-    const stickers = ['😊', '🥰', '😭', '😡', '✨', '🌸', '🍰', '☕', '🐱', '🧸', '☁️', '🌙', '🎧', '🎬', '🍱', '💤'];
+    const allStickers = [
+        '💛', '💖', '❤️', '🧡', '💚', '💙', '💜', '❣️',
+        '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇',
+        '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️',
+        '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️',
+        '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕',
+        '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤',
+        '🐱', '🐶', '🧸', '🦄', '🐰', '🐥', '🐼', '🦁',
+        '🎧', '🎬', '🎮', '⚽', '📚', '💻', '🎸', '📷',
+        '🎈', '🎁', '💎', '💌', '🌻', '🌳', '🐚', '🏔️'
+    ];
+
+    function initStickers() {
+        stickerWrapper.innerHTML = "";
+        for (let p = 0; p < 3; p++) {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'sticker-page';
+            const pageStickers = allStickers.slice(p * 24, (p + 1) * 24);
+            pageStickers.forEach(s => {
+                const span = document.createElement('span');
+                span.className = 'sticker-option';
+                span.innerText = s;
+                span.onclick = () => selectSticker(s);
+                pageDiv.appendChild(span);
+            });
+            stickerWrapper.appendChild(pageDiv);
+        }
+    }
+
+    function goToStickerPage(index) {
+        stickerWrapper.style.transform = `translateX(-${index * 33.333}%)`;
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+    }
 
     function getAnniversaryText(year, month, day) {
         const baseDate = new Date(2026, 0, 10);
@@ -323,17 +435,6 @@
         const diffTime = now - baseDate;
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; 
         ddayText.innerText = `D-${diffDays}`;
-    }
-
-    function initStickers() {
-        stickerGrid.innerHTML = "";
-        stickers.forEach(s => {
-            const span = document.createElement('span');
-            span.className = 'sticker-option';
-            span.innerText = s;
-            span.onclick = () => selectSticker(s);
-            stickerGrid.appendChild(span);
-        });
     }
 
     function renderCalendar() {
@@ -371,7 +472,14 @@
             let annivHtml = annivText ? `<span class="anniv-label">${annivText}</span>` : '';
             const heartHtml = (data.comments && data.comments.length > 0) ? '<span class="record-heart">💛</span>' : '';
 
-            cell.innerHTML = `<div class="date-header">${annivHtml}<span class="date-num">${i}</span>${heartHtml}</div><span class="sticker-display">${data.sticker || ""}</span>`;
+            cell.innerHTML = `
+                <div class="date-header">
+                    <span class="date-num">${i}</span>
+                    ${heartHtml}
+                </div>
+                <span class="sticker-display">${data.sticker || ""}</span>
+                ${annivHtml}
+            `;
             cell.onclick = () => openModal(i);
             dateContainer.appendChild(cell);
             cellsCreated++;
@@ -403,6 +511,7 @@
         updateStickerUI();
         renderComments();
         removeSelectedImg();
+        goToStickerPage(0);
         document.getElementById('diary-modal').style.display = 'flex';
         document.getElementById('overlay').style.display = 'block';
     }
@@ -432,9 +541,7 @@
     }
 
     function removeSelectedImg() { selectedImgBase64 = ""; imgPreview.src = ""; previewBox.style.display = 'none'; document.getElementById('img-upload').value = ""; }
-
     function selectSticker(sticker) { selectedSticker = (selectedSticker === sticker) ? "" : sticker; updateStickerUI(); saveData(); }
-
     function updateStickerUI() { document.querySelectorAll('.sticker-option').forEach(opt => { opt.classList.toggle('selected', opt.innerText === selectedSticker); }); }
 
     function renderComments() {
