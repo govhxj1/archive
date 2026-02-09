@@ -21,6 +21,7 @@
             --heart-yellow: #ffde59;
             --holiday-red: #ff4d6d; 
             --saturday-blue: #4da3ff;
+            --anniv-text-color: #fbc02d;   /* 기념일 문구 노란색 */
         }
 
         body {
@@ -34,12 +35,14 @@
             margin: 0;
             color: var(--text-gray);
             overflow-x: hidden;
+            padding: 20px 0;
+            box-sizing: border-box;
         }
 
         /* 메인 타이틀 */
         .main-title-container {
             text-align: center;
-            margin: 20px 0;
+            margin-bottom: 20px;
             animation: fadeInDown 0.8s ease;
         }
 
@@ -54,7 +57,7 @@
             text-shadow: 2px 2px 4px rgba(255, 143, 171, 0.2);
         }
 
-        .main-title span { font-size: 0.8em; opacity: 0.8; }
+        .main-title span { font-size: 1.1em; } /* 하트 크기 살짝 조정 */
 
         @keyframes fadeInDown {
             from { opacity: 0; transform: translateY(-20px); }
@@ -70,7 +73,7 @@
             box-shadow: 0 10px 30px rgba(255, 143, 171, 0.15);
             overflow: hidden;
             padding-bottom: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .header {
@@ -93,15 +96,21 @@
             transition: transform 0.2s;
         }
 
-        .header h2 { margin: 0; font-size: 1.1rem; letter-spacing: 1px; }
+        /* 년/월 폰트 두께 조절 */
+        .header h2 { 
+            margin: 0; 
+            font-size: 1.2rem; 
+            letter-spacing: 1px;
+            font-weight: 800; /* 조금 더 두껍게 설정 */
+        }
 
         .days {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
             padding: 15px 5px 10px 5px;
-            font-weight: bold;
-            font-size: 0.8rem;
+            font-weight: 900; /* 요일 폰트 아주 두껍게 설정 */
+            font-size: 0.85rem;
         }
 
         .days div:nth-child(1) { color: var(--holiday-red); }
@@ -135,6 +144,23 @@
         .date-cell:active { transform: scale(0.95); background: var(--bg-pink); }
         .date-cell.empty { border: 1px solid transparent; background: transparent; cursor: default; }
         .date-cell.today { border: 2px solid var(--point-pink); background: #fff9fa; }
+        
+        .date-cell.anniversary {
+            border-color: var(--heart-yellow);
+        }
+        
+        .anniv-label {
+            position: absolute;
+            left: 2px;
+            top: 1px;
+            font-size: 0.5rem;
+            font-weight: bold;
+            color: var(--anniv-text-color);
+            transform: scale(0.9);
+            transform-origin: left top;
+            white-space: nowrap;
+        }
+
         .date-cell.sunday .date-num { color: var(--holiday-red); }
         .date-cell.saturday .date-num { color: var(--saturday-blue); }
         .date-cell.holiday .date-num { color: var(--holiday-red) !important; font-weight: bold; }
@@ -150,6 +176,43 @@
         .date-num { font-size: 0.65rem; color: #bbb; }
         .record-heart { position: absolute; right: 2px; top: -2px; font-size: 0.55rem; color: var(--heart-yellow); }
         .sticker-display { font-size: 1.1rem; margin-top: 2px; }
+
+        /* D-day 디스플레이 */
+        .dday-container {
+            width: 92%;
+            max-width: 450px;
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 8px 20px rgba(255, 143, 171, 0.1);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            animation: fadeInUp 1s ease;
+            box-sizing: border-box;
+        }
+
+        .dday-label {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            letter-spacing: 0.5px;
+        }
+
+        .dday-value {
+            font-size: 1.5rem;
+            color: var(--point-pink);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* 모달 스타일 */
         .overlay {
@@ -210,12 +273,9 @@
         }
 
         .comment-img { width: 100%; border-radius: 8px; display: block; border: 2px solid white; }
-
         .comment-content { display: flex; justify-content: space-between; align-items: center; }
-
         .delete-btn { background: none; border: none; color: #ccc; cursor: pointer; padding: 5px; font-size: 0.9rem; }
 
-        /* 입력 영역 (버튼 잘림 방지 수정) */
         .input-area {
             background: #f9f9f9;
             padding: 10px;
@@ -234,7 +294,7 @@
 
         #diary-input {
             flex: 1;
-            min-width: 0; /* flex 자식 요소 너비 한계 방지 */
+            min-width: 0; 
             border: none;
             background: none;
             outline: none;
@@ -248,7 +308,7 @@
             cursor: pointer;
             color: var(--point-pink);
             padding: 5px;
-            flex-shrink: 0; /* 아이콘 크기 고정 */
+            flex-shrink: 0; 
         }
 
         .add-btn {
@@ -260,8 +320,8 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 0.85rem;
-            flex-shrink: 0; /* 버튼 잘림 방지 핵심 */
-            white-space: nowrap; /* 글자 줄바꿈 방지 */
+            flex-shrink: 0; 
+            white-space: nowrap; 
         }
 
         .img-preview-container {
@@ -303,7 +363,7 @@
 
 <div class="main-title-container">
     <h1 class="main-title">
-        <span>🌸</span> 우리들의 행복한 시간 <span>🌸</span>
+        <span>💛</span> 싱벙한 추억 일기 <span>💛</span>
     </h1>
 </div>
 
@@ -317,6 +377,12 @@
         <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
     </div>
     <div class="dates" id="calendar-dates"></div>
+</div>
+
+<!-- D-day 디스플레이 컨테이너 -->
+<div class="dday-container">
+    <div class="dday-label">우리가 함께한 소중한 시간</div>
+    <div class="dday-value" id="dday-text">D-0</div>
 </div>
 
 <div class="overlay" id="overlay" onclick="closeModal()"></div>
@@ -355,6 +421,7 @@
     const diaryInput = document.getElementById('diary-input');
     const imgPreview = document.getElementById('img-preview');
     const previewBox = document.getElementById('preview-box');
+    const ddayText = document.getElementById('dday-text');
     
     let viewYear = 2026;
     let viewMonth = 1; 
@@ -364,12 +431,45 @@
     let selectedImgBase64 = "";
 
     const holidays2026 = {
-        "01-01": "신정", "03-01": "삼일절", "05-05": "어린이날", "06-06": "현충일", 
-        "08-15": "광복절", "10-03": "개천절", "10-09": "한글날", "12-25": "성탄절",
-        "02-17": "설날", "09-25": "추석"
+        "01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴",
+        "03-01": "삼일절", "03-02": "대체공휴일", "05-05": "어린이날", "05-24": "부처님오신날",
+        "05-25": "대체공휴일", "06-03": "지방선거", "06-06": "현충일", "08-15": "광복절", "08-17": "대체공휴일",
+        "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", "10-03": "개천절",
+        "10-05": "대체공휴일", "10-09": "한글날", "12-25": "성탄절"
     };
 
     const stickers = ['😊', '🥰', '😭', '😡', '✨', '🌸', '🍰', '☕', '🐱', '🧸', '☁️', '🌙', '🎧', '🎬', '🍱', '💤'];
+
+    // 기념일 문구 가져오기 로직 (300일까지만 체크)
+    function getAnniversaryText(year, month, day) {
+        const baseDate = new Date(2026, 0, 10);
+        const targetDate = new Date(year, month, day);
+        const diffTime = targetDate - baseDate;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+        if (diffDays <= 0) return "";
+
+        // 1. n주년 체크 (매년 1월 10일)
+        if (diffDays > 1 && month === 0 && day === 10) {
+            return `${year - 2026}주년`;
+        }
+
+        // 2. 100일 단위 체크 (300일까지만)
+        if (diffDays <= 300 && diffDays % 100 === 0) {
+            return `${diffDays}일`;
+        }
+
+        return "";
+    }
+
+    // D-day 계산
+    function updateDday() {
+        const baseDate = new Date(2026, 0, 10);
+        const now = new Date();
+        const diffTime = now - baseDate;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+        ddayText.innerText = `D-${diffDays}`;
+    }
 
     function initStickers() {
         stickerGrid.innerHTML = "";
@@ -400,6 +500,7 @@
         for (let i = 1; i <= daysInMonth; i++) {
             const mStr = String(viewMonth + 1).padStart(2, '0');
             const dStr = String(i).padStart(2, '0');
+            const dateKey = `${mStr}-${dStr}`;
             const storageKey = `diary-${viewYear}-${mStr}-${dStr}`;
             const data = JSON.parse(localStorage.getItem(storageKey) || '{"comments":[], "sticker":""}');
             
@@ -409,12 +510,34 @@
             if (dow === 0) cell.classList.add('sunday');
             else if (dow === 6) cell.classList.add('saturday');
 
-            if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
-            if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) { cell.classList.add('holiday'); cell.title = holidays2026[`${mStr}-${dStr}`]; }
+            if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) {
+                cell.classList.add('today');
+            }
 
-            const heartHtml = (data.comments && data.comments.length > 0) ? '<span class="record-heart">💛</span>' : '';
+            if (viewYear === 2026 && holidays2026[dateKey]) { 
+                cell.classList.add('holiday'); 
+                cell.title = holidays2026[dateKey]; 
+            }
 
-            cell.innerHTML = `<div class="date-header"><span class="date-num">${i}</span>${heartHtml}</div><span class="sticker-display">${data.sticker || ""}</span>`;
+            const annivText = getAnniversaryText(viewYear, viewMonth, i);
+            let annivHtml = '';
+            if (annivText) {
+                cell.classList.add('anniversary');
+                annivHtml = `<span class="anniv-label">${annivText}</span>`;
+            }
+
+            const hasRecords = data.comments && data.comments.length > 0;
+            const heartHtml = hasRecords ? '<span class="record-heart">💛</span>' : '';
+
+            cell.innerHTML = `
+                <div class="date-header">
+                    ${annivHtml}
+                    <span class="date-num">${i}</span>
+                    ${heartHtml}
+                </div>
+                <span class="sticker-display">${data.sticker || ""}</span>
+            `;
+
             cell.onclick = () => openModal(i);
             dateContainer.appendChild(cell);
             cellsCreated++;
@@ -555,6 +678,7 @@
 
     initStickers();
     renderCalendar();
+    updateDday(); 
 </script>
 
 </body>
