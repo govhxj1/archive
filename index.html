@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gomi's Pink Dak-gu Calendar</title>
+    <title>Gomi's Shared Pink Diary</title>
     <style>
         @font-face {
             font-family: 'Pretendard-Regular';
@@ -27,13 +27,13 @@
             --main-radius: 15px;
         }
 
-        /* 스크롤 방지 및 전체 화면 고정 */
+        /* Prevent scroll and fix viewport */
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
             overflow: hidden;
-            touch-action: none; /* 전체 스크롤 방지 */
+            touch-action: manipulation;
         }
 
         body {
@@ -48,22 +48,34 @@
             box-sizing: border-box;
         }
 
+        /* Loading */
         #loading-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 240, 243, 0.9);
+            background: rgba(255, 240, 243, 1);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 2000;
             font-weight: bold;
             color: var(--point-pink);
+            transition: opacity 0.5s ease;
         }
 
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid var(--bg-pink);
+            border-top: 4px solid var(--point-pink); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Title closer to calendar */
         .main-title-container {
             text-align: center;
-            margin-top: 4.5vh; 
-            margin-bottom: 12px; 
+            margin-top: 4vh; 
+            margin-bottom: 10px; 
             animation: fadeInDown 0.8s ease;
             width: 100%;
         }
@@ -107,78 +119,49 @@
         }
 
         .nav-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 5px 10px;
+            background: none; border: none; color: white;
+            font-size: 1.2rem; cursor: pointer; padding: 5px 10px;
         }
 
         .header h2 { margin: 0; font-size: 1.1rem; letter-spacing: 1px; font-weight: 900; }
 
         .days {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            padding: 10px 5px; 
-            font-weight: 900; 
-            font-size: 0.8rem;
-            border-bottom: 1px solid #fff5f7;
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            text-align: center; padding: 10px 5px; font-weight: 900; 
+            font-size: 0.8rem; border-bottom: 1px solid #fff5f7;
         }
-
         .days div:nth-child(1) { color: var(--holiday-red); }
-        .days div:nth-child(n+2):nth-child(-n+6) { color: var(--text-dark); }
         .days div:nth-child(7) { color: var(--saturday-blue); }
 
         .dates {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            grid-template-rows: repeat(6, 1fr); 
-            gap: 4px;
-            padding: 10px 10px 0 10px;
-            height: clamp(320px, 82vw, 420px); 
+            display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(6, 1fr); 
+            gap: 4px; padding: 10px 10px 0 10px; height: clamp(320px, 82vw, 420px); 
         }
 
         .date-cell {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            border-radius: 10px;
-            cursor: pointer;
-            border: 1px solid #ffe5ec;
-            background: #fff;
-            padding-top: 4px;
-            position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            border-radius: 10px; cursor: pointer; border: 1px solid #ffe5ec; background: #fff;
+            padding-top: 4px; position: relative;
         }
-
         .date-cell:active { background: var(--bg-pink); }
         .date-cell.empty { border: 1px solid transparent; background: transparent; }
         .date-cell.today { border: 2px solid var(--point-pink); background: #fff9fa; }
-        .date-cell.sunday .date-num { color: var(--holiday-red); }
-        .date-cell.saturday .date-num { color: var(--saturday-blue); }
-        .date-cell.holiday .date-num { color: var(--holiday-red) !important; font-weight: 900; }
 
-        .date-header { width: 100%; display: flex; justify-content: center; align-items: center; position: relative; }
         .date-num { font-size: 0.7rem; color: #aaa; font-weight: 700; }
         
         .anniv-label { 
-            position: absolute; 
-            bottom: 3px; 
-            left: 50%; 
+            position: absolute; bottom: 3px; left: 50%; 
             transform: translateX(-50%) scale(0.85); 
-            font-size: 0.55rem; 
-            font-weight: 900; 
+            font-size: 0.55rem; font-weight: 900; 
             color: var(--anniv-text-color); 
-            white-space: nowrap;
-            z-index: 1;
+            white-space: nowrap; z-index: 1;
             text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.05);
         }
 
         .record-heart { position: absolute; right: 3px; top: -1px; font-size: 0.55rem; color: var(--heart-yellow); }
         .sticker-display { font-size: 1.25rem; margin-top: 2px; }
 
+        /* Full width D-day Bar */
         .dday-container {
             width: 100vw; 
             background: white;
@@ -194,89 +177,56 @@
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
-
         .dday-container:active { background: #fff9fa; }
         .dday-label { font-size: 0.75rem; color: var(--text-gray); font-weight: 700; }
         .dday-value { font-size: 1.4rem; color: var(--point-pink); font-weight: 900; }
 
+        /* Modal */
         .overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
-            z-index: 100;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); z-index: 100;
         }
 
         #diary-modal {
-            display: none;
-            position: fixed;
-            top: 50%; left: 50%;
+            display: none; position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            background: white;
-            width: 90%;
-            max-width: 380px;
-            max-height: 85vh;
-            padding: 20px;
-            border-radius: 25px;
-            z-index: 101;
+            background: white; width: 92%; max-width: 380px; max-height: 85vh;
+            padding: 20px; border-radius: 25px; z-index: 101;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            flex-direction: column;
-            box-sizing: border-box;
-            touch-action: auto; /* 모달 내부는 터치 허용 */
+            flex-direction: column; box-sizing: border-box;
+            touch-action: auto; 
         }
 
         .modal-header { display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
         .modal-title { color: var(--point-pink); margin: 0; font-size: 1.1rem; font-weight: 900; }
 
+        /* Sticker Slider */
         .sticker-slider-container {
-            width: 100%;
-            overflow: hidden;
-            position: relative;
-            background: var(--bg-pink);
-            border-radius: 15px;
-            margin-bottom: 10px;
-            padding: 10px 0;
-            touch-action: pan-x; /* 좌우 스와이프 허용 */
+            width: 100%; overflow: hidden; position: relative; background: var(--bg-pink);
+            border-radius: 15px; margin-bottom: 10px; padding: 10px 0;
+            touch-action: pan-x; 
         }
 
         .sticker-wrapper {
-            display: flex;
-            transition: transform 0.3s ease-out;
-            width: 300%;
+            display: flex; transition: transform 0.3s ease-out; width: 300%;
         }
 
         .sticker-page {
-            width: 33.333%;
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: 4px;
-            padding: 0 10px;
-            box-sizing: border-box;
+            width: 33.333%; display: grid; grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(3, 1fr); gap: 4px; padding: 0 10px; box-sizing: border-box;
         }
 
         .sticker-option {
-            font-size: 1.15rem;
-            cursor: pointer;
-            text-align: center;
-            padding: 6px 0;
-            border-radius: 8px;
-            transition: background 0.2s;
+            font-size: 1.15rem; cursor: pointer; text-align: center;
+            padding: 6px 0; border-radius: 8px; transition: background 0.2s;
         }
-
         .sticker-option.selected { background: var(--main-pink); }
 
-        .pagination-dots {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .dot { width: 6px; height: 6px; background: #ddd; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        .pagination-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; }
+        .dot { width: 6px; height: 6px; background: #ddd; border-radius: 50%; cursor: pointer; }
         .dot.active { background: var(--main-pink); transform: scale(1.3); }
 
+        /* Comments */
         .comment-section { flex: 1; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; }
         .comment-item { background: var(--bg-pink); padding: 10px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px; }
         .comment-img { width: 100%; border-radius: 8px; display: block; border: 2px solid white; }
@@ -297,12 +247,13 @@
 </head>
 <body>
 
-<div id="loading-overlay">클라우드 동기화 중... 🌸</div>
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <div id="loading-text">공동 일기장 연결 중... 🌸</div>
+</div>
 
 <div class="main-title-container">
-    <h1 class="main-title">
-        <span>💛</span> 싱벙한 추억 일기 <span>💛</span>
-    </h1>
+    <h1 class="main-title"><span>💛</span> 싱벙한 추억 일기 <span>💛</span></h1>
 </div>
 
 <div class="calendar-container">
@@ -325,9 +276,7 @@
 <div class="overlay" id="overlay"></div>
 <div id="diary-modal">
     <button class="close-modal-btn" id="close-modal">✕</button>
-    <div class="modal-header">
-        <h3 id="selected-date" class="modal-title">날짜</h3>
-    </div>
+    <div class="modal-header"><h3 id="selected-date" class="modal-title">날짜</h3></div>
     
     <div class="sticker-slider-container" id="sticker-slider">
         <div class="sticker-wrapper" id="sticker-wrapper"></div>
@@ -338,9 +287,7 @@
         <div class="dot" data-page="2"></div>
     </div>
 
-    <div class="comment-section">
-        <div id="comment-list" class="comment-list"></div>
-    </div>
+    <div class="comment-section"><div id="comment-list"></div></div>
 
     <div class="input-area">
         <div class="img-preview-container" id="preview-box">
@@ -361,13 +308,14 @@
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+    // [Firebase Config] Fill in your project settings here!
     const firebaseConfig = typeof __firebase_config !== 'undefined' 
         ? JSON.parse(__firebase_config) 
         : {
             apiKey: "AIzaSyB-hq1CBtux14k5zin3RlqpsnE-AOFKPoc",
             authDomain: "archive-3e5da.firebaseapp.com",
             projectId: "archive-3e5da",
-            storageBucket: "rchive-3e5da.firebasestorage.app",
+            storageBucket: "archive-3e5da.firebasestorage.app",
             messagingSenderId: "585863845966",
             appId: "1:585863845966:web:ddc811abff636222590b1f"
         };
@@ -375,213 +323,108 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'gomi-diary-app';
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'shared-gomi-diary-app';
 
     let user = null;
     let cloudRecords = {}; 
-    let viewYear = 2026;
-    let viewMonth = 1; 
-    let currentDay = 0;
-    let selectedSticker = "";
-    let comments = [];
-    let selectedImgBase64 = "";
-    let isDateMode = false;
-    let currentPage = 0; // 스티커 현재 페이지
+    let viewYear = 2026, viewMonth = 1, currentDay = 0, selectedSticker = "", comments = [], selectedImgBase64 = "", isDateMode = false, currentPage = 0;
 
-    const dateContainer = document.getElementById('calendar-dates');
-    const monthTitle = document.getElementById('month-title');
-    const stickerWrapper = document.getElementById('sticker-wrapper');
-    const dots = document.querySelectorAll('.dot');
-    const commentListContainer = document.getElementById('comment-list');
-    const diaryInput = document.getElementById('diary-input');
-    const imgPreview = document.getElementById('img-preview');
-    const previewBox = document.getElementById('preview-box');
-    const ddayText = document.getElementById('dday-text');
-    const ddayLabel = document.getElementById('dday-label');
-    const loadingOverlay = document.getElementById('loading-overlay');
+    const dateContainer = document.getElementById('calendar-dates'), monthTitle = document.getElementById('month-title'), stickerWrapper = document.getElementById('sticker-wrapper'), dots = document.querySelectorAll('.dot'), commentListContainer = document.getElementById('comment-list'), diaryInput = document.getElementById('diary-input'), imgPreview = document.getElementById('img-preview'), previewBox = document.getElementById('preview-box'), ddayText = document.getElementById('dday-text'), ddayLabel = document.getElementById('dday-label'), loadingOverlay = document.getElementById('loading-overlay');
 
-    // 인증 및 데이터 리스너
-    const initAuth = async () => {
-        try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-        } catch(e) {
-            console.error("Auth Error:", e);
-        }
-    };
+    const hideLoading = () => { loadingOverlay.style.opacity = '0'; setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500); };
+    setTimeout(hideLoading, 5000); 
 
-    onAuthStateChanged(auth, (u) => {
+    // Firebase Auth & Shared Data Sync
+    onAuthStateChanged(auth, async (u) => {
         user = u;
         if (user) {
-            const diaryRef = collection(db, 'artifacts', appId, 'users', user.uid, 'diaryRecords');
+            // Using Shared Path: artifacts/{appId}/public/data/diaryRecords
+            const diaryRef = collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords');
             onSnapshot(diaryRef, (snapshot) => {
                 cloudRecords = {};
-                snapshot.forEach(doc => {
-                    cloudRecords[doc.id] = doc.data();
-                });
-                renderCalendar();
-                updateDday();
-                loadingOverlay.style.display = 'none';
-            });
+                snapshot.forEach(doc => { cloudRecords[doc.id] = doc.data(); });
+                renderCalendar(); updateDday(); hideLoading();
+            }, (err) => { console.error(err); hideLoading(); });
         }
     });
 
+    const initAuth = async () => {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { await signInWithCustomToken(auth, __initial_auth_token); } 
+        else { await signInAnonymously(auth); }
+    };
     initAuth();
 
-    const holidays2026 = {
-        "01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴",
-        "03-01": "삼일절", "03-02": "대체공휴일", "05-05": "어린이날", "05-24": "부처님오신날",
-        "05-25": "대체공휴일", "06-03": "지방선거", "06-06": "현충일", "08-15": "광복절", "08-17": "대체공휴일",
-        "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", "10-03": "개천절",
-        "10-05": "대체공휴일", "10-09": "한글날", "12-25": "성탄절"
-    };
-
-    const allStickers = [
-        '💛', '💖', '❤️', '🧡', '💚', '💙', '💜', '❣️',
-        '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇',
-        '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️',
-        '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️',
-        '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕',
-        '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤',
-        '🐱', '🐶', '🧸', '🦄', '🐰', '🐥', '🐼', '🦁',
-        '🎧', '🎬', '🎮', '⚽', '📚', '💻', '🎸', '📷',
-        '🎈', '🎁', '💎', '💌', '🌻', '🌳', '🐚', '🏔️'
-    ];
+    // 72 Stickers
+    const allStickers = ['💛', '💖', '❤️', '🧡', '💚', '💙', '💜', '❣️', '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇', '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️', '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️', '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕', '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤', '🐱', '🐶', '🧸', '🦄', '🐰', '🐥', '🐼', '🦁', '🎧', '🎬', '🎮', '⚽', '📚', '💻', '🎸', '📷', '🎈', '🎁', '💎', '💌', '🌻', '🌳', '🐚', '🏔️'];
 
     function initStickers() {
         stickerWrapper.innerHTML = "";
         for (let p = 0; p < 3; p++) {
-            const pageDiv = document.createElement('div');
-            pageDiv.className = 'sticker-page';
-            const pageStickers = allStickers.slice(p * 24, (p + 1) * 24);
-            pageStickers.forEach(s => {
-                const span = document.createElement('span');
-                span.className = 'sticker-option';
-                span.innerText = s;
-                span.onclick = () => selectSticker(s);
+            const pageDiv = document.createElement('div'); pageDiv.className = 'sticker-page';
+            allStickers.slice(p * 24, (p + 1) * 24).forEach(s => {
+                const span = document.createElement('span'); span.className = 'sticker-option'; span.innerText = s;
+                span.onclick = () => { selectedSticker = (selectedSticker === s) ? "" : s; updateStickerUI(); saveData(); };
                 pageDiv.appendChild(span);
             });
             stickerWrapper.appendChild(pageDiv);
         }
     }
 
-    // 스티커 페이지 넘기기 기능
-    window.goToStickerPage = function(index) {
-        if (index < 0) index = 0;
-        if (index > 2) index = 2;
-        currentPage = index;
+    window.goToStickerPage = (index) => {
+        if (index < 0 || index > 2) return; currentPage = index;
         stickerWrapper.style.transform = `translateX(-${index * 33.333}%)`;
-        document.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('active', i === index));
-    }
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+    };
 
-    // 터치 스와이프 기능 추가
+    // Touch Swipe for Stickers
     let touchStartX = 0;
     const stickerSlider = document.getElementById('sticker-slider');
-
-    stickerSlider.addEventListener('touchstart', (e) => {
-        touchStartX = e.touches[0].clientX;
-    });
-
+    stickerSlider.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive: true});
     stickerSlider.addEventListener('touchend', (e) => {
-        let touchEndX = e.changedTouches[0].clientX;
-        let diff = touchStartX - touchEndX;
-
-        if (diff > 50) { // 왼쪽으로 밀기 (다음 페이지)
-            window.goToStickerPage(currentPage + 1);
-        } else if (diff < -50) { // 오른쪽으로 밀기 (이전 페이지)
-            window.goToStickerPage(currentPage - 1);
-        }
+        let diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) window.goToStickerPage(currentPage + (diff > 0 ? 1 : -1));
     });
 
-    dots.forEach(dot => {
-        dot.onclick = () => window.goToStickerPage(parseInt(dot.dataset.page));
-    });
-
-    function getAnniversaryText(year, month, day) {
-        const baseDate = new Date(2026, 0, 10);
-        const targetDate = new Date(year, month, day);
-        const diffTime = targetDate - baseDate;
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        if (diffDays <= 0) return "";
-        if (diffDays > 1 && month === 0 && day === 10) return `${year - 2026}주년`;
-        if (diffDays <= 300 && diffDays % 100 === 0) return `${diffDays}일`;
-        return "";
-    }
+    dots.forEach(dot => dot.onclick = () => window.goToStickerPage(parseInt(dot.dataset.page)));
 
     function updateDday() {
-        if (isDateMode) {
-            ddayLabel.innerText = "우리가 시작한 소중한 날짜";
-            ddayText.innerText = "2026.01.10";
-        } else {
-            const baseDate = new Date(2026, 0, 10);
-            const now = new Date();
-            const diffTime = now - baseDate;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; 
-            ddayLabel.innerText = "우리가 함께한 소중한 시간";
-            ddayText.innerText = `D-${diffDays}`;
+        if (isDateMode) { ddayLabel.innerText = "우리가 시작한 소중한 날짜"; ddayText.innerText = "2026.01.10"; } 
+        else {
+            const diffDays = Math.floor((new Date() - new Date(2026, 0, 10)) / 86400000) + 1;
+            ddayLabel.innerText = "우리가 함께한 소중한 시간"; ddayText.innerText = `D-${diffDays}`;
         }
     }
+    document.getElementById('dday-container').onclick = () => { isDateMode = !isDateMode; updateDday(); };
 
-    document.getElementById('dday-container').onclick = () => {
-        isDateMode = !isDateMode;
-        updateDday();
-    }
+    const holidays2026 = {"01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", "03-01": "삼일절", "05-05": "어린이날", "05-24": "부처님오신날", "06-06": "현충일", "08-15": "광복절", "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", "10-03": "개천절", "10-09": "한글날", "12-25": "성탄절"};
 
     function renderCalendar() {
-        dateContainer.innerHTML = "";
-        monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
+        dateContainer.innerHTML = ""; monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
         const firstDay = new Date(viewYear, viewMonth, 1).getDay();
         const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
         const today = new Date();
-        let cellsCreated = 0;
-
-        for (let i = 0; i < firstDay; i++) {
-            const emptyCell = document.createElement('div');
-            emptyCell.className = 'date-cell empty';
-            dateContainer.appendChild(emptyCell);
-            cellsCreated++;
-        }
-
+        for (let i = 0; i < firstDay; i++) { dateContainer.appendChild(Object.assign(document.createElement('div'), {className: 'date-cell empty'})); }
         for (let i = 1; i <= daysInMonth; i++) {
             const mStr = String(viewMonth + 1).padStart(2, '0');
             const dStr = String(i).padStart(2, '0');
-            const dateKey = `${viewYear}-${mStr}-${dStr}`; 
+            const dateKey = `${viewYear}-${mStr}-${dStr}`;
             const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
-            
-            const cell = document.createElement('div');
-            cell.className = 'date-cell';
-            const dow = cellsCreated % 7;
-            if (dow === 0) cell.classList.add('sunday');
-            else if (dow === 6) cell.classList.add('saturday');
-
+            const cell = document.createElement('div'); cell.className = 'date-cell';
+            if ((i + firstDay - 1) % 7 === 0) cell.style.color = 'var(--holiday-red)';
+            if ((i + firstDay - 1) % 7 === 6) cell.style.color = 'var(--saturday-blue)';
+            if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) cell.style.color = 'var(--holiday-red)';
             if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
-            if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) { cell.classList.add('holiday'); }
 
-            const annivText = getAnniversaryText(viewYear, viewMonth, i);
-            let annivHtml = annivText ? `<span class="anniv-label">${annivText}</span>` : '';
-            const heartHtml = (data.comments && data.comments.length > 0) ? '<span class="record-heart">💛</span>' : '';
+            const diff = Math.floor((new Date(viewYear, viewMonth, i) - new Date(2026, 0, 10)) / 86400000) + 1;
+            let anniv = (diff > 0 && diff % 100 === 0) ? `${diff}일` : (viewMonth === 0 && i === 10 && viewYear > 2026) ? `${viewYear-2026}주년` : "";
 
             cell.innerHTML = `
-                <div class="date-header">
-                    <span class="date-num">${i}</span>
-                    ${heartHtml}
-                </div>
+                <div class="date-header"><span class="date-num">${i}</span>${data.comments?.length ? '<span class="record-heart">💛</span>' : ''}</div>
                 <span class="sticker-display">${data.sticker || ""}</span>
-                ${annivHtml}
+                ${anniv ? `<span class="anniv-label">${anniv}</span>` : ''}
             `;
             cell.onclick = () => openModal(i);
             dateContainer.appendChild(cell);
-            cellsCreated++;
-        }
-
-        while (cellsCreated < 42) {
-            const emptyCell = document.createElement('div');
-            emptyCell.className = 'date-cell empty';
-            dateContainer.appendChild(emptyCell);
-            cellsCreated++;
         }
     }
 
@@ -589,129 +432,58 @@
     document.getElementById('next-month').onclick = () => { viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); };
 
     function openModal(day) {
-        currentDay = day;
-        const mStr = String(viewMonth + 1).padStart(2, '0');
-        const dateKey = `${viewYear}-${mStr}-${String(day).padStart(2, '0')}`;
+        currentDay = day; const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
-        
         document.getElementById('selected-date').innerText = `${viewMonth + 1}월 ${day}일 기록`;
-        selectedSticker = data.sticker || "";
-        comments = data.comments || [];
-        
-        updateStickerUI();
-        renderComments();
-        removeSelectedImg();
-        window.goToStickerPage(0);
-        document.getElementById('diary-modal').style.display = 'flex';
-        document.getElementById('overlay').style.display = 'block';
+        selectedSticker = data.sticker || ""; comments = data.comments || [];
+        updateStickerUI(); renderComments(); previewBox.style.display = 'none'; window.goToStickerPage(0);
+        document.getElementById('diary-modal').style.display = 'flex'; document.getElementById('overlay').style.display = 'block';
     }
 
-    document.getElementById('img-upload').onchange = (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.src = e.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const maxWidth = 400; 
-                let width = img.width;
-                let height = img.height;
-                if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
-                canvas.width = width; canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-                selectedImgBase64 = canvas.toDataURL('image/jpeg', 0.5); 
-                imgPreview.src = selectedImgBase64;
-                previewBox.style.display = 'block';
+    document.getElementById('img-upload').onchange = (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader(); reader.onload = (ev) => {
+            const img = new Image(); img.src = ev.target.result; img.onload = () => {
+                const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                let w = img.width, h = img.height; if (w > 400) { h *= 400/w; w = 400; }
+                canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
+                selectedImgBase64 = canvas.toDataURL('image/jpeg', 0.5); imgPreview.src = selectedImgBase64; previewBox.style.display = 'block';
             };
-        };
-        reader.readAsDataURL(file);
+        }; reader.readAsDataURL(file);
     };
 
-    function removeSelectedImg() { 
-        selectedImgBase64 = ""; imgPreview.src = ""; previewBox.style.display = 'none'; 
-        document.getElementById('img-upload').value = ""; 
-    }
-    document.getElementById('remove-img').onclick = removeSelectedImg;
+    document.getElementById('remove-img').onclick = () => { selectedImgBase64 = ""; previewBox.style.display = 'none'; };
 
-    function selectSticker(sticker) { 
-        selectedSticker = (selectedSticker === sticker) ? "" : sticker; 
-        updateStickerUI(); 
-        saveData(); 
-    }
-
-    function updateStickerUI() { 
-        document.querySelectorAll('.sticker-option').forEach(opt => { 
-            opt.classList.toggle('selected', opt.innerText === selectedSticker); 
-        }); 
-    }
-
+    const updateStickerUI = () => document.querySelectorAll('.sticker-option').forEach(opt => opt.classList.toggle('selected', opt.innerText === selectedSticker));
+    
     function renderComments() {
-        commentListContainer.innerHTML = "";
-        if (comments.length === 0) { 
-            commentListContainer.innerHTML = '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">추억을 저장해보세요</p>'; 
-            return; 
-        }
-        comments.forEach((c, index) => {
-            const div = document.createElement('div');
-            div.className = 'comment-item';
-            let imgHtml = c.img ? `<img src="${c.img}" class="comment-img">` : '';
-            div.innerHTML = `${imgHtml}<div class="comment-content"><span class="comment-text">${c.text}</span><button class="delete-btn" data-index="${index}">✕</button></div>`;
+        commentListContainer.innerHTML = comments.length ? "" : '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">함께 추억을 남겨요 🌸</p>';
+        comments.forEach((c, i) => {
+            const div = document.createElement('div'); div.className = 'comment-item';
+            div.innerHTML = `${c.img ? `<img src="${c.img}" class="comment-img">` : ''}<div class="comment-content"><span>${c.text}</span><button class="delete-btn" onclick="window.delComm(${i})">✕</button></div>`;
             commentListContainer.appendChild(div);
-        });
-        
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.onclick = () => deleteComment(parseInt(btn.dataset.index));
         });
         document.querySelector('.comment-section').scrollTop = commentListContainer.scrollHeight;
     }
 
-    async function addComment() {
-        const text = diaryInput.value.trim();
-        if (!text && !selectedImgBase64) return;
-        comments.push({ text: text || "사진 기록", img: selectedImgBase64 });
-        diaryInput.value = "";
-        removeSelectedImg();
-        renderComments();
-        await saveData();
-    }
-    document.getElementById('add-comment-btn').onclick = addComment;
-    diaryInput.onkeypress = (e) => { if(e.keyCode == 13) addComment(); };
+    window.delComm = async (i) => { comments.splice(i, 1); renderComments(); await saveData(); };
 
-    async function deleteComment(index) { 
-        comments.splice(index, 1); 
-        renderComments(); 
-        await saveData(); 
-    }
+    document.getElementById('add-comment-btn').onclick = async () => {
+        if (!diaryInput.value.trim() && !selectedImgBase64) return;
+        comments.push({ text: diaryInput.value.trim() || "사진 기록", img: selectedImgBase64 });
+        diaryInput.value = ""; selectedImgBase64 = ""; previewBox.style.display = 'none'; renderComments(); await saveData();
+    };
 
     async function saveData() {
         if (!user) return;
-        const mStr = String(viewMonth + 1).padStart(2, '0');
-        const dateKey = `${viewYear}-${mStr}-${String(currentDay).padStart(2, '0')}`;
-        const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'diaryRecords', dateKey);
-        try {
-            await setDoc(docRef, { comments, sticker: selectedSticker });
-        } catch(e) {
-            console.error("Save Error:", e);
-        }
+        const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'diaryRecords', dateKey), { comments, sticker: selectedSticker });
     }
 
-    const closeModal = () => { 
-        diaryInput.value = ""; removeSelectedImg(); 
-        document.getElementById('diary-modal').style.display = 'none'; 
-        document.getElementById('overlay').style.display = 'none'; 
-    };
-    document.getElementById('close-modal').onclick = closeModal;
-    document.getElementById('overlay').onclick = closeModal;
+    const closeModal = () => { document.getElementById('diary-modal').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; };
+    document.getElementById('close-modal').onclick = closeModal; document.getElementById('overlay').onclick = closeModal;
 
-    initStickers();
-    renderCalendar();
-    updateDday(); 
+    initStickers(); renderCalendar(); updateDday(); 
 </script>
-
 </body>
 </html>
-
-
