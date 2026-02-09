@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Gomi's Pink Dak-gu Calendar</title>
     <style>
         @font-face {
@@ -16,12 +16,20 @@
             --main-pink: #ffafcc;
             --point-pink: #ff8fab;
             --bg-pink: #fff0f3;
-            --text-dark: #777777; 
-            --text-gray: #888888;
+            --text-dark: #555555; 
+            --text-gray: #777777;
             --heart-yellow: #ffde59;
             --holiday-red: #ff4d6d; 
             --saturday-blue: #4da3ff;
-            --anniv-text-color: #fbc02d;   /* 기념일 문구 노란색 */
+            --anniv-text-color: #fbc02d;
+        }
+
+        /* 스크롤 제거 및 한 화면 고정 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
 
         body {
@@ -29,87 +37,81 @@
             background-color: var(--bg-pink);
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: center; /* 세로 중앙 정렬 */
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
             color: var(--text-gray);
-            overflow-x: hidden;
-            padding: 20px 0;
+            padding: 10px 0;
             box-sizing: border-box;
         }
 
-        /* 메인 타이틀 */
+        /* 메인 타이틀 여백 축소 */
         .main-title-container {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             animation: fadeInDown 0.8s ease;
         }
 
         .main-title {
-            font-size: clamp(1.3rem, 5vw, 1.8rem);
+            font-size: clamp(1.2rem, 4.5vw, 1.6rem);
             color: var(--point-pink);
-            font-weight: bold;
+            font-weight: 900; /* 아주 두껍게 */
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            text-shadow: 2px 2px 4px rgba(255, 143, 171, 0.2);
+            gap: 8px;
+            margin: 0;
         }
 
-        .main-title span { font-size: 1.1em; } /* 하트 크기 살짝 조정 */
-
         @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
+            from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 달력 컨테이너 */
+        /* 달력 컨테이너 크기 최적화 */
         .calendar-container {
             width: 92%;
-            max-width: 450px;
+            max-width: 420px;
             background: white;
             border-radius: 25px;
-            box-shadow: 0 10px 30px rgba(255, 143, 171, 0.15);
+            box-shadow: 0 8px 25px rgba(255, 143, 171, 0.15);
             overflow: hidden;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
+            padding-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .header {
             background: var(--main-pink);
             color: white;
-            padding: 15px 20px;
+            padding: 12px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-weight: bold;
         }
 
         .nav-btn {
             background: none;
             border: none;
             color: white;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             cursor: pointer;
-            padding: 10px;
-            transition: transform 0.2s;
+            padding: 5px 10px;
         }
 
-        /* 년/월 폰트 두께 조절 */
+        /* 년/월 폰트 매우 두껍게 강조 */
         .header h2 { 
             margin: 0; 
-            font-size: 1.2rem; 
+            font-size: 1.15rem; 
             letter-spacing: 1px;
-            font-weight: 800; /* 조금 더 두껍게 설정 */
+            font-weight: 900; 
         }
 
+        /* 요일 폰트 매우 두껍게 강조 */
         .days {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
-            padding: 15px 5px 10px 5px;
-            font-weight: 900; /* 요일 폰트 아주 두껍게 설정 */
+            padding: 12px 5px 8px 5px;
+            font-weight: 900; 
             font-size: 0.85rem;
         }
 
@@ -117,13 +119,14 @@
         .days div:nth-child(n+2):nth-child(-n+6) { color: var(--text-dark); }
         .days div:nth-child(7) { color: var(--saturday-blue); }
 
+        /* 날짜 영역 높이 유연하게 조절 */
         .dates {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             grid-template-rows: repeat(6, 1fr); 
-            gap: 5px;
+            gap: 4px;
             padding: 0 10px;
-            height: clamp(300px, 80vw, 380px);
+            height: clamp(280px, 70vw, 360px);
         }
 
         .date-cell {
@@ -135,228 +138,95 @@
             cursor: pointer;
             border: 1px solid #ffe5ec;
             background: #fff;
-            transition: all 0.2s ease;
-            padding-top: 4px;
+            padding-top: 3px;
             position: relative;
-            overflow: hidden;
         }
 
-        .date-cell:active { transform: scale(0.95); background: var(--bg-pink); }
-        .date-cell.empty { border: 1px solid transparent; background: transparent; cursor: default; }
+        .date-cell:active { background: var(--bg-pink); }
+        .date-cell.empty { border: 1px solid transparent; background: transparent; }
         .date-cell.today { border: 2px solid var(--point-pink); background: #fff9fa; }
-        
-        .date-cell.anniversary {
-            border-color: var(--heart-yellow);
-        }
-        
-        .anniv-label {
-            position: absolute;
-            left: 2px;
-            top: 1px;
-            font-size: 0.5rem;
-            font-weight: bold;
-            color: var(--anniv-text-color);
-            transform: scale(0.9);
-            transform-origin: left top;
-            white-space: nowrap;
-        }
-
         .date-cell.sunday .date-num { color: var(--holiday-red); }
         .date-cell.saturday .date-num { color: var(--saturday-blue); }
-        .date-cell.holiday .date-num { color: var(--holiday-red) !important; font-weight: bold; }
+        .date-cell.holiday .date-num { color: var(--holiday-red) !important; font-weight: 900; }
 
-        .date-header {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
+        .date-header { width: 100%; display: flex; justify-content: center; align-items: center; position: relative; }
+        .date-num { font-size: 0.65rem; color: #aaa; font-weight: 700; }
+        .anniv-label { position: absolute; left: 2px; top: 1px; font-size: 0.5rem; font-weight: 900; color: var(--anniv-text-color); transform: scale(0.85); transform-origin: left top; }
+        .record-heart { position: absolute; right: 2px; top: -1px; font-size: 0.55rem; color: var(--heart-yellow); }
+        .sticker-display { font-size: 1.1rem; margin-top: 1px; }
 
-        .date-num { font-size: 0.65rem; color: #bbb; }
-        .record-heart { position: absolute; right: 2px; top: -2px; font-size: 0.55rem; color: var(--heart-yellow); }
-        .sticker-display { font-size: 1.1rem; margin-top: 2px; }
-
-        /* D-day 디스플레이 */
+        /* D-day 영역 여백 최적화 */
         .dday-container {
             width: 92%;
-            max-width: 450px;
+            max-width: 420px;
             background: white;
             border-radius: 20px;
-            padding: 15px;
-            box-shadow: 0 8px 20px rgba(255, 143, 171, 0.1);
+            padding: 12px;
+            box-shadow: 0 6px 20px rgba(255, 143, 171, 0.1);
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 2px;
             animation: fadeInUp 1s ease;
-            box-sizing: border-box;
         }
 
-        .dday-label {
-            font-size: 0.75rem;
-            color: var(--text-gray);
-            letter-spacing: 0.5px;
-        }
-
-        .dday-value {
-            font-size: 1.5rem;
-            color: var(--point-pink);
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .dday-label { font-size: 0.7rem; color: var(--text-gray); }
+        .dday-value { font-size: 1.4rem; color: var(--point-pink); font-weight: 900; }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 모달 스타일 */
+        /* 모달 스타일 유지 */
         .overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(4px);
-            z-index: 90;
+            z-index: 100;
         }
 
         #diary-modal {
             display: none;
             position: fixed;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             background: white;
             width: 90%;
             max-width: 380px;
-            max-height: 85vh;
+            max-height: 80vh;
             padding: 20px;
             border-radius: 25px;
-            z-index: 100;
+            z-index: 101;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             flex-direction: column;
             box-sizing: border-box;
         }
 
-        .modal-header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-right: 20px;
-        }
-
-        .modal-title { color: var(--point-pink); margin: 0; font-size: 1.1rem; }
-
-        .comment-section {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 15px;
-            padding-right: 5px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .comment-item {
-            background: var(--bg-pink);
-            padding: 10px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            position: relative;
-        }
-
+        .modal-header { display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
+        .modal-title { color: var(--point-pink); margin: 0; font-size: 1.1rem; font-weight: 900; }
+        .comment-section { flex: 1; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; }
+        .comment-item { background: var(--bg-pink); padding: 10px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px; }
         .comment-img { width: 100%; border-radius: 8px; display: block; border: 2px solid white; }
         .comment-content { display: flex; justify-content: space-between; align-items: center; }
-        .delete-btn { background: none; border: none; color: #ccc; cursor: pointer; padding: 5px; font-size: 0.9rem; }
+        .delete-btn { background: none; border: none; color: #ccc; cursor: pointer; padding: 5px; }
 
-        .input-area {
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 18px;
-            border: 1px solid #ffe5ec;
-            width: 100%;
-            box-sizing: border-box;
-        }
+        .input-area { background: #f9f9f9; padding: 10px; border-radius: 18px; border: 1px solid #ffe5ec; box-sizing: border-box; }
+        .input-controls { display: flex; align-items: center; gap: 5px; }
+        #diary-input { flex: 1; border: none; background: none; outline: none; font-family: inherit; font-size: 0.9rem; padding: 8px 5px; min-width: 0; }
+        .icon-btn { font-size: 1.3rem; cursor: pointer; color: var(--point-pink); padding: 5px; flex-shrink: 0; }
+        .add-btn { background: var(--main-pink); color: white; border: none; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 900; font-size: 0.85rem; flex-shrink: 0; }
 
-        .input-controls {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            width: 100%;
-        }
-
-        #diary-input {
-            flex: 1;
-            min-width: 0; 
-            border: none;
-            background: none;
-            outline: none;
-            font-family: inherit;
-            font-size: 0.9rem;
-            padding: 8px 5px;
-        }
-
-        .icon-btn {
-            font-size: 1.3rem;
-            cursor: pointer;
-            color: var(--point-pink);
-            padding: 5px;
-            flex-shrink: 0; 
-        }
-
-        .add-btn {
-            background: var(--main-pink);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.85rem;
-            flex-shrink: 0; 
-            white-space: nowrap; 
-        }
-
-        .img-preview-container {
-            display: none;
-            margin-bottom: 10px;
-            position: relative;
-        }
-
-        #img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 2px solid var(--main-pink); }
-
-        .remove-img-btn {
-            position: absolute; top: -8px; left: 45px;
-            background: var(--point-pink); color: white; border-radius: 50%;
-            width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; border: 2px solid white;
-        }
-
-        .sticker-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 4px;
-            margin-bottom: 10px;
-            padding: 8px;
-            background: var(--bg-pink);
-            border-radius: 12px;
-        }
-
+        .sticker-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 10px; padding: 8px; background: var(--bg-pink); border-radius: 12px; }
         .sticker-option { font-size: 1.1rem; cursor: pointer; text-align: center; padding: 4px; border-radius: 6px; }
         .sticker-option.selected { background: var(--main-pink); }
-
-        .close-modal-btn {
-            position: absolute; top: 15px; right: 15px;
-            background: none; border: none; font-size: 1.2rem; color: #ccc; cursor: pointer;
-            z-index: 110;
-        }
+        .close-modal-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.2rem; color: #ccc; cursor: pointer; z-index: 110; }
+        .img-preview-container { display: none; margin-bottom: 10px; position: relative; }
+        #img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 2px solid var(--main-pink); }
+        .remove-img-btn { position: absolute; top: -8px; left: 45px; background: var(--point-pink); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
     </style>
 </head>
 <body>
@@ -379,7 +249,6 @@
     <div class="dates" id="calendar-dates"></div>
 </div>
 
-<!-- D-day 디스플레이 컨테이너 -->
 <div class="dday-container">
     <div class="dday-label">우리가 함께한 소중한 시간</div>
     <div class="dday-value" id="dday-text">D-0</div>
@@ -391,14 +260,11 @@
     <div class="modal-header">
         <h3 id="selected-date" class="modal-title">날짜</h3>
     </div>
-    
-    <span style="font-size: 0.7rem; color: #aaa; margin-bottom: 5px; padding-left: 5px;">기분 스티커</span>
+    <span style="font-size: 0.65rem; color: #aaa; margin-bottom: 4px; padding-left: 5px;">기분 스티커</span>
     <div class="sticker-grid" id="sticker-grid"></div>
-
     <div class="comment-section">
         <div id="comment-list" class="comment-list"></div>
     </div>
-
     <div class="input-area">
         <div class="img-preview-container" id="preview-box">
             <img id="img-preview" src="" alt="미리보기">
@@ -440,29 +306,17 @@
 
     const stickers = ['😊', '🥰', '😭', '😡', '✨', '🌸', '🍰', '☕', '🐱', '🧸', '☁️', '🌙', '🎧', '🎬', '🍱', '💤'];
 
-    // 기념일 문구 가져오기 로직 (300일까지만 체크)
     function getAnniversaryText(year, month, day) {
         const baseDate = new Date(2026, 0, 10);
         const targetDate = new Date(year, month, day);
         const diffTime = targetDate - baseDate;
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
         if (diffDays <= 0) return "";
-
-        // 1. n주년 체크 (매년 1월 10일)
-        if (diffDays > 1 && month === 0 && day === 10) {
-            return `${year - 2026}주년`;
-        }
-
-        // 2. 100일 단위 체크 (300일까지만)
-        if (diffDays <= 300 && diffDays % 100 === 0) {
-            return `${diffDays}일`;
-        }
-
+        if (diffDays > 1 && month === 0 && day === 10) return `${year - 2026}주년`;
+        if (diffDays <= 300 && diffDays % 100 === 0) return `${diffDays}일`;
         return "";
     }
 
-    // D-day 계산
     function updateDday() {
         const baseDate = new Date(2026, 0, 10);
         const now = new Date();
@@ -510,34 +364,14 @@
             if (dow === 0) cell.classList.add('sunday');
             else if (dow === 6) cell.classList.add('saturday');
 
-            if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) {
-                cell.classList.add('today');
-            }
-
-            if (viewYear === 2026 && holidays2026[dateKey]) { 
-                cell.classList.add('holiday'); 
-                cell.title = holidays2026[dateKey]; 
-            }
+            if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
+            if (viewYear === 2026 && holidays2026[dateKey]) { cell.classList.add('holiday'); }
 
             const annivText = getAnniversaryText(viewYear, viewMonth, i);
-            let annivHtml = '';
-            if (annivText) {
-                cell.classList.add('anniversary');
-                annivHtml = `<span class="anniv-label">${annivText}</span>`;
-            }
+            let annivHtml = annivText ? `<span class="anniv-label">${annivText}</span>` : '';
+            const heartHtml = (data.comments && data.comments.length > 0) ? '<span class="record-heart">💛</span>' : '';
 
-            const hasRecords = data.comments && data.comments.length > 0;
-            const heartHtml = hasRecords ? '<span class="record-heart">💛</span>' : '';
-
-            cell.innerHTML = `
-                <div class="date-header">
-                    ${annivHtml}
-                    <span class="date-num">${i}</span>
-                    ${heartHtml}
-                </div>
-                <span class="sticker-display">${data.sticker || ""}</span>
-            `;
-
+            cell.innerHTML = `<div class="date-header">${annivHtml}<span class="date-num">${i}</span>${heartHtml}</div><span class="sticker-display">${data.sticker || ""}</span>`;
             cell.onclick = () => openModal(i);
             dateContainer.appendChild(cell);
             cellsCreated++;
@@ -563,24 +397,19 @@
         const mStr = String(viewMonth + 1).padStart(2, '0');
         const key = `diary-${viewYear}-${mStr}-${String(day).padStart(2, '0')}`;
         const data = JSON.parse(localStorage.getItem(key) || '{"comments":[], "sticker":""}');
-        
         document.getElementById('selected-date').innerText = `${viewMonth + 1}월 ${day}일 기록`;
         selectedSticker = data.sticker || "";
         comments = data.comments || [];
-        
         updateStickerUI();
         renderComments();
         removeSelectedImg();
-
         document.getElementById('diary-modal').style.display = 'flex';
         document.getElementById('overlay').style.display = 'block';
-        document.body.style.overflow = 'hidden';
     }
 
     function handleImgSelect(event) {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (e) => {
             const img = new Image();
@@ -591,12 +420,8 @@
                 const maxWidth = 500; 
                 let width = img.width;
                 let height = img.height;
-                if (width > maxWidth) {
-                    height *= maxWidth / width;
-                    width = maxWidth;
-                }
-                canvas.width = width;
-                canvas.height = height;
+                if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
+                canvas.width = width; canvas.height = height;
                 ctx.drawImage(img, 0, 0, width, height);
                 selectedImgBase64 = canvas.toDataURL('image/jpeg', 0.6);
                 imgPreview.src = selectedImgBase64;
@@ -606,31 +431,15 @@
         reader.readAsDataURL(file);
     }
 
-    function removeSelectedImg() {
-        selectedImgBase64 = "";
-        imgPreview.src = "";
-        previewBox.style.display = 'none';
-        document.getElementById('img-upload').value = "";
-    }
+    function removeSelectedImg() { selectedImgBase64 = ""; imgPreview.src = ""; previewBox.style.display = 'none'; document.getElementById('img-upload').value = ""; }
 
-    function selectSticker(sticker) {
-        selectedSticker = (selectedSticker === sticker) ? "" : sticker;
-        updateStickerUI();
-        saveData();
-    }
+    function selectSticker(sticker) { selectedSticker = (selectedSticker === sticker) ? "" : sticker; updateStickerUI(); saveData(); }
 
-    function updateStickerUI() {
-        document.querySelectorAll('.sticker-option').forEach(opt => {
-            opt.classList.toggle('selected', opt.innerText === selectedSticker);
-        });
-    }
+    function updateStickerUI() { document.querySelectorAll('.sticker-option').forEach(opt => { opt.classList.toggle('selected', opt.innerText === selectedSticker); }); }
 
     function renderComments() {
         commentListContainer.innerHTML = "";
-        if (comments.length === 0) {
-            commentListContainer.innerHTML = '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">추억을 저장해보세요</p>';
-            return;
-        }
+        if (comments.length === 0) { commentListContainer.innerHTML = '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">추억을 저장해보세요</p>'; return; }
         comments.forEach((c, index) => {
             const div = document.createElement('div');
             div.className = 'comment-item';
@@ -638,8 +447,7 @@
             div.innerHTML = `${imgHtml}<div class="comment-content"><span class="comment-text">${c.text}</span><button class="delete-btn" onclick="deleteComment(${index})">✕</button></div>`;
             commentListContainer.appendChild(div);
         });
-        const section = document.querySelector('.comment-section');
-        section.scrollTop = section.scrollHeight;
+        document.querySelector('.comment-section').scrollTop = commentListContainer.scrollHeight;
     }
 
     function addComment() {
@@ -652,29 +460,15 @@
         saveData();
     }
 
-    function deleteComment(index) {
-        comments.splice(index, 1);
-        renderComments();
-        saveData();
-    }
+    function deleteComment(index) { comments.splice(index, 1); renderComments(); saveData(); }
 
     function saveData() {
         const key = `diary-${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
-        try {
-            localStorage.setItem(key, JSON.stringify({ comments, sticker: selectedSticker }));
-        } catch(e) {
-            alert("용량이 가득 찼어요! 사진을 정리해 주세요 🌸");
-        }
+        try { localStorage.setItem(key, JSON.stringify({ comments, sticker: selectedSticker })); } catch(e) { alert("용량이 가득 찼어요! 사진을 정리해 주세요 🌸"); }
         renderCalendar();
     }
 
-    function closeModal() {
-        diaryInput.value = "";
-        removeSelectedImg();
-        document.getElementById('diary-modal').style.display = 'none';
-        document.getElementById('overlay').style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
+    function closeModal() { diaryInput.value = ""; removeSelectedImg(); document.getElementById('diary-modal').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; }
 
     initStickers();
     renderCalendar();
