@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gomi's Pink Dak-gu Calendar</title>
+    <style>
+        @font-face {
+            font-family: 'Pretendard-Regular';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        :root {
+            --main-pink: #ffafcc;
+            --point-pink: #ff8fab;
+            --bg-pink: #fff0f3;
+            --text-dark: #777777; 
+            --text-gray: #888888;
+            --heart-yellow: #ffde59;
+            --holiday-red: #ff4d6d; 
+            --saturday-blue: #4da3ff;
+        }
+
+        body {
+            font-family: 'Pretendard-Regular', sans-serif;
+            background-color: var(--bg-pink);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text-gray);
+            /* 모달 열렸을 때 스크롤 방지용 */
+            overflow-x: hidden;
+        }
+
+        /* 메인 타이틀 */
+        .main-title-container {
+            text-align: center;
+            margin: 20px 0;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .main-title {
+            font-size: clamp(1.4rem, 5vw, 1.8rem); /* 화면 크기에 따라 폰트 조절 */
+            color: var(--point-pink);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-shadow: 2px 2px 4px rgba(255, 143, 171, 0.2);
+        }
+
+        .main-title span { font-size: 0.8em; opacity: 0.8; }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 달력 컨테이너 */
+        .calendar-container {
+            width: 92%;
+            max-width: 450px;
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(255, 143, 171, 0.15);
+            overflow: hidden;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header {
+            background: var(--main-pink);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 10px; /* 터치 영역 확대 */
+            transition: transform 0.2s;
+        }
+
+        .header h2 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            padding: 15px 5px 10px 5px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .days div:nth-child(1) { color: var(--holiday-red); }
+        .days div:nth-child(n+2):nth-child(-n+6) { color: var(--text-dark); }
+        .days div:nth-child(7) { color: var(--saturday-blue); }
+
+        .dates {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(6, 1fr); 
+            gap: 5px;
+            padding: 0 10px;
+            height: clamp(320px, 80vw, 380px); /* 모바일에서 높이 유연하게 */
+        }
+
+        .date-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 1px solid #ffe5ec;
+            background: #fff;
+            transition: all 0.2s ease;
+            padding-top: 4px;
+            position: relative;
+        }
+
+        .date-cell:active { transform: scale(0.95); background: var(--bg-pink); }
+
+        .date-cell.empty { border: 1px solid transparent; background: transparent; cursor: default; }
+
+        .date-cell.today {
+            border: 2px solid var(--point-pink);
+            background: #fff9fa;
+        }
+
+        .date-cell.sunday .date-num { color: var(--holiday-red); }
+        .date-cell.saturday .date-num { color: var(--saturday-blue); }
+        .date-cell.holiday .date-num { color: var(--holiday-red) !important; font-weight: bold; }
+
+        .date-header {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .date-num { font-size: 0.65rem; color: #bbb; }
+
+        .record-heart {
+            position: absolute;
+            right: 2px;
+            top: -2px;
+            font-size: 0.55rem;
+            color: var(--heart-yellow);
+        }
+
+        .sticker-display { font-size: 1.2rem; margin-top: 2px; }
+
+        /* 모달 스타일 (모바일 최적화) */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 90;
+        }
+
+        #diary-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            width: 88%;
+            max-width: 380px;
+            max-height: 85vh;
+            padding: 20px;
+            border-radius: 25px;
+            z-index: 100;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .modal-title { color: var(--point-pink); margin: 0; font-size: 1.1rem; }
+
+        .comment-section {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding-right: 5px;
+            -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
+        }
+
+        .comment-item {
+            background: var(--bg-pink);
+            padding: 10px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            position: relative;
+        }
+
+        .comment-img {
+            width: 100%;
+            border-radius: 8px;
+            display: block;
+            border: 2px solid white;
+        }
+
+        .comment-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-btn {
+            background: none; border: none; color: #ccc; cursor: pointer; padding: 5px; font-size: 0.9rem;
+        }
+
+        /* 입력 영역 */
+        .input-area {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 18px;
+            border: 1px solid #ffe5ec;
+        }
+
+        .input-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #diary-input {
+            flex: 1;
+            border: none;
+            background: none;
+            outline: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+            padding: 8px;
+        }
+
+        .icon-btn {
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: var(--point-pink);
+            padding: 5px;
+        }
+
+        .add-btn {
+            background: var(--main-pink);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* 이미지 미리보기 */
+        .img-preview-container {
+            display: none;
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 5px;
+        }
+
+        #img-preview {
+            width: 50px; height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid var(--main-pink);
+        }
+
+        .remove-img-btn {
+            position: absolute;
+            top: -8px; left: 45px;
+            background: var(--point-pink);
+            color: white;
+            border-radius: 50%;
+            width: 20px; height: 20px;
+            font-size: 10px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        .sticker-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: var(--bg-pink);
+            border-radius: 12px;
+        }
+
+        .sticker-option {
+            font-size: 1.1rem; cursor: pointer; text-align: center;
+            padding: 4px; border-radius: 6px;
+        }
+
+        .sticker-option.selected { background: var(--main-pink); }
+
+        .close-modal-btn {
+            position: absolute; top: 15px; right: 15px;
+            background: none; border: none; font-size: 1.2rem; color: #ccc; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-title-container">
+    <h1 class="main-title">
+        <span>🌸</span> 우리들의 행복한 시간 <span>🌸</span>
+    </h1>
+</div>
+
+<div class="calendar-container">
+    <div class="header">
+        <button class="nav-btn" onclick="changeMonth(-1)">❮</button>
+        <h2 id="month-title">2026년 2월</h2>
+        <button class="nav-btn" onclick="changeMonth(1)">❯</button>
+    </div>
+    <div class="days">
+        <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+    </div>
+    <div class="dates" id="calendar-dates"></div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeModal()"></div>
+<div id="diary-modal">
+    <button class="close-modal-btn" onclick="closeModal()">✕</button>
+    <div class="modal-header">
+        <h3 id="selected-date" class="modal-title">날짜</h3>
+    </div>
+    
+    <span style="font-size: 0.7rem; color: #aaa; margin-bottom: 5px; padding-left: 5px;">기분 스티커</span>
+    <div class="sticker-grid" id="sticker-grid"></div>
+
+    <div class="comment-section">
+        <div id="comment-list" class="comment-list"></div>
+    </div>
+
+    <div class="input-area">
+        <div class="img-preview-container" id="preview-box">
+            <img id="img-preview" src="" alt="미리보기">
+            <div class="remove-img-btn" onclick="removeSelectedImg()">✕</div>
+        </div>
+        <div class="input-controls">
+            <label for="img-upload" class="icon-btn">📷</label>
+            <input type="file" id="img-upload" accept="image/*" style="display:none;" onchange="handleImgSelect(event)">
+            <input type="text" id="diary-input" placeholder="추억을 남겨요!" onkeypress="if(event.keyCode==13) addComment()">
+            <button class="add-btn" onclick="addComment()">등록</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const dateContainer = document.getElementById('calendar-dates');
+    const monthTitle = document.getElementById('month-title');
+    const stickerGrid = document.getElementById('sticker-grid');
+    const commentListContainer = document.getElementById('comment-list');
+    const diaryInput = document.getElementById('diary-input');
+    const imgPreview = document.getElementById('img-preview');
+    const previewBox = document.getElementById('preview-box');
+    
+    let viewYear = 2026;
+    let viewMonth = 1; 
+    let currentDay = 0;
+    let selectedSticker = "";
+    let comments = [];
+    let selectedImgBase64 = "";
+
+    const holidays2026 = {
+        "01-01": "신정", "03-01": "삼일절", "05-05": "어린이날", "06-06": "현충일", 
+        "08-15": "광복절", "10-03": "개천절", "10-09": "한글날", "12-25": "성탄절",
+        "02-17": "설날", "09-25": "추석"
+    };
+
+    const stickers = ['😊', '🥰', '😭', '😡', '✨', '🌸', '🍰', '☕', '🐱', '🧸', '☁️', '🌙', '🎧', '🎬', '🍱', '💤'];
+
+    function initStickers() {
+        stickerGrid.innerHTML = "";
+        stickers.forEach(s => {
+            const span = document.createElement('span');
+            span.className = 'sticker-option';
+            span.innerText = s;
+            span.onclick = () => selectSticker(s);
+            stickerGrid.appendChild(span);
+        });
+    }
+
+    function renderCalendar() {
+        dateContainer.innerHTML = "";
+        monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
+        const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+        const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+        const today = new Date();
+        let cellsCreated = 0;
+
+        for (let i = 0; i < firstDay; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'date-cell empty';
+            dateContainer.appendChild(emptyCell);
+            cellsCreated++;
+        }
+
+        for (let i = 1; i <= daysInMonth; i++) {
+            const mStr = String(viewMonth + 1).padStart(2, '0');
+            const dStr = String(i).padStart(2, '0');
+            const storageKey = `diary-${viewYear}-${mStr}-${dStr}`;
+            const data = JSON.parse(localStorage.getItem(storageKey) || '{"comments":[], "sticker":""}');
+            
+            const cell = document.createElement('div');
+            cell.className = 'date-cell';
+            const dow = cellsCreated % 7;
+            if (dow === 0) cell.classList.add('sunday');
+            else if (dow === 6) cell.classList.add('saturday');
+
+            if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
+            if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) { cell.classList.add('holiday'); cell.title = holidays2026[`${mStr}-${dStr}`]; }
+
+            const hasRecords = data.comments && data.comments.length > 0;
+            const heartHtml = hasRecords ? '<span class="record-heart">💛</span>' : '';
+
+            cell.innerHTML = `<div class="date-header"><span class="date-num">${i}</span>${heartHtml}</div><span class="sticker-display">${data.sticker || ""}</span>`;
+            cell.onclick = () => openModal(i);
+            dateContainer.appendChild(cell);
+            cellsCreated++;
+        }
+
+        while (cellsCreated < 42) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'date-cell empty';
+            dateContainer.appendChild(emptyCell);
+            cellsCreated++;
+        }
+    }
+
+    function changeMonth(delta) {
+        viewMonth += delta;
+        if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+        else if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+        renderCalendar();
+    }
+
+    function openModal(day) {
+        currentDay = day;
+        const mStr = String(viewMonth + 1).padStart(2, '0');
+        const key = `diary-${viewYear}-${mStr}-${String(day).padStart(2, '0')}`;
+        const data = JSON.parse(localStorage.getItem(key) || '{"comments":[], "sticker":""}');
+        
+        document.getElementById('selected-date').innerText = `${viewMonth + 1}월 ${day}일 기록`;
+        selectedSticker = data.sticker || "";
+        comments = data.comments || [];
+        
+        updateStickerUI();
+        renderComments();
+        removeSelectedImg();
+
+        document.getElementById('diary-modal').style.display = 'flex';
+        document.getElementById('overlay').style.display = 'block';
+        document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+    }
+
+    function handleImgSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            // 이미지 압축 로직 (Canvas 이용)
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const maxWidth = 600; 
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+                selectedImgBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                imgPreview.src = selectedImgBase64;
+                previewBox.style.display = 'block';
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeSelectedImg() {
+        selectedImgBase64 = "";
+        imgPreview.src = "";
+        previewBox.style.display = 'none';
+        document.getElementById('img-upload').value = "";
+    }
+
+    function selectSticker(sticker) {
+        selectedSticker = (selectedSticker === sticker) ? "" : sticker;
+        updateStickerUI();
+        saveData();
+    }
+
+    function updateStickerUI() {
+        document.querySelectorAll('.sticker-option').forEach(opt => {
+            opt.classList.toggle('selected', opt.innerText === selectedSticker);
+        });
+    }
+
+    function renderComments() {
+        commentListContainer.innerHTML = "";
+        if (comments.length === 0) {
+            commentListContainer.innerHTML = '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">추억을 저장해보세요</p>';
+            return;
+        }
+        comments.forEach((c, index) => {
+            const div = document.createElement('div');
+            div.className = 'comment-item';
+            let imgHtml = c.img ? `<img src="${c.img}" class="comment-img">` : '';
+            div.innerHTML = `${imgHtml}<div class="comment-content"><span class="comment-text">${c.text}</span><button class="delete-btn" onclick="deleteComment(${index})">✕</button></div>`;
+            commentListContainer.appendChild(div);
+        });
+        document.querySelector('.comment-section').scrollTop = commentListContainer.scrollHeight;
+    }
+
+    function addComment() {
+        const text = diaryInput.value.trim();
+        if (!text && !selectedImgBase64) return;
+        comments.push({ text: text || "사진 기록", img: selectedImgBase64 });
+        diaryInput.value = "";
+        removeSelectedImg();
+        renderComments();
+        saveData();
+    }
+
+    function deleteComment(index) {
+        comments.splice(index, 1);
+        renderComments();
+        saveData();
+    }
+
+    function saveData() {
+        const key = `diary-${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
+        try {
+            localStorage.setItem(key, JSON.stringify({ comments, sticker: selectedSticker }));
+        } catch(e) {
+            alert("용량이 가득 찼어요! 사진을 정리해 주세요 🌸");
+        }
+        renderCalendar();
+    }
+
+    function closeModal() {
+        diaryInput.value = "";
+        removeSelectedImg();
+        document.getElementById('diary-modal').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+        document.body.style.overflow = 'auto'; // 스크롤 복원
+    }
+
+    initStickers();
+    renderCalendar();
+</script>
+
+</body>
+</html>
