@@ -27,7 +27,7 @@
             --main-radius: 15px;
         }
 
-        /* 기본 레이아웃 및 터치 방지 */
+        /* 기본 레이아웃: 스크롤 방지 및 화면 고정 */
         html, body {
             height: 100%;
             margin: 0;
@@ -71,11 +71,11 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 타이틀 위치 조정 */
+        /* 타이틀 */
         .main-title-container {
             text-align: center;
-            margin-top: 4vh; 
-            margin-bottom: 10px; 
+            margin-top: 4.5vh; 
+            margin-bottom: 12px; 
             animation: fadeInDown 0.8s ease;
             width: 100%;
         }
@@ -96,6 +96,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* 달력 스타일 */
         .calendar-container {
             width: var(--container-width);
             max-width: var(--container-max-width);
@@ -148,12 +149,11 @@
         .date-cell.today { border: 2px solid var(--point-pink); background: #fff9fa; }
 
         .date-num { font-size: 0.7rem; color: #aaa; font-weight: 700; }
-        
-        /* 날짜 색상 클래스 */
         .date-cell.sunday .date-num { color: var(--holiday-red); }
         .date-cell.saturday .date-num { color: var(--saturday-blue); }
         .date-cell.holiday .date-num { color: var(--holiday-red) !important; font-weight: 900; }
         
+        /* 기념일 문구: 하단 중앙 */
         .anniv-label { 
             position: absolute; bottom: 3px; left: 50%; 
             transform: translateX(-50%) scale(0.85); 
@@ -166,7 +166,7 @@
         .record-heart { position: absolute; right: 3px; top: -1px; font-size: 0.55rem; color: var(--heart-yellow); }
         .sticker-display { font-size: 1.25rem; margin-top: 2px; }
 
-        /* D-day 바 (화면 전체 너비) */
+        /* D-day 바: 전체 너비 */
         .dday-container {
             width: 100vw; 
             background: white;
@@ -312,17 +312,10 @@
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // [Firebase Config] 깃허브 배포 시 본인의 설정값으로 교체 필수!
+    // 1. Firebase Config (배포 시 본인의 설정값으로 교체 필수!)
     const firebaseConfig = typeof __firebase_config !== 'undefined' 
         ? JSON.parse(__firebase_config) 
-        : {
-            apiKey: "AIzaSyB-hq1CBtux14k5zin3RlqpsnE-AOFKPoc",
-            authDomain: "archive-3e5da.firebaseapp.com",
-            projectId: "archive-3e5da",
-            storageBucket: "archive-3e5da.firebasestorage.app",
-            messagingSenderId: "585863845966",
-            appId: "1:585863845966:web:ddc811abff636222590b1f"
-        };
+        : { apiKey: "YOUR_KEY", authDomain: "...", projectId: "...", storageBucket: "...", messagingSenderId: "...", appId: "..." };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -338,7 +331,7 @@
     const hideLoading = () => { loadingOverlay.style.opacity = '0'; setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500); };
     setTimeout(hideLoading, 5000); 
 
-    // 공용 데이터 실시간 동기화
+    // 공용 저장소 동기화
     onAuthStateChanged(auth, async (u) => {
         user = u;
         if (user) {
@@ -357,7 +350,7 @@
     };
     initAuth();
 
-    // 72종 스티커
+    // 72 Stickers
     const allStickers = ['💛', '💖', '❤️', '🧡', '💚', '💙', '💜', '❣️', '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇', '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️', '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️', '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕', '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤', '🐱', '🐶', '🧸', '🦄', '🐰', '🐥', '🐼', '🦁', '🎧', '🎬', '🎮', '⚽', '📚', '💻', '🎸', '📷', '🎈', '🎁', '💎', '💌', '🌻', '🌳', '🐚', '🏔️'];
 
     function initStickers() {
@@ -379,7 +372,7 @@
         dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
     };
 
-    // 터치 스와이프
+    // Swipe Logic
     let touchStartX = 0;
     const stickerSlider = document.getElementById('sticker-slider');
     stickerSlider.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive: true});
@@ -390,7 +383,6 @@
 
     dots.forEach(dot => dot.onclick = () => window.goToStickerPage(parseInt(dot.dataset.page)));
 
-    // 디데이 및 날짜 전환
     function updateDday() {
         if (isDateMode) { ddayLabel.innerText = "우리가 시작한 소중한 날짜"; ddayText.innerText = "2026.01.10"; } 
         else {
@@ -400,20 +392,13 @@
     }
     document.getElementById('dday-container').onclick = () => { isDateMode = !isDateMode; updateDday(); };
 
-    // 2026년 공휴일 및 대체공휴일 (지방선거 포함)
+    // 2026 Holidays list
     const holidays2026 = {
-        "01-01": "신정", 
-        "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", 
-        "03-01": "삼일절", "03-02": "대체공휴일", // 3.1절 일요일 -> 월요일 대체
-        "05-05": "어린이날", 
-        "05-24": "부처님오신날", "05-25": "대체공휴일", // 부처님오신날 일요일 -> 월요일 대체
-        "06-03": "지방선거", 
-        "06-06": "현충일", 
-        "08-15": "광복절", "08-17": "대체공휴일", // 광복절 토요일 -> 월요일 대체
-        "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", 
-        "10-03": "개천절", "10-05": "대체공휴일", // 개천절 토요일 -> 월요일 대체
-        "10-09": "한글날", 
-        "12-25": "성탄절"
+        "01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", 
+        "03-01": "삼일절", "03-02": "대체공휴일", "05-05": "어린이날", "05-24": "부처님오신날", 
+        "05-25": "대체공휴일", "06-03": "지방선거", "06-06": "현충일", "08-15": "광복절", 
+        "08-17": "대체공휴일", "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", 
+        "10-03": "개천절", "10-05": "대체공휴일", "10-09": "한글날", "12-25": "성탄절"
     };
 
     function renderCalendar() {
@@ -421,9 +406,7 @@
         const firstDay = new Date(viewYear, viewMonth, 1).getDay();
         const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
         const today = new Date();
-        
         for (let i = 0; i < firstDay; i++) { dateContainer.appendChild(Object.assign(document.createElement('div'), {className: 'date-cell empty'})); }
-        
         for (let i = 1; i <= daysInMonth; i++) {
             const mStr = String(viewMonth + 1).padStart(2, '0');
             const dStr = String(i).padStart(2, '0');
@@ -432,21 +415,17 @@
             const cell = document.createElement('div'); 
             cell.className = 'date-cell';
 
-            // 요일 계산
             const dayOfWeek = (i + firstDay - 1) % 7;
             if (dayOfWeek === 0) cell.classList.add('sunday');
             if (dayOfWeek === 6) cell.classList.add('saturday');
-            
-            // 공휴일 체크
-            if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) {
-                cell.classList.add('holiday');
-            }
-            
+            if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) cell.classList.add('holiday');
             if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
 
-            // 기념일 텍스트
+            // Anniversary Logic: 100, 200, 300 only. 1 Jan every year for years.
             const diff = Math.floor((new Date(viewYear, viewMonth, i) - new Date(2026, 0, 10)) / 86400000) + 1;
-            let anniv = (diff > 0 && diff % 100 === 0) ? `${diff}일` : (viewMonth === 0 && i === 10 && viewYear > 2026) ? `${viewYear-2026}주년` : "";
+            let anniv = "";
+            if (diff > 0 && diff <= 300 && diff % 100 === 0) anniv = `${diff}일`;
+            else if (viewMonth === 0 && i === 10 && viewYear > 2026) anniv = `${viewYear-2026}주년`;
 
             cell.innerHTML = `
                 <div class="date-header"><span class="date-num">${i}</span>${data.comments?.length ? '<span class="record-heart">💛</span>' : ''}</div>
@@ -482,8 +461,6 @@
         }; reader.readAsDataURL(file);
     };
 
-    document.getElementById('remove-img').onclick = () => { selectedImgBase64 = ""; previewBox.style.display = 'none'; };
-
     const updateStickerUI = () => document.querySelectorAll('.sticker-option').forEach(opt => opt.classList.toggle('selected', opt.innerText === selectedSticker));
     
     function renderComments() {
@@ -517,4 +494,3 @@
 </script>
 </body>
 </html>
-
