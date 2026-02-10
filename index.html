@@ -27,13 +27,13 @@
             --main-radius: 15px;
         }
 
-        /* 기본 레이아웃 */
+        /* 기본 레이아웃 및 줌 방지 */
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
             overflow: hidden;
-            touch-action: manipulation;
+            touch-action: none; 
         }
 
         body {
@@ -46,6 +46,8 @@
             color: var(--text-gray);
             padding: 0; 
             box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         /* 로딩 화면 */
@@ -91,7 +93,7 @@
             margin: 0;
         }
 
-        /* 서프라이즈용 하트 스타일: 반응 없는 비밀 모드 */
+        /* 서프라이즈 트리거 (반응 없는 비밀 모드) */
         .secret-trigger {
             cursor: default;
             user-select: none;
@@ -127,11 +129,7 @@
             align-items: center;
         }
 
-        .nav-btn {
-            background: none; border: none; color: white;
-            font-size: 1.2rem; cursor: pointer; padding: 5px 10px;
-        }
-
+        .nav-btn { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 5px 10px; }
         .header h2 { margin: 0; font-size: 1.1rem; letter-spacing: 1px; font-weight: 900; }
 
         .days {
@@ -173,7 +171,7 @@
         .record-heart { position: absolute; right: 3px; top: -1px; font-size: 0.55rem; color: var(--heart-yellow); }
         .sticker-display { font-size: 1.25rem; margin-top: 2px; }
 
-        /* D-day 바 */
+        /* D-day 바 디자인 */
         .dday-container {
             width: 100vw; 
             background: white;
@@ -191,23 +189,15 @@
         }
         .dday-container:active { background: #fff9fa; }
         .dday-label { font-size: 0.75rem; color: var(--text-gray); font-weight: 700; }
-        .dday-value { font-size: 1.4rem; color: var(--point-pink); font-weight: 900; }
+        .dday-value { font-size: 1.3rem; color: var(--point-pink); font-weight: 900; }
 
-        /* 모달 공통 */
-        .overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); z-index: 100;
-        }
-
+        /* 모달 스타일 */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); z-index: 100; }
         #diary-modal {
-            display: none; position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: white; width: 92%; max-width: 380px; 
-            max-height: 85vh;
-            padding: 20px; border-radius: 25px; z-index: 101;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            flex-direction: column; box-sizing: border-box;
-            touch-action: auto; 
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; width: 92%; max-width: 380px; max-height: 85vh;
+            padding: 20px; border-radius: 25px; z-index: 101; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            flex-direction: column; box-sizing: border-box; touch-action: auto; 
         }
 
         .modal-header { display: flex; justify-content: center; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
@@ -215,8 +205,7 @@
 
         .sticker-slider-container {
             width: 100%; overflow: hidden; position: relative; background: var(--bg-pink);
-            border-radius: 15px; margin-bottom: 10px; padding: 10px 0;
-            touch-action: pan-x; flex-shrink: 0;
+            border-radius: 15px; margin-bottom: 10px; padding: 10px 0; touch-action: pan-x; flex-shrink: 0;
         }
         .sticker-wrapper { display: flex; transition: transform 0.3s ease-out; width: 300%; }
         .sticker-page { width: 33.333%; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(3, 1fr); gap: 4px; padding: 0 10px; box-sizing: border-box; }
@@ -227,22 +216,14 @@
         .dot { width: 6px; height: 6px; background: #ddd; border-radius: 50%; cursor: pointer; }
         .dot.active { background: var(--main-pink); transform: scale(1.3); }
 
-        /* 댓글 영역 */
-        .comment-section { 
-            flex: 1; 
-            max-height: 280px; 
-            overflow-y: auto; 
-            margin-bottom: 15px; 
-            -webkit-overflow-scrolling: touch; 
-            padding-right: 5px;
-        }
+        .comment-section { flex: 1; max-height: 280px; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; padding-right: 5px; touch-action: pan-y; }
         .comment-item { background: var(--bg-pink); padding: 10px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px; }
         .comment-img { width: 100%; border-radius: 8px; display: block; border: 2px solid white; }
         .comment-content { display: flex; justify-content: space-between; align-items: flex-start; }
         .comment-text { flex: 1; word-break: break-all; margin-right: 5px; color: var(--text-dark); }
         .delete-btn { background: none; border: none; color: #ccc; cursor: pointer; padding: 5px; font-size: 1rem; flex-shrink: 0; }
 
-        .input-area { background: #f9f9f9; padding: 10px; border-radius: 18px; border: 1px solid #ffe5ec; box-sizing: border-box; flex-shrink: 0; }
+        .input-area { background: #f9f9f9; padding: 10px; border-radius: 18px; border: 1px solid #ffe5ec; box-sizing: border-box; flex-shrink: 0; touch-action: auto; }
         .input-controls { display: flex; align-items: center; gap: 5px; }
         #diary-input { flex: 1; border: none; background: none; outline: none; font-family: inherit; font-size: 0.9rem; padding: 8px 5px; min-width: 0; }
         .icon-btn { font-size: 1.3rem; cursor: pointer; color: var(--point-pink); padding: 5px; flex-shrink: 0; }
@@ -253,37 +234,19 @@
         .remove-img-btn { position: absolute; top: -8px; left: 45px; background: var(--point-pink); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
 
         /* 오버레이 팝업들 */
-        #confirm-overlay, #surprise-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 500; align-items: center; justify-content: center;
-        }
-        .confirm-box, .surprise-box { 
-            background: white; width: 85%; max-width: 340px; padding: 25px; border-radius: 25px; 
-            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; flex-direction: column; max-height: 80vh;
-        }
+        #confirm-overlay, #surprise-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 500; align-items: center; justify-content: center; touch-action: none; }
+        .confirm-box, .surprise-box { background: white; width: 85%; max-width: 340px; padding: 25px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; max-height: 80vh; touch-action: auto; }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
         .confirm-msg { color: var(--text-dark); font-weight: 900; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; }
         
-        /* 서프라이즈 편지 스타일 */
         .surprise-title { color: var(--point-pink); font-size: 1.2rem; margin-bottom: 15px; display: block; font-weight: 900; flex-shrink: 0; }
-        .surprise-msg-container { 
-            flex: 1; overflow-y: auto; text-align: left; padding: 15px; 
-            background: var(--bg-pink); border-radius: 15px; margin-bottom: 15px;
-            -webkit-overflow-scrolling: touch;
-        }
+        .surprise-msg-container { flex: 1; overflow-y: auto; text-align: left; padding: 15px; background: var(--bg-pink); border-radius: 15px; margin-bottom: 15px; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
         .surprise-msg { color: var(--text-dark); font-weight: 500; font-size: 0.9rem; line-height: 1.8; word-break: keep-all; }
         
         .confirm-btns { display: flex; gap: 10px; flex-shrink: 0; }
         .confirm-btn { flex: 1; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: 900; font-size: 0.85rem; }
         .btn-cancel { background: #f0f0f0; color: #888; }
         .btn-delete { background: var(--point-pink); color: white; transition: opacity 0.2s; }
-        .btn-delete:active { opacity: 0.8; }
-        
-        /* [수정] 서프라이즈 닫기 버튼용 이모지 스타일 */
-        .surprise-close-heart { font-size: 1.3rem; background: none; border: none; cursor: pointer; padding: 5px; }
     </style>
 </head>
 <body>
@@ -312,11 +275,12 @@
 </div>
 
 <div class="dday-container" id="dday-container">
+    <!-- [수정!] 디데이 상단 문구 -->
     <div class="dday-label" id="dday-label">우리가 함께한 소중한 시간</div>
-    <div class="dday-value" id="dday-text">D-0</div>
+    <!-- 요청하신 디데이 하단 문구 (JS에서 업데이트됨) -->
+    <div class="dday-value" id="dday-text">사랑 하고싶어? 0일째 사랑하는중</div>
 </div>
 
-<!-- 삭제 확인용 오버레이 -->
 <div id="confirm-overlay">
     <div class="confirm-box">
         <div class="confirm-msg">우리의 소중한 추억인데<br>지울려고..?</div>
@@ -327,7 +291,6 @@
     </div>
 </div>
 
-<!-- 서프라이즈용 오버레이 (비밀 편지) -->
 <div id="surprise-overlay">
     <div class="surprise-box">
         <span class="surprise-title">✨ 유미야!!사랑해💛 ✨</span>
@@ -349,7 +312,6 @@
                 사랑해💛
             </div>
         </div>
-        <!-- [수정] 팝업 닫기 버튼: 확인 대신 이모티콘 ❣️ 적용 -->
         <button class="confirm-btn btn-delete" onclick="closeSurprise()" style="font-size: 1.2rem;">❣️</button>
     </div>
 </div>
@@ -358,22 +320,15 @@
 <div id="diary-modal">
     <button class="close-modal-btn" id="close-modal">✕</button>
     <div class="modal-header"><h3 id="selected-date" class="modal-title">날짜</h3></div>
-    
     <div class="sticker-slider-container" id="sticker-slider">
         <div class="sticker-wrapper" id="sticker-wrapper"></div>
     </div>
     <div class="pagination-dots" id="pagination-dots">
         <div class="dot active" data-page="0"></div><div class="dot" data-page="1"></div><div class="dot" data-page="2"></div>
     </div>
-
-    <div class="comment-section" id="comment-scroll-area">
-        <div id="comment-list"></div>
-    </div>
-
+    <div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div>
     <div class="input-area">
-        <div class="img-preview-container" id="preview-box" style="display:none; position: relative; margin-bottom: 10px;">
-            <img id="img-preview" src=""><div class="remove-img-btn" id="remove-img">✕</div>
-        </div>
+        <div class="img-preview-container" id="preview-box" style="display:none; position: relative; margin-bottom: 10px;"><img id="img-preview" src=""><div class="remove-img-btn" id="remove-img">✕</div></div>
         <div class="input-controls">
             <label for="img-upload" class="icon-btn">📷</label>
             <input type="file" id="img-upload" accept="image/*" style="display:none;">
@@ -388,7 +343,7 @@
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // 1. Firebase Config
+    // 1. Firebase Config (사용자님의 고유 설정값)
     const firebaseConfig = {
         apiKey: "AIzaSyB-hq1CBtux14k5zin3RlqpsnE-AOFKPoc",
         authDomain: "archive-3e5da.firebaseapp.com",
@@ -403,30 +358,36 @@
     const db = getFirestore(app);
     const appId = 'shared-gomi-diary-app'; 
 
-    let user = null, cloudRecords = {}, viewYear = 2026, viewMonth = 1, currentDay = 0, selectedSticker = "", comments = [], selectedImgBase64 = "", isDateMode = false, currentPage = 0, commentToDeleteIndex = -1;
-    let secretClickCount = 0; 
+    let user = null, cloudRecords = {}, viewYear = 2026, viewMonth = 1, currentDay = 0, selectedSticker = "", comments = [], selectedImgBase64 = "", isDateMode = false, currentPage = 0, commentToDeleteIndex = -1, secretClickCount = 0;
 
     const dateContainer = document.getElementById('calendar-dates'), monthTitle = document.getElementById('month-title'), stickerWrapper = document.getElementById('sticker-wrapper'), dots = document.querySelectorAll('.dot'), commentListContainer = document.getElementById('comment-list'), diaryInput = document.getElementById('diary-input'), imgPreview = document.getElementById('img-preview'), previewBox = document.getElementById('preview-box'), ddayText = document.getElementById('dday-text'), ddayLabel = document.getElementById('dday-label'), loadingOverlay = document.getElementById('loading-overlay');
 
     const hideLoading = () => { loadingOverlay.style.opacity = '0'; setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500); };
     setTimeout(() => { if (loadingOverlay.style.display !== 'none') hideLoading(); }, 6000);
 
+    // 강력한 줌 방지 로직
+    document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (e) => {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) e.preventDefault();
+        lastTouchEnd = now;
+    }, false);
+
     onAuthStateChanged(auth, async (u) => {
         user = u;
         if (user) {
             const diaryRef = collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords');
             onSnapshot(diaryRef, (snapshot) => {
-                cloudRecords = {};
-                snapshot.forEach(doc => { cloudRecords[doc.id] = doc.data(); });
+                cloudRecords = {}; snapshot.forEach(doc => { cloudRecords[doc.id] = doc.data(); });
                 renderCalendar(); updateDday(); hideLoading();
                 if(document.getElementById('diary-modal').style.display === 'flex') {
                     const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
                     const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
-                    comments = data.comments || [];
-                    selectedSticker = data.sticker || "";
+                    comments = data.comments || []; selectedSticker = data.sticker || "";
                     updateStickerUI(); renderComments(true);
                 }
-            }, (err) => { console.error(err); hideLoading(); });
+            }, (err) => { hideLoading(); });
         }
     });
 
@@ -439,17 +400,12 @@
     };
     initAuth();
 
-    // 서프라이즈 트리거
+    // 서프라이즈 클릭 로직
     document.getElementById('secret-heart-trigger').onclick = () => {
         secretClickCount++;
-        if (secretClickCount === 5) {
-            document.getElementById('surprise-overlay').style.display = 'flex';
-            secretClickCount = 0;
-        }
-        clearTimeout(window.secretTimer);
-        window.secretTimer = setTimeout(() => { secretClickCount = 0; }, 2000);
+        if (secretClickCount === 5) { document.getElementById('surprise-overlay').style.display = 'flex'; secretClickCount = 0; }
+        clearTimeout(window.secretTimer); window.secretTimer = setTimeout(() => { secretClickCount = 0; }, 2000);
     };
-
     window.closeSurprise = () => { document.getElementById('surprise-overlay').style.display = 'none'; };
 
     const allStickers = ['💛', '💖', '❤️', '🧡', '💚', '💙', '💜', '❣️', '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇', '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️', '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️', '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕', '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤', '🐱', '🐶', '🧸', '🦄', '🐰', '🐥', '🐼', '🦁', '🎧', '🎬', '🎮', '⚽', '📚', '💻', '🎸', '📷', '🎈', '🎁', '💎', '💌', '🌻', '🌳', '🐚', '🏔️'];
@@ -485,17 +441,22 @@
     calSwipeArea.addEventListener('touchstart', (e) => { calTouchStartX = e.touches[0].clientX; }, {passive: true});
     calSwipeArea.addEventListener('touchend', (e) => {
         let diff = calTouchStartX - e.changedTouches[0].clientX;
-        if (diff > 60) changeMonth(1);  
-        else if (diff < -60) changeMonth(-1); 
+        if (diff > 60) changeMonth(1); else if (diff < -60) changeMonth(-1); 
     });
 
     dots.forEach(dot => dot.onclick = () => window.goToStickerPage(parseInt(dot.dataset.page)));
 
+    // [수정!] 디데이 업데이트 함수
     function updateDday() {
-        if (isDateMode) { ddayLabel.innerText = "우리가 시작한 소중한 날짜"; ddayText.innerText = "2026.01.10"; } 
-        else {
+        if (isDateMode) {
+            ddayLabel.innerText = "우리가 시작한 소중한 날짜";
+            ddayText.innerText = "2026.01.10";
+        } else {
             const diffDays = Math.floor((new Date() - new Date(2026, 0, 10)) / 86400000) + 1;
-            ddayLabel.innerText = "우리가 함께한 소중한 시간"; ddayText.innerText = `D-${diffDays}`;
+            // [수정!] 상단 고정 문구
+            ddayLabel.innerText = "우리가 함께한 소중한 시간";
+            // [수정!] 하단 문구
+            ddayText.innerText = `사랑 하고싶어? ${diffDays}일째 사랑하는중`;
         }
     }
     document.getElementById('dday-container').onclick = () => { isDateMode = !isDateMode; updateDday(); };
@@ -515,12 +476,10 @@
             if (dow === 6) cell.classList.add('saturday');
             if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) cell.classList.add('holiday');
             if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
-
             const diff = Math.floor((new Date(viewYear, viewMonth, i) - new Date(2026, 0, 10)) / 86400000) + 1;
             let anniv = "";
             if (diff > 0 && diff <= 300 && diff % 100 === 0) anniv = `${diff}일`;
             else if (viewMonth === 0 && i === 10 && viewYear > 2026) anniv = `${viewYear-2026}주년`;
-
             cell.innerHTML = `<div class="date-header"><span class="date-num">${i}</span>${data.comments?.length ? '<span class="record-heart">💛</span>' : ''}</div><span class="sticker-display">${data.sticker || ""}</span>${anniv ? `<span class="anniv-label">${anniv}</span>` : ''}`;
             cell.onclick = () => openModal(i);
             dateContainer.appendChild(cell);
@@ -553,7 +512,6 @@
     };
 
     document.getElementById('remove-img').onclick = () => { selectedImgBase64 = ""; previewBox.style.display = 'none'; };
-
     const updateStickerUI = () => document.querySelectorAll('.sticker-option').forEach(opt => opt.classList.toggle('selected', opt.innerText === selectedSticker));
     
     function renderComments(scrollToBottom = false) {
@@ -584,15 +542,7 @@
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'diaryRecords', dateKey), { comments, sticker: selectedSticker });
     }
 
-    const closeModal = () => { 
-        diaryInput.value = ""; 
-        selectedImgBase64 = ""; 
-        previewBox.style.display = 'none';
-        document.getElementById('img-upload').value = "";
-        document.getElementById('diary-modal').style.display = 'none'; 
-        document.getElementById('overlay').style.display = 'none'; 
-        document.getElementById('confirm-overlay').style.display = 'none';
-    };
+    const closeModal = () => { diaryInput.value = ""; selectedImgBase64 = ""; previewBox.style.display = 'none'; document.getElementById('img-upload').value = ""; document.getElementById('diary-modal').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; document.getElementById('confirm-overlay').style.display = 'none'; };
     document.getElementById('close-modal').onclick = closeModal; document.getElementById('overlay').onclick = closeModal;
 
     initStickers(); renderCalendar(); updateDday(); 
