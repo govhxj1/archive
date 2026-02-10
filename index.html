@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gomi's Shared Pink Diary</title>
+    <title>우리들의 행복한 추억</title>
     <style>
         @font-face {
             font-family: 'Pretendard-Regular';
@@ -27,7 +27,7 @@
             --main-radius: 15px;
         }
 
-        /* 기본 레이아웃: 스크롤 방지 및 화면 고정 */
+        /* 기본 레이아웃 */
         html, body {
             height: 100%;
             margin: 0;
@@ -96,7 +96,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 달력 스타일 */
+        /* 달력 컨테이너 (터치 스와이프 영역) */
         .calendar-container {
             width: var(--container-width);
             max-width: var(--container-max-width);
@@ -108,6 +108,7 @@
             box-sizing: border-box;
             flex-shrink: 0;
             margin-bottom: auto;
+            touch-action: pan-x; /* 달력 자체에서 가로 스와이프 허용 */
         }
 
         .header {
@@ -165,7 +166,7 @@
         .record-heart { position: absolute; right: 3px; top: -1px; font-size: 0.55rem; color: var(--heart-yellow); }
         .sticker-display { font-size: 1.25rem; margin-top: 2px; }
 
-        /* D-day 바: 전체 너비 */
+        /* D-day 바 */
         .dday-container {
             width: 100vw; 
             background: white;
@@ -194,50 +195,47 @@
         #diary-modal {
             display: none; position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            background: white; width: 92%; max-width: 380px; max-height: 85vh;
+            background: white; width: 92%; max-width: 380px; 
+            max-height: 85vh;
             padding: 20px; border-radius: 25px; z-index: 101;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             flex-direction: column; box-sizing: border-box;
             touch-action: auto; 
         }
 
-        .modal-header { display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
+        .modal-header { display: flex; justify-content: center; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
         .modal-title { color: var(--point-pink); margin: 0; font-size: 1.1rem; font-weight: 900; }
 
-        /* 스티커 슬라이더 */
         .sticker-slider-container {
             width: 100%; overflow: hidden; position: relative; background: var(--bg-pink);
             border-radius: 15px; margin-bottom: 10px; padding: 10px 0;
-            touch-action: pan-x; 
+            touch-action: pan-x; flex-shrink: 0;
         }
-
-        .sticker-wrapper {
-            display: flex; transition: transform 0.3s ease-out; width: 300%;
-        }
-
-        .sticker-page {
-            width: 33.333%; display: grid; grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(3, 1fr); gap: 4px; padding: 0 10px; box-sizing: border-box;
-        }
-
-        .sticker-option {
-            font-size: 1.15rem; cursor: pointer; text-align: center;
-            padding: 6px 0; border-radius: 8px; transition: background 0.2s;
-        }
+        .sticker-wrapper { display: flex; transition: transform 0.3s ease-out; width: 300%; }
+        .sticker-page { width: 33.333%; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(3, 1fr); gap: 4px; padding: 0 10px; box-sizing: border-box; }
+        .sticker-option { font-size: 1.15rem; cursor: pointer; text-align: center; padding: 6px 0; border-radius: 8px; }
         .sticker-option.selected { background: var(--main-pink); }
 
-        .pagination-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; }
+        .pagination-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; flex-shrink: 0; }
         .dot { width: 6px; height: 6px; background: #ddd; border-radius: 50%; cursor: pointer; }
         .dot.active { background: var(--main-pink); transform: scale(1.3); }
 
-        /* 기록 리스트 */
-        .comment-section { flex: 1; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; }
+        /* 댓글 영역 (높이 고정 및 스크롤) */
+        .comment-section { 
+            flex: 1; 
+            max-height: 280px; /* 기록 4개 정도가 보일 높이 */
+            overflow-y: auto; 
+            margin-bottom: 15px; 
+            -webkit-overflow-scrolling: touch; 
+            padding-right: 5px;
+        }
         .comment-item { background: var(--bg-pink); padding: 10px; border-radius: 12px; margin-bottom: 8px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px; }
         .comment-img { width: 100%; border-radius: 8px; display: block; border: 2px solid white; }
-        .comment-content { display: flex; justify-content: space-between; align-items: center; }
-        .delete-btn { background: none; border: none; color: #ccc; cursor: pointer; padding: 5px; }
+        .comment-content { display: flex; justify-content: space-between; align-items: flex-start; }
+        .comment-text { flex: 1; word-break: break-all; margin-right: 5px; color: var(--text-dark); }
+        .delete-btn { background: none; border: none; color: #ccc; cursor: pointer; padding: 5px; font-size: 1rem; flex-shrink: 0; }
 
-        .input-area { background: #f9f9f9; padding: 10px; border-radius: 18px; border: 1px solid #ffe5ec; box-sizing: border-box; }
+        .input-area { background: #f9f9f9; padding: 10px; border-radius: 18px; border: 1px solid #ffe5ec; box-sizing: border-box; flex-shrink: 0; }
         .input-controls { display: flex; align-items: center; gap: 5px; }
         #diary-input { flex: 1; border: none; background: none; outline: none; font-family: inherit; font-size: 0.9rem; padding: 8px 5px; min-width: 0; }
         .icon-btn { font-size: 1.3rem; cursor: pointer; color: var(--point-pink); padding: 5px; flex-shrink: 0; }
@@ -246,20 +244,32 @@
         .close-modal-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.2rem; color: #ccc; cursor: pointer; z-index: 110; }
         #img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 2px solid var(--main-pink); }
         .remove-img-btn { position: absolute; top: -8px; left: 45px; background: var(--point-pink); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+
+        /* 삭제 확인 커스텀 창 */
+        #confirm-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 300; align-items: center; justify-content: center;
+        }
+        .confirm-box { background: white; width: 80%; max-width: 300px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .confirm-msg { color: var(--text-dark); font-weight: 900; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.4; }
+        .confirm-btns { display: flex; gap: 10px; }
+        .confirm-btn { flex: 1; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: 900; font-size: 0.85rem; }
+        .btn-cancel { background: #f0f0f0; color: #888; }
+        .btn-delete { background: var(--point-pink); color: white; }
     </style>
 </head>
 <body>
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <div id="loading-text">사랑의 다이어리 연결 중... 🌸</div>
+    <div id="loading-text">사랑 다이어리 펼치는 중... 🌸</div>
 </div>
 
 <div class="main-title-container">
     <h1 class="main-title"><span>💛</span> 싱벙한 추억 일기 <span>💛</span></h1>
 </div>
 
-<div class="calendar-container">
+<div class="calendar-container" id="calendar-swipe-area">
     <div class="header">
         <button class="nav-btn" id="prev-month">❮</button>
         <h2 id="month-title">2026년 2월</h2>
@@ -276,6 +286,16 @@
     <div class="dday-value" id="dday-text">D-0</div>
 </div>
 
+<div id="confirm-overlay">
+    <div class="confirm-box">
+        <div class="confirm-msg">우리의 소중한 추억인데<br>지울려고..?</div>
+        <div class="confirm-btns">
+            <button class="confirm-btn btn-cancel" id="cancel-del">취소</button>
+            <button class="confirm-btn btn-delete" id="confirm-del">지우기</button>
+        </div>
+    </div>
+</div>
+
 <div class="overlay" id="overlay"></div>
 <div id="diary-modal">
     <button class="close-modal-btn" id="close-modal">✕</button>
@@ -285,17 +305,16 @@
         <div class="sticker-wrapper" id="sticker-wrapper"></div>
     </div>
     <div class="pagination-dots" id="pagination-dots">
-        <div class="dot active" data-page="0"></div>
-        <div class="dot" data-page="1"></div>
-        <div class="dot" data-page="2"></div>
+        <div class="dot active" data-page="0"></div><div class="dot" data-page="1"></div><div class="dot" data-page="2"></div>
     </div>
 
-    <div class="comment-section"><div id="comment-list" class="comment-list"></div></div>
+    <div class="comment-section" id="comment-scroll-area">
+        <div id="comment-list"></div>
+    </div>
 
     <div class="input-area">
         <div class="img-preview-container" id="preview-box" style="display:none; position: relative; margin-bottom: 10px;">
-            <img id="img-preview" src="" alt="미리보기">
-            <div class="remove-img-btn" id="remove-img">✕</div>
+            <img id="img-preview" src=""><div class="remove-img-btn" id="remove-img">✕</div>
         </div>
         <div class="input-controls">
             <label for="img-upload" class="icon-btn">📷</label>
@@ -311,7 +330,7 @@
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // 1. Firebase Config 적용
+    // 1. Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyB-hq1CBtux14k5zin3RlqpsnE-AOFKPoc",
         authDomain: "archive-3e5da.firebaseapp.com",
@@ -326,18 +345,13 @@
     const db = getFirestore(app);
     const appId = 'shared-gomi-diary-app'; 
 
-    let user = null;
-    let cloudRecords = {}; 
-    let viewYear = 2026, viewMonth = 1, currentDay = 0, selectedSticker = "", comments = [], selectedImgBase64 = "", isDateMode = false, currentPage = 0;
+    let user = null, cloudRecords = {}, viewYear = 2026, viewMonth = 1, currentDay = 0, selectedSticker = "", comments = [], selectedImgBase64 = "", isDateMode = false, currentPage = 0, commentToDeleteIndex = -1;
 
     const dateContainer = document.getElementById('calendar-dates'), monthTitle = document.getElementById('month-title'), stickerWrapper = document.getElementById('sticker-wrapper'), dots = document.querySelectorAll('.dot'), commentListContainer = document.getElementById('comment-list'), diaryInput = document.getElementById('diary-input'), imgPreview = document.getElementById('img-preview'), previewBox = document.getElementById('preview-box'), ddayText = document.getElementById('dday-text'), ddayLabel = document.getElementById('dday-label'), loadingOverlay = document.getElementById('loading-overlay');
 
     const hideLoading = () => { loadingOverlay.style.opacity = '0'; setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500); };
-    
-    // 타임아웃 세이프티 (에러 발생 시 무한 로딩 방지)
-    setTimeout(() => { if (loadingOverlay.style.display !== 'none') hideLoading(); }, 8000);
+    setTimeout(() => { if (loadingOverlay.style.display !== 'none') hideLoading(); }, 6000);
 
-    // 공용 저장소 실시간 동기화
     onAuthStateChanged(auth, async (u) => {
         user = u;
         if (user) {
@@ -346,34 +360,26 @@
                 cloudRecords = {};
                 snapshot.forEach(doc => { cloudRecords[doc.id] = doc.data(); });
                 renderCalendar(); updateDday(); hideLoading();
-            }, (err) => { 
-                console.error("Firestore Error:", err); 
-                hideLoading(); 
-            });
+                if(document.getElementById('diary-modal').style.display === 'flex') {
+                    const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
+                    const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
+                    comments = data.comments || [];
+                    selectedSticker = data.sticker || "";
+                    updateStickerUI(); renderComments(true);
+                }
+            }, (err) => { console.error(err); hideLoading(); });
         }
     });
 
-    // 인증 초기화: 커스텀 토큰 불일치 에러 해결 로직 포함
     const initAuth = async () => {
         try {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                try {
-                    // 사용자 정의 config와 시스템 토큰 불일치 시 catch로 넘어감
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } catch (tokenErr) {
-                    await signInAnonymously(auth);
-                }
-            } else {
-                await signInAnonymously(auth);
-            }
-        } catch (e) {
-            console.error("Auth Exception:", e);
-            hideLoading();
-        }
+                try { await signInWithCustomToken(auth, __initial_auth_token); } catch (e) { await signInAnonymously(auth); }
+            } else { await signInAnonymously(auth); }
+        } catch (e) { hideLoading(); }
     };
     initAuth();
 
-    // 72 Stickers
     const allStickers = ['💛', '💖', '❤️', '🧡', '💚', '💙', '💜', '❣️', '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇', '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️', '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️', '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕', '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤', '🐱', '🐶', '🧸', '🦄', '🐰', '🐥', '🐼', '🦁', '🎧', '🎬', '🎮', '⚽', '📚', '💻', '🎸', '📷', '🎈', '🎁', '💎', '💌', '🌻', '🌳', '🐚', '🏔️'];
 
     function initStickers() {
@@ -395,13 +401,22 @@
         dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
     };
 
-    // 스티커 슬라이드 제스처
+    // 스티커 영역 스와이프
     let touchStartX = 0;
-    const stickerSlider = document.getElementById('sticker-slider');
-    stickerSlider.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive: true});
-    stickerSlider.addEventListener('touchend', (e) => {
+    document.getElementById('sticker-slider').addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive: true});
+    document.getElementById('sticker-slider').addEventListener('touchend', (e) => {
         let diff = touchStartX - e.changedTouches[0].clientX;
         if (Math.abs(diff) > 40) window.goToStickerPage(currentPage + (diff > 0 ? 1 : -1));
+    });
+
+    // 달력 영역 스와이프 (달 변경)
+    let calTouchStartX = 0;
+    const calSwipeArea = document.getElementById('calendar-swipe-area');
+    calSwipeArea.addEventListener('touchstart', (e) => { calTouchStartX = e.touches[0].clientX; }, {passive: true});
+    calSwipeArea.addEventListener('touchend', (e) => {
+        let diff = calTouchStartX - e.changedTouches[0].clientX;
+        if (diff > 60) changeMonth(1);  // 왼쪽으로 밀면 다음달
+        else if (diff < -60) changeMonth(-1); // 오른쪽으로 밀면 이전달
     });
 
     dots.forEach(dot => dot.onclick = () => window.goToStickerPage(parseInt(dot.dataset.page)));
@@ -415,59 +430,41 @@
     }
     document.getElementById('dday-container').onclick = () => { isDateMode = !isDateMode; updateDday(); };
 
-    // 2026 공휴일 (지방선거 및 대체공휴일 포함)
-    const holidays2026 = {
-        "01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", 
-        "03-01": "삼일절", "03-02": "대체공휴일", "05-05": "어린이날", "05-24": "부처님오신날", 
-        "05-25": "대체공휴일", "06-03": "지방선거", "06-06": "현충일", "08-15": "광복절", 
-        "08-17": "대체공휴일", "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", 
-        "10-03": "개천절", "10-05": "대체공휴일", "10-09": "한글날", "12-25": "성탄절"
-    };
+    const holidays2026 = {"01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", "03-01": "삼일절", "03-02": "대체공휴일", "05-05": "어린이날", "05-24": "부처님오신날", "05-25": "대체공휴일", "06-03": "지방선거", "06-06": "현충일", "08-15": "광복절", "08-17": "대체공휴일", "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", "10-03": "개천절", "10-05": "대체공휴일", "10-09": "한글날", "12-25": "성탄절"};
 
     function renderCalendar() {
         dateContainer.innerHTML = ""; monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
-        const firstDay = new Date(viewYear, viewMonth, 1).getDay();
-        const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-        const today = new Date();
+        const firstDay = new Date(viewYear, viewMonth, 1).getDay(), daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate(), today = new Date();
         for (let i = 0; i < firstDay; i++) { dateContainer.appendChild(Object.assign(document.createElement('div'), {className: 'date-cell empty'})); }
         for (let i = 1; i <= daysInMonth; i++) {
-            const mStr = String(viewMonth + 1).padStart(2, '0');
-            const dStr = String(i).padStart(2, '0');
-            const dateKey = `${viewYear}-${mStr}-${dStr}`;
+            const mStr = String(viewMonth + 1).padStart(2, '0'), dStr = String(i).padStart(2, '0'), dateKey = `${viewYear}-${mStr}-${dStr}`;
             const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
             const cell = document.createElement('div'); cell.className = 'date-cell';
-
-            const dayOfWeek = (i + firstDay - 1) % 7;
-            if (dayOfWeek === 0) cell.classList.add('sunday');
-            if (dayOfWeek === 6) cell.classList.add('saturday');
+            const dow = (i + firstDay - 1) % 7;
+            if (dow === 0) cell.classList.add('sunday');
+            if (dow === 6) cell.classList.add('saturday');
             if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) cell.classList.add('holiday');
             if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
 
-            // 기념일: 300일까지만 100단위 표시, 그후엔 주년만
             const diff = Math.floor((new Date(viewYear, viewMonth, i) - new Date(2026, 0, 10)) / 86400000) + 1;
-            let anniv = "";
-            if (diff > 0 && diff <= 300 && diff % 100 === 0) anniv = `${diff}일`;
-            else if (viewMonth === 0 && i === 10 && viewYear > 2026) anniv = `${viewYear-2026}주년`;
+            let anniv = (diff > 0 && diff <= 300 && diff % 100 === 0) ? `${diff}일` : (viewMonth === 0 && i === 10 && viewYear > 2026) ? `${viewYear-2026}주년` : "";
 
-            cell.innerHTML = `
-                <div class="date-header"><span class="date-num">${i}</span>${data.comments?.length ? '<span class="record-heart">💛</span>' : ''}</div>
-                <span class="sticker-display">${data.sticker || ""}</span>
-                ${anniv ? `<span class="anniv-label">${anniv}</span>` : ''}
-            `;
+            cell.innerHTML = `<div class="date-header"><span class="date-num">${i}</span>${data.comments?.length ? '<span class="record-heart">💛</span>' : ''}</div><span class="sticker-display">${data.sticker || ""}</span>${anniv ? `<span class="anniv-label">${anniv}</span>` : ''}`;
             cell.onclick = () => openModal(i);
             dateContainer.appendChild(cell);
         }
     }
 
-    document.getElementById('prev-month').onclick = () => { viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderCalendar(); };
-    document.getElementById('next-month').onclick = () => { viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); };
+    function changeMonth(delta) { viewMonth += delta; if(viewMonth<0){viewMonth=11;viewYear--;} else if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); }
+    document.getElementById('prev-month').onclick = () => changeMonth(-1);
+    document.getElementById('next-month').onclick = () => changeMonth(1);
 
     function openModal(day) {
         currentDay = day; const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
         document.getElementById('selected-date').innerText = `${viewMonth + 1}월 ${day}일 기록`;
         selectedSticker = data.sticker || ""; comments = data.comments || [];
-        updateStickerUI(); renderComments(); previewBox.style.display = 'none'; window.goToStickerPage(0);
+        updateStickerUI(); renderComments(true); previewBox.style.display = 'none'; window.goToStickerPage(0);
         document.getElementById('diary-modal').style.display = 'flex'; document.getElementById('overlay').style.display = 'block';
     }
 
@@ -487,22 +484,26 @@
 
     const updateStickerUI = () => document.querySelectorAll('.sticker-option').forEach(opt => opt.classList.toggle('selected', opt.innerText === selectedSticker));
     
-    function renderComments() {
+    function renderComments(scrollToBottom = false) {
         commentListContainer.innerHTML = comments.length ? "" : '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">함께 추억을 남겨요 🌸</p>';
         comments.forEach((c, i) => {
             const div = document.createElement('div'); div.className = 'comment-item';
-            div.innerHTML = `${c.img ? `<img src="${c.img}" class="comment-img">` : ''}<div class="comment-content"><span>${c.text}</span><button class="delete-btn" onclick="window.delComm(${i})">✕</button></div>`;
+            div.innerHTML = `${c.img ? `<img src="${c.img}" class="comment-img">` : ''}<div class="comment-content"><span class="comment-text">${c.text}</span><button class="delete-btn" onclick="window.requestDel(${i})">✕</button></div>`;
             commentListContainer.appendChild(div);
         });
-        document.querySelector('.comment-section').scrollTop = commentListContainer.scrollHeight;
+        if(scrollToBottom) { const s = document.getElementById('comment-scroll-area'); s.scrollTop = s.scrollHeight; }
     }
 
-    window.delComm = async (i) => { comments.splice(i, 1); renderComments(); await saveData(); };
+    window.requestDel = (i) => { commentToDeleteIndex = i; document.getElementById('confirm-overlay').style.display = 'flex'; };
+    document.getElementById('cancel-del').onclick = () => { commentToDeleteIndex = -1; document.getElementById('confirm-overlay').style.display = 'none'; };
+    document.getElementById('confirm-del').onclick = async () => {
+        if (commentToDeleteIndex !== -1) { comments.splice(commentToDeleteIndex, 1); commentToDeleteIndex = -1; renderComments(); await saveData(); document.getElementById('confirm-overlay').style.display = 'none'; }
+    };
 
     document.getElementById('add-comment-btn').onclick = async () => {
         if (!diaryInput.value.trim() && !selectedImgBase64) return;
         comments.push({ text: diaryInput.value.trim() || "사진 기록", img: selectedImgBase64 });
-        diaryInput.value = ""; selectedImgBase64 = ""; previewBox.style.display = 'none'; renderComments(); await saveData();
+        diaryInput.value = ""; selectedImgBase64 = ""; previewBox.style.display = 'none'; renderComments(true); await saveData();
     };
 
     async function saveData() {
@@ -511,7 +512,15 @@
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'diaryRecords', dateKey), { comments, sticker: selectedSticker });
     }
 
-    const closeModal = () => { document.getElementById('diary-modal').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; };
+    const closeModal = () => { 
+        diaryInput.value = ""; 
+        selectedImgBase64 = ""; 
+        previewBox.style.display = 'none';
+        document.getElementById('img-upload').value = "";
+        document.getElementById('diary-modal').style.display = 'none'; 
+        document.getElementById('overlay').style.display = 'none'; 
+        document.getElementById('confirm-overlay').style.display = 'none';
+    };
     document.getElementById('close-modal').onclick = closeModal; document.getElementById('overlay').onclick = closeModal;
 
     initStickers(); renderCalendar(); updateDday(); 
