@@ -91,12 +91,19 @@
             margin: 0;
         }
 
+        /* 서프라이즈용 하트 스타일: 반응 없는 비밀 모드 */
+        .secret-trigger {
+            cursor: default;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         @keyframes fadeInDown {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 달력 컨테이너 (터치 스와이프 영역) */
+        /* 달력 컨테이너 */
         .calendar-container {
             width: var(--container-width);
             max-width: var(--container-max-width);
@@ -108,7 +115,7 @@
             box-sizing: border-box;
             flex-shrink: 0;
             margin-bottom: auto;
-            touch-action: pan-x; /* 달력 자체에서 가로 스와이프 허용 */
+            touch-action: pan-x;
         }
 
         .header {
@@ -186,7 +193,7 @@
         .dday-label { font-size: 0.75rem; color: var(--text-gray); font-weight: 700; }
         .dday-value { font-size: 1.4rem; color: var(--point-pink); font-weight: 900; }
 
-        /* 모달 스타일 */
+        /* 모달 공통 */
         .overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); z-index: 100;
@@ -220,10 +227,10 @@
         .dot { width: 6px; height: 6px; background: #ddd; border-radius: 50%; cursor: pointer; }
         .dot.active { background: var(--main-pink); transform: scale(1.3); }
 
-        /* 댓글 영역 (높이 고정 및 스크롤) */
+        /* 댓글 영역 */
         .comment-section { 
             flex: 1; 
-            max-height: 280px; /* 기록 4개 정도가 보일 높이 */
+            max-height: 280px; 
             overflow-y: auto; 
             margin-bottom: 15px; 
             -webkit-overflow-scrolling: touch; 
@@ -245,17 +252,38 @@
         #img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 2px solid var(--main-pink); }
         .remove-img-btn { position: absolute; top: -8px; left: 45px; background: var(--point-pink); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
 
-        /* 삭제 확인 커스텀 창 */
-        #confirm-overlay {
+        /* 오버레이 팝업들 */
+        #confirm-overlay, #surprise-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 300; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.5); z-index: 500; align-items: center; justify-content: center;
         }
-        .confirm-box { background: white; width: 80%; max-width: 300px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .confirm-msg { color: var(--text-dark); font-weight: 900; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.4; }
-        .confirm-btns { display: flex; gap: 10px; }
+        .confirm-box, .surprise-box { 
+            background: white; width: 85%; max-width: 340px; padding: 25px; border-radius: 25px; 
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; max-height: 80vh;
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .confirm-msg { color: var(--text-dark); font-weight: 900; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; }
+        
+        /* 서프라이즈 편지 스타일 */
+        .surprise-title { color: var(--point-pink); font-size: 1.2rem; margin-bottom: 15px; display: block; font-weight: 900; flex-shrink: 0; }
+        .surprise-msg-container { 
+            flex: 1; overflow-y: auto; text-align: left; padding: 15px; 
+            background: var(--bg-pink); border-radius: 15px; margin-bottom: 15px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .surprise-msg { color: var(--text-dark); font-weight: 500; font-size: 0.9rem; line-height: 1.8; word-break: keep-all; }
+        
+        .confirm-btns { display: flex; gap: 10px; flex-shrink: 0; }
         .confirm-btn { flex: 1; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: 900; font-size: 0.85rem; }
         .btn-cancel { background: #f0f0f0; color: #888; }
-        .btn-delete { background: var(--point-pink); color: white; }
+        .btn-delete { background: var(--point-pink); color: white; transition: opacity 0.2s; }
+        .btn-delete:active { opacity: 0.8; }
+        
+        /* [수정] 서프라이즈 닫기 버튼용 이모지 스타일 */
+        .surprise-close-heart { font-size: 1.3rem; background: none; border: none; cursor: pointer; padding: 5px; }
     </style>
 </head>
 <body>
@@ -266,7 +294,9 @@
 </div>
 
 <div class="main-title-container">
-    <h1 class="main-title"><span>💛</span> 싱벙한 추억 일기 <span>💛</span></h1>
+    <h1 class="main-title">
+        <span class="secret-trigger" id="secret-heart-trigger">💛</span> 싱벙한 추억 일기 <span>💛</span>
+    </h1>
 </div>
 
 <div class="calendar-container" id="calendar-swipe-area">
@@ -286,6 +316,7 @@
     <div class="dday-value" id="dday-text">D-0</div>
 </div>
 
+<!-- 삭제 확인용 오버레이 -->
 <div id="confirm-overlay">
     <div class="confirm-box">
         <div class="confirm-msg">우리의 소중한 추억인데<br>지울려고..?</div>
@@ -293,6 +324,33 @@
             <button class="confirm-btn btn-cancel" id="cancel-del">취소</button>
             <button class="confirm-btn btn-delete" id="confirm-del">지우기</button>
         </div>
+    </div>
+</div>
+
+<!-- 서프라이즈용 오버레이 (비밀 편지) -->
+<div id="surprise-overlay">
+    <div class="surprise-box">
+        <span class="surprise-title">✨ 유미야!!사랑해💛 ✨</span>
+        <div class="surprise-msg-container">
+            <div class="surprise-msg" id="surprise-msg-content">
+                자기라고 시작해서 여보까지 되었네?<br><br>
+                진짜 많이 보고 싶어, 매일 보고 싶은 거 같더라고 이런 감정도 또 처음이야..<br>
+                유미 덕분에 요즘 매일 웃고 다니고 행복한 하루인 거 같아.<br>
+                사랑한다는 것도 말도 못 하고 부끄럽기만 할 때보다 표현해 주고 싶은 사람이 있다는 것도 더 좋기만 하내💛<br><br>
+                항상 잘해주고 싶고 유미 먼저 챙겨주고 싶은데 또 그러지 못할 때도 있을까 봐 아직도 조심스러워서 가끔 점잖은 척 거느니가 나오나? 후<br>
+                그래도 진짜 많이 좋아해서 그러는 거야!<br>
+                지금 이렇게 글을 적을 때에도 정말 많이 생각나고 보고 싶다..!<br>
+                맨날 웃는 모습 보고 싶은데 울려버리기도 하구ㅜᅲ 행복하게도 해주었겠지?ㅎㅎ<br><br>
+                정말 많은 얘기를 하면서 유미랑 공통점도 많아서 그런가 금방 마음도 열린것같고 조금더 빠르게 다가갔던거같아.<br>
+                물론 너도 그렇겠지만 유미 자빠뜨릴생각으로 시작한것도 아니고, 유미가 되게 궁금했었어 너라는 사람이 어떤 사람인지 호기심도 호감도 많이 생겼던거같아. 한편으로는 좋아하는 마음도 생기기 시작했던거 같구..ㅎ<br><br>
+                만나고 놀다보니까 계속 좋아지는 사람이더라??<br>
+                쉽게 생각하고 시작한거 아닌만큼 더 많이 우리의 만남도 소중히 생각하고 유미랑 있던 시간도 너랑 나눈 대화도 하나하나 잘 간직하고 있을게<br><br>
+                앞으로도 많이 나랑 사랑나누자<br>
+                사랑해💛
+            </div>
+        </div>
+        <!-- [수정] 팝업 닫기 버튼: 확인 대신 이모티콘 ❣️ 적용 -->
+        <button class="confirm-btn btn-delete" onclick="closeSurprise()" style="font-size: 1.2rem;">❣️</button>
     </div>
 </div>
 
@@ -346,6 +404,7 @@
     const appId = 'shared-gomi-diary-app'; 
 
     let user = null, cloudRecords = {}, viewYear = 2026, viewMonth = 1, currentDay = 0, selectedSticker = "", comments = [], selectedImgBase64 = "", isDateMode = false, currentPage = 0, commentToDeleteIndex = -1;
+    let secretClickCount = 0; 
 
     const dateContainer = document.getElementById('calendar-dates'), monthTitle = document.getElementById('month-title'), stickerWrapper = document.getElementById('sticker-wrapper'), dots = document.querySelectorAll('.dot'), commentListContainer = document.getElementById('comment-list'), diaryInput = document.getElementById('diary-input'), imgPreview = document.getElementById('img-preview'), previewBox = document.getElementById('preview-box'), ddayText = document.getElementById('dday-text'), ddayLabel = document.getElementById('dday-label'), loadingOverlay = document.getElementById('loading-overlay');
 
@@ -380,6 +439,19 @@
     };
     initAuth();
 
+    // 서프라이즈 트리거
+    document.getElementById('secret-heart-trigger').onclick = () => {
+        secretClickCount++;
+        if (secretClickCount === 5) {
+            document.getElementById('surprise-overlay').style.display = 'flex';
+            secretClickCount = 0;
+        }
+        clearTimeout(window.secretTimer);
+        window.secretTimer = setTimeout(() => { secretClickCount = 0; }, 2000);
+    };
+
+    window.closeSurprise = () => { document.getElementById('surprise-overlay').style.display = 'none'; };
+
     const allStickers = ['💛', '💖', '❤️', '🧡', '💚', '💙', '💜', '❣️', '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇', '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️', '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️', '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕', '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤', '🐱', '🐶', '🧸', '🦄', '🐰', '🐥', '🐼', '🦁', '🎧', '🎬', '🎮', '⚽', '📚', '💻', '🎸', '📷', '🎈', '🎁', '💎', '💌', '🌻', '🌳', '🐚', '🏔️'];
 
     function initStickers() {
@@ -401,7 +473,6 @@
         dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
     };
 
-    // 스티커 영역 스와이프
     let touchStartX = 0;
     document.getElementById('sticker-slider').addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive: true});
     document.getElementById('sticker-slider').addEventListener('touchend', (e) => {
@@ -409,14 +480,13 @@
         if (Math.abs(diff) > 40) window.goToStickerPage(currentPage + (diff > 0 ? 1 : -1));
     });
 
-    // 달력 영역 스와이프 (달 변경)
     let calTouchStartX = 0;
     const calSwipeArea = document.getElementById('calendar-swipe-area');
     calSwipeArea.addEventListener('touchstart', (e) => { calTouchStartX = e.touches[0].clientX; }, {passive: true});
     calSwipeArea.addEventListener('touchend', (e) => {
         let diff = calTouchStartX - e.changedTouches[0].clientX;
-        if (diff > 60) changeMonth(1);  // 왼쪽으로 밀면 다음달
-        else if (diff < -60) changeMonth(-1); // 오른쪽으로 밀면 이전달
+        if (diff > 60) changeMonth(1);  
+        else if (diff < -60) changeMonth(-1); 
     });
 
     dots.forEach(dot => dot.onclick = () => window.goToStickerPage(parseInt(dot.dataset.page)));
@@ -447,7 +517,9 @@
             if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
 
             const diff = Math.floor((new Date(viewYear, viewMonth, i) - new Date(2026, 0, 10)) / 86400000) + 1;
-            let anniv = (diff > 0 && diff <= 300 && diff % 100 === 0) ? `${diff}일` : (viewMonth === 0 && i === 10 && viewYear > 2026) ? `${viewYear-2026}주년` : "";
+            let anniv = "";
+            if (diff > 0 && diff <= 300 && diff % 100 === 0) anniv = `${diff}일`;
+            else if (viewMonth === 0 && i === 10 && viewYear > 2026) anniv = `${viewYear-2026}주년`;
 
             cell.innerHTML = `<div class="date-header"><span class="date-num">${i}</span>${data.comments?.length ? '<span class="record-heart">💛</span>' : ''}</div><span class="sticker-display">${data.sticker || ""}</span>${anniv ? `<span class="anniv-label">${anniv}</span>` : ''}`;
             cell.onclick = () => openModal(i);
