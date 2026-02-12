@@ -304,7 +304,7 @@
             box-sizing: border-box;
         }
 
-        .weather-info { display: flex; align-items: center; gap: 8px; list-style: none !important; padding: 0; margin: 0; text-indent: 0; }
+        .weather-info { display: flex; align-items: center; gap: 8px; list-style: none !important; padding-left: 5px; margin: 0; text-indent: 0; }
         .weather-icon { width: 40px; height: 40px; display: block; object-fit: contain; background: none !important; }
         .weather-text { font-size: 0.85rem; color: var(--text-dark); font-weight: 700; }
         .weather-temp { font-size: 1rem; color: var(--point-pink); font-weight: 900; }
@@ -338,7 +338,7 @@
 
     </div> <div class="weather-container" id="weather-widget">
     <div class="weather-info">
-        <img id="w-icon" class="weather-icon" src="https://openweathermap.org/img/wn/01d@2x.png" alt="날씨">
+        <img id="w-icon" class="weather-icon" src="" alt="날씨">
         <div>
             <div class="weather-text" id="w-desc">날씨 불러오는 중...</div>
             <div class="weather-city">대전</div>
@@ -656,7 +656,6 @@ async function getDaejeonWeather() {
 
         document.getElementById('w-temp').innerText = `${Math.round(data.main.temp)}°C`;
         document.getElementById('w-desc').innerText = data.weather[0].description;
-        document.getElementById('w-icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
     } catch (e) {
         // 실패 시 기본 텍스트 표시
         document.getElementById('w-desc').innerText = "맑음 (기본)";
@@ -670,6 +669,7 @@ getDaejeonWeather();
 </script>
 </body>
 </html>
+
 
 
 
