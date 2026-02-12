@@ -342,7 +342,7 @@
                 <span id="w-desc" style="font-size: 0.9rem; color: var(--text-dark); font-weight: 700;">날씨 불러오는 중...</span>
                 <span id="w-clouds" style="font-size: 0.75rem; color: #999; margin-left: 5px;"></span>
             </div>
-            <div class="weather-city" style="font-weight: 900; color: #555; font-size: 0.8rem; margin-top: 2px;">대전광역시</div>
+            <div class="weather-city" style="font-weight: 900; color: #555; font-size: 0.8rem; margin-top: 2px;">유잼도시 대전</div>
         </div>
     </div>
     <div class="weather-temp" id="w-temp" style="font-size: 1.2rem; font-weight: 900; color: var(--point-pink);">--°C</div>
@@ -666,7 +666,7 @@ async function getDaejeonWeather() {
     } catch (e) {
         console.error("날씨 로드 실패:", e);
         // 실패 시 표시 문구
-        document.getElementById('w-desc').innerText = "업데이트 중...";
+        document.getElementById('w-desc').innerText = "별보이는 날씨 중...";
         document.getElementById('w-temp').innerText = "--°C";
     }
 }
@@ -676,6 +676,7 @@ getDaejeonWeather();
 </script>
 </body>
 </html>
+
 
 
 
