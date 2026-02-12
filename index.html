@@ -1079,25 +1079,40 @@ window.submitDailyAnswer = function() {
     alert(currentWriter + "님의 답변이 기록되었습니다! 💛");
     showRandomQuestion(); 
 };
-    /* 📍 질문 팝업 닫기 함수 */
+    /* 📍 질문 팝업 닫기 함수: 닫을 때 입력창을 초기화합니다. */
 window.closeQuestion = function() {
     const qOverlay = document.getElementById('question-overlay');
     const diaryModal = document.getElementById('diary-modal');
+    const answerInput = document.getElementById('q-answer-input'); // 입력창 가져오기
     
-    // 질문 팝업 숨기기
+    // 1. 입력창 내용 초기화 (작성 중이던 내용 삭제)
+    if (answerInput) {
+        answerInput.value = ""; 
+    }
+
+    // 2. 질문 팝업 숨기기
     if (qOverlay) {
         qOverlay.style.display = 'none';
     }
     
-    // 만약 다이어리 모달이나 다른 팝업이 켜져 있지 않다면 배경(블러)도 함께 제거
-    if (diaryModal && diaryModal.style.display === 'none') {
+    // 3. 배경(블러) 제어: 다이어리 모달이 꺼져있을 때만 오버레이 제거
+    if (diaryModal && (diaryModal.style.display === 'none' || diaryModal.style.display === '')) {
         const overlay = document.getElementById('overlay');
         if (overlay) overlay.style.display = 'none';
+    }
+    
+    // 4. 입력창이 열려있었다면 다시 버튼 선택 화면으로 UI 리셋
+    const inputArea = document.getElementById('q-input-area');
+    const writerSelector = document.getElementById('writer-selector');
+    if (inputArea && writerSelector) {
+        inputArea.style.display = 'none';
+        writerSelector.style.display = 'flex';
     }
 };
 </script>
 </body>
 </html>
+
 
 
 
