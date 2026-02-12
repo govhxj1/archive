@@ -966,35 +966,77 @@
         document.getElementById('overlay').style.display = 'none';
     };
     /* 💌 랜덤 질문 보여주기 함수 */
+let currentWriter = ""; 
+
+// 질문 리스트 (dailyQuestions 배열이 없다면 여기에 정의하세요)
+const dailyQuestions = [
+    "우리 처음 만났을 때, 나의 첫인상은 어땠어? 😊",
+    "나랑 가장 가보고 싶은 대전 맛집은 어디야? 🥘",
+    "내가 가장 귀여워 보일 때는 언제야? 💛",
+    "우리가 함께한 날 중 가장 기억에 남는 날은? 🌸",
+    "나랑 꼭 같이 해보고 싶은 버킷리스트가 있어? ✨"
+];
+
+/* 1. 질문 불러오기 */
 window.showRandomQuestion = function() {
-    const questions = [
-        "우리 처음 만났을 때, 나의 첫인상은 어땠어? 😊",
-        "나랑 가장 가보고 싶은 대전 맛집은 어디야? 🥘",
-        "내가 가장 귀여워 보일 때는 언제야? 💛",
-        "우리가 함께한 날 중 가장 기억에 남는 날은? 🌸",
-        "나랑 꼭 같이 해보고 싶은 버킷리스트가 있어? ✨",
-        "나중에 우리 같이 꼭 가보고 싶은 여행지는 어디야? ✈️",
-        "최근에 나한테 말은 못 했지만 고마웠던 순간이 있어? 💝"
-    ];
+    const today = new Date();
+    const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+    const seed = today.getFullYear() * 1000 + (today.getMonth() + 1) * 100 + today.getDate();
+    const qIdx = seed % dailyQuestions.length;
     
-    const randomIdx = Math.floor(Math.random() * questions.length);
-    const selectedQuestion = questions[randomIdx];
+    document.getElementById('question-content').innerText = dailyQuestions[qIdx];
+
+    // 저장된 답변 불러오기
+    const savedData = JSON.parse(localStorage.getItem('daily_q_' + dateKey) || "{}");
     
-    // 팝업 띄우기
-    document.getElementById('question-content').innerText = selectedQuestion;
+    const yBox = document.getElementById('yumi-answer');
+    if (savedData.유미) {
+        yBox.style.display = 'block';
+        yBox.querySelector('.text').innerText = savedData.유미;
+    } else { yBox.style.display = 'none'; }
+
+    const gBox = document.getElementById('goni-answer');
+    if (savedData.거니) {
+        gBox.style.display = 'block';
+        gBox.querySelector('.text').innerText = savedData.거니;
+    } else { gBox.style.display = 'none'; }
+
+    document.getElementById('q-input-area').style.display = 'none';
+    document.getElementById('writer-selector').style.display = 'flex';
     document.getElementById('question-overlay').style.display = 'flex';
-    
-    // 메뉴는 닫아주기
     if (typeof toggleMenu === 'function') toggleMenu();
 };
 
-/* 💌 랜덤 질문 팝업 닫기 함수 */
-window.closeQuestion = function() {
-    document.getElementById('question-overlay').style.display = 'none';
+/* 2. 입력창 열기 */
+window.openInput = function(name) {
+    currentWriter = name;
+    document.getElementById('writer-selector').style.display = 'none';
+    document.getElementById('q-input-area').style.display = 'flex';
+    document.getElementById('q-answer-input').placeholder = name + "(이)가 입력 중...";
+    document.getElementById('q-answer-input').focus();
+};
+
+/* 3. 답변 저장 */
+window.submitDailyAnswer = function() {
+    const text = document.getElementById('q-answer-input').value;
+    if (!text.trim()) return alert("내용을 입력해주세요! 🌸");
+
+    const today = new Date();
+    const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+    
+    const savedData = JSON.parse(localStorage.getItem('daily_q_' + dateKey) || "{}");
+    savedData[currentWriter] = text;
+    
+    localStorage.setItem('daily_q_' + dateKey, JSON.stringify(savedData));
+    
+    document.getElementById('q-answer-input').value = "";
+    alert(currentWriter + "님의 답변이 기록되었습니다! 💛");
+    showRandomQuestion(); 
 };
 </script>
 </body>
 </html>
+
 
 
 
