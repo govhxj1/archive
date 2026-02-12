@@ -75,24 +75,40 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 타이틀 */
+        /* 타이틀 컨테이너: 달력 너비와 맞춤 */
         .main-title-container {
-            text-align: center;
+            width: var(--container-width);
+            max-width: var(--container-max-width);
+            display: flex;
+            justify-content: space-between; /* 📍 왼쪽(타이틀) - 오른쪽(메뉴) 정렬 */
+            align-items: center;
             margin-top: 4.5vh; 
-            margin-bottom: 10px; 
+            margin-bottom: 10px;
             animation: fadeInDown 0.8s ease;
-            width: 100%;
         }
-
+        
         .main-title {
             font-size: clamp(1.1rem, 4.5vw, 1.4rem);
             color: var(--point-pink);
             font-weight: 900;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
+            gap: 8px; /* 하트와 글자 간격 */
             margin: 0;
+        }
+        
+        /* ≡ 메뉴 버튼 스타일 */
+        .menu-trigger {
+            background: none;
+            border: none;
+            color: var(--point-pink);
+            font-size: 1.5rem; /* ≡ 모양 크기 */
+            cursor: pointer;
+            padding: 0 5px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .secret-trigger {
@@ -352,8 +368,20 @@
 
 <div class="main-title-container">
     <h1 class="main-title">
-        <span class="secret-trigger" id="secret-heart-trigger">💛</span> 싱벙한 추억 일기 <span>💛</span>
+        <span class="secret-trigger" id="secret-heart-trigger">💛</span> 
+        싱벙한 추억 일기
     </h1>
+    
+    <button class="menu-trigger" onclick="toggleMenu()">≡</button>
+</div>
+
+<div id="side-menu" class="surprise-box" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:1000; width:85%;">
+    <span class="surprise-title">✨ 우리들의 비밀 메뉴 ✨</span>
+    <div style="display:flex; flex-direction:column; gap:12px; padding:10px;">
+        <button class="confirm-btn" style="background:var(--main-pink); color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="openMap()">🗺️ 우리들의 추억 지도</button>
+        <button class="confirm-btn" style="background:#ffc107; color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="alert('랜덤 질문 준비 중! 💌')">💌 오늘의 랜덤 질문</button>
+    </div>
+    <button class="confirm-btn btn-cancel" style="margin-top:10px;" onclick="toggleMenu()">닫기</button>
 </div>
 
 <div class="calendar-container" id="calendar-swipe-area">
@@ -777,9 +805,29 @@
     }, { passive: true });
 
     getDaejeonWeather(); renderCalendar(); updateDday();
+
+    window.toggleMenu = function() {
+    const menu = document.getElementById('side-menu');
+    const overlay = document.getElementById('overlay');
+    
+    if (menu.style.display === 'none' || menu.style.display === '') {
+        menu.style.display = 'flex';
+        overlay.style.display = 'block';
+    } else {
+        menu.style.display = 'none';
+        overlay.style.display = 'none';
+    }
+};
+
+// 배경(오버레이) 클릭 시 메뉴도 같이 닫히게 설정
+document.getElementById('overlay').addEventListener('click', () => {
+    const menu = document.getElementById('side-menu');
+    if (menu) menu.style.display = 'none';
+});
 </script>
 </body>
 </html>
+
 
 
 
