@@ -847,110 +847,92 @@
 
     getDaejeonWeather(); renderCalendar(); updateDday();
 
+    // [수정된 부분] 메뉴 열고 닫기 함수
     window.toggleMenu = function() {
-    const menu = document.getElementById('side-menu');
-    const overlay = document.getElementById('overlay');
-    
-    if (menu.style.display === 'none' || menu.style.display === '') {
-        menu.style.display = 'flex';
-        overlay.style.display = 'block';
-    } else {
-        menu.style.display = 'none';
-        // 메뉴를 닫을 때 다이어리 모달이 안 켜져 있다면 오버레이도 닫기
-        if (document.getElementById('diary-modal').style.display === 'none') {
-            overlay.style.display = 'none';
-        }
-    }
-
-// 배경(오버레이) 클릭 시 메뉴도 같이 닫히게 설정
-document.getElementById('overlay').addEventListener('click', () => {
-    const menu = document.getElementById('side-menu');
-    const diaryModal = document.getElementById('diary-modal');
-    const mapContainer = document.getElementById('map-container');
-
-    // 1. 메뉴 팝업 닫기
-    if (menu) menu.style.display = 'none';
-
-    // 2. 중요: 다이어리 모달과 지도 화면도 모두 닫혀있는 상태라면 블러(오버레이) 제거
-    if (diaryModal.style.display === 'none' && mapContainer.style.display === 'none') {
-        document.getElementById('overlay').style.display = 'none';
-    }
-});
-    /* 지도 관련 변수 선언 */
-let diaryMap;
-let pathLine;
-let markers = [];
-
-/* 2월 14일 데이트 코스 좌표 데이터 */
-const feb14Path = [
-    { name: "1. 저스트슬립 호텔", lat: 36.3537, lng: 127.3415, memo: "우리의 아늑한 숙소 🏨" },
-    { name: "2. NC백화점 유성점", lat: 36.3540, lng: 127.3400, memo: "즐거운 쇼핑 데이트! 🛍️" },
-    { name: "3. 어묵사랑애", lat: 36.3515, lng: 127.3420, memo: "따끈한 오뎅바에서 한잔 🍢" },
-    { name: "4. 숙소 앞 산책", lat: 36.3530, lng: 127.3410, memo: "밤공기 마시며 걷기 🌙" }
-];
-
-/* 지도 열기 함수 */
-window.openMap = function() {
-    const mapContainer = document.getElementById('map-container');
-    const mapElement = document.getElementById('map');
-    
-    // 1) 지도를 그릴 상자가 있는지 먼저 확인
-    if (!mapContainer || !mapElement) {
-        console.error("지도를 그릴 공간이 없습니다.");
-        return;
-    }
-
-    mapContainer.style.display = 'flex';
-    document.getElementById('side-menu').style.display = 'none';
-
-    // 2) 지도 초기화 및 심플 스타일 적용
-    if (!diaryMap) {
-        // Leaflet 객체가 로드되었는지 확인 후 생성
-        if (typeof L === 'undefined') {
-            alert("지도 라이브러리가 아직 로딩 중입니다. 잠시 후 다시 시도해 주세요!");
-            return;
-        }
+        const menu = document.getElementById('side-menu');
+        const overlay = document.getElementById('overlay');
         
-        diaryMap = L.map('map').setView([36.3537, 127.3415], 16);
-        
-        // 📍 유미님이 원하신 심플한 지도 스타일 적용
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CARTO',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(diaryMap);
-    }
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'flex';
+            overlay.style.display = 'block';
+        } else {
+            menu.style.display = 'none';
+            if (document.getElementById('diary-modal').style.display === 'none') {
+                overlay.style.display = 'none';
+            }
+        }
+    }; // <--- 이 중괄호와 세미콜론이 빠져있었습니다!
 
-    // 3) 기존 마커 및 선 초기화
-    if (pathLine) diaryMap.removeLayer(pathLine);
-    markers.forEach(m => diaryMap.removeLayer(m));
-    markers = [];
+    // 배경(오버레이) 클릭 시 닫기 설정
+    document.getElementById('overlay').addEventListener('click', () => {
+        const menu = document.getElementById('side-menu');
+        const diaryModal = document.getElementById('diary-modal');
+        const mapContainer = document.getElementById('map-container');
 
-    // 4) 핀 꽂기 및 동선 그리기
-    feb14Path.forEach((p) => {
-        const marker = L.marker([p.lat, p.lng]).addTo(diaryMap)
-            .bindPopup(`<div style="text-align:center;"><b>${p.name}</b><br>${p.memo}</div>`);
-        markers.push(marker);
+        if (menu) menu.style.display = 'none';
+        if (diaryModal.style.display === 'none' && mapContainer.style.display === 'none') {
+            document.getElementById('overlay').style.display = 'none';
+        }
     });
 
-    const latlngs = feb14Path.map(p => [p.lat, p.lng]);
-    pathLine = L.polyline(latlngs, {
-        color: '#ffafcc',
-        weight: 4,
-        opacity: 0.8,
-        dashArray: '10, 10'
-    }).addTo(diaryMap);
+    /* 지도 관련 변수 선언 */
+    let diaryMap;
+    let pathLine;
+    let markers = [];
 
-    // 5) 📍 중요: 화면 크기 재계산 (지도가 잘려 보이는 현상 방지)
-    setTimeout(() => { 
-        diaryMap.invalidateSize();
-        const group = new L.featureGroup(markers);
-        diaryMap.fitBounds(group.getBounds().pad(0.3));
-    }, 300);
-};
+    const feb14Path = [
+        { name: "1. 저스트슬립 호텔", lat: 36.3537, lng: 127.3415, memo: "우리의 아늑한 숙소 🏨" },
+        { name: "2. NC백화점 유성점", lat: 36.3540, lng: 127.3400, memo: "즐거운 쇼핑 데이트! 🛍️" },
+        { name: "3. 어묵사랑애", lat: 36.3515, lng: 127.3420, memo: "따끈한 오뎅바에서 한잔 🍢" },
+        { name: "4. 숙소 앞 산책", lat: 36.3530, lng: 127.3410, memo: "밤공기 마시며 걷기 🌙" }
+    ];
+
+    window.openMap = function() {
+        const mapContainer = document.getElementById('map-container');
+        const mapElement = document.getElementById('map');
+        
+        if (!mapContainer || !mapElement) return;
+
+        mapContainer.style.display = 'flex';
+        document.getElementById('side-menu').style.display = 'none';
+
+        if (!diaryMap) {
+            if (typeof L === 'undefined') {
+                alert("지도 로딩 중...");
+                return;
+            }
+            diaryMap = L.map('map').setView([36.3537, 127.3415], 16);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(diaryMap);
+        }
+
+        if (pathLine) diaryMap.removeLayer(pathLine);
+        markers.forEach(m => diaryMap.removeLayer(m));
+        markers = [];
+
+        feb14Path.forEach((p) => {
+            const marker = L.marker([p.lat, p.lng]).addTo(diaryMap)
+                .bindPopup(`<b>${p.name}</b><br>${p.memo}`);
+            markers.push(marker);
+        });
+
+        const latlngs = feb14Path.map(p => [p.lat, p.lng]);
+        pathLine = L.polyline(latlngs, { color: '#ffafcc', weight: 4, dashArray: '10, 10' }).addTo(diaryMap);
+
+        setTimeout(() => { 
+            diaryMap.invalidateSize();
+            const group = new L.featureGroup(markers);
+            diaryMap.fitBounds(group.getBounds().pad(0.3));
+        }, 300);
+    };
+
+    window.closeMap = function() {
+        document.getElementById('map-container').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+    };
 </script>
 </body>
 </html>
+
 
 
 
