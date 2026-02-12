@@ -278,28 +278,29 @@
         .comment-section { flex: 1; max-height: 280px; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; padding-right: 5px; touch-action: pan-y; }
         .comment-item {
             display: flex;
-            justify-content: space-between; /* 내용과 x버튼을 양 끝으로 분리 */
-            align-items: center;           /* x버튼이 세로로 중앙에 오게 함 */
+            justify-content: space-between; 
+            align-items: flex-start; /* 글 내용이 길어지면 x버튼은 상단 고정 */
             background: white;
             border-radius: 18px;
             padding: 15px;
             margin-bottom: 12px;
             border: 1px solid #ffe5ec;
-            position: relative;
+            box-sizing: border-box; /* 패딩이 너비를 넘지 않게 고정 */
         }
         .comment-img {
             width: 100%;                   /* 사진이 댓글 창 가로에 맞게 꽉 참 */
-            max-width: 250px;              /* 너무 커지지 않게 제한 */
+            max-width: 100%;              /* 너무 커지지 않게 제한 */
             border-radius: 12px;
             margin-bottom: 5px;            /* 사진과 아래 글씨 사이 간격 */
             display: block;
         }
         .comment-content {
-            flex: 1;
+            flex: 1;               /* 남은 모든 가로 공간 차지 */
             display: flex;
-            flex-direction: column;        /* 📍 사진 아래에 글씨가 오도록 수직 정렬 */
-            align-items: flex-start;       /* 왼쪽 정렬 */
-            padding-right: 15px;           /* x버튼과 겹치지 않게 여백 */
+            flex-direction: column; 
+            align-items: flex-start;
+            padding-right: 10px;    /* x버튼과 절대 겹치지 않게 보호구역 설정 */
+            min-width: 0;           /* 글자가 길어도 버튼을 밀어내지 않게 설정 */
         }
         .comment-text {
             font-size: 0.95rem;
@@ -312,12 +313,12 @@
             background: none;
             border: none;
             color: #ccc;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             cursor: pointer;
-            flex-shrink: 0;                /* 버튼 크기 고정 */
-            padding: 5px;
+            flex-shrink: 0;         /* 📍 중요: 어떤 상황에서도 버튼 크기가 줄거나 밀리지 않음 */
+            padding: 2px 5px;
+            margin-top: -2px;       /* 텍스트 첫 줄과 높이 맞춤 */
             line-height: 1;
-            transition: color 0.2s;
         }
         .input-area {
             width: 100%;           /* 전체 너비 사용 */
@@ -824,6 +825,7 @@ document.addEventListener('touchend', (e) => {
 </script>
 </body>
 </html>
+
 
 
 
