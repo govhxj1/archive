@@ -657,7 +657,7 @@ async function getDaejeonWeather() {
         document.getElementById('w-desc').innerText = data.weather[0].description;
     } catch (e) {
         // 실패 시 기본값이라도 띄워서 무한 로딩 방지
-        document.getElementById('w-desc').innerText = "기본";
+        document.getElementById('w-desc').innerText = "맑음";
         document.getElementById('w-temp').innerText = "10°C";
         console.error("날씨 로드 에러:", e);
     }
@@ -668,6 +668,7 @@ getDaejeonWeather();
 </script>
 </body>
 </html>
+
 
 
 
