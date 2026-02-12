@@ -193,21 +193,41 @@
 
         /* D-day 바 디자인 */
         .dday-container {
-            width: 100vw; 
-            background: white;
-            padding: 20px 0;
-            margin: 0;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-            border: none;
-            box-shadow: none;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+    width: 100%;
+    background: #fff;
+    /* 위아래 여백을 넉넉히 주어 글자가 잘리지 않게 합니다 */
+    padding: 25px 0 35px 0; 
+    margin: 0;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    border: none;
+    box-shadow: none;
+    /* 컨텐츠가 박스 밖으로 나가도 잘리지 않게 설정 */
+    overflow: visible;      
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.dday-label { 
+    font-size: 0.85rem; 
+    color: var(--text-gray); 
+    font-weight: 700; 
+    line-height: 1.2;
+}
+
+.dday-value { 
+    font-size: 1.3rem; 
+    color: var(--point-pink); 
+    font-weight: 900; 
+    line-height: 1.4; 
+    /* 문구가 줄바꿈되어 잘리지 않도록 한 줄로 유지 */
+    white-space: nowrap;    
+}
         .dday-container:active { background: #fff9fa; }
         .dday-label { font-size: 0.85rem; color: var(--text-gray); font-weight: 700; margin-bottom: 2px; }
         .dday-value { font-size: 1.4rem; color: var(--point-pink); font-weight: 900; }
@@ -650,6 +670,7 @@ getDaejeonWeather();
 </script>
 </body>
 </html>
+
 
 
 
