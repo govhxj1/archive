@@ -847,54 +847,38 @@
 
     getDaejeonWeather(); renderCalendar(); updateDday();
 
-    // 1. 메뉴 토글 함수: 열 때와 닫을 때의 상태를 명확히 제어합니다.
+    // 1. 메뉴 토글 함수: 상태값과 상관없이 메뉴 전용으로 동작하게 수정
     window.toggleMenu = function() {
         const menu = document.getElementById('side-menu');
         const overlay = document.getElementById('overlay');
         
-        // 메뉴가 닫혀있거나 아예 display 설정이 없는 경우 (열기 로직)
+        // 메뉴 열기
         if (menu.style.display === 'none' || menu.style.display === '') {
             menu.style.display = 'flex';
             overlay.style.display = 'block';
-            // 📍 팝업이 블러보다 위에 오도록 z-index 강제 재설정
             menu.style.zIndex = "1001"; 
             overlay.style.zIndex = "1000";
         } 
-        // 메뉴가 열려있는 경우 (닫기 로직)
+        // 메뉴 닫기: 접속 직후라도 무조건 블러를 함께 제거함
         else {
             menu.style.display = 'none';
-            // 메뉴를 닫을 때 다이어리나 지도가 안 켜져 있다면 블러도 제거
-            if (document.getElementById('diary-modal').style.display === 'none' && 
-                document.getElementById('map-container').style.display === 'none') {
+            // 메뉴 전용 닫기이므로, 다이어리 모달이 확실히 꺼져있다면 블러도 무조건 제거
+            const diaryModal = document.getElementById('diary-modal');
+            if (!diaryModal || diaryModal.style.display === 'none' || diaryModal.style.display === '') {
                 overlay.style.display = 'none';
             }
         }
     };
 
-    // 2. 오버레이(배경) 클릭 이벤트: 
-    // "메뉴가 떠 있을 때는 배경을 눌러도 반응 없게" 하여 먹통 현상을 방지합니다.
-    document.getElementById('overlay').onclick = function(e) {
+    // 2. 오버레이 클릭 시: 메뉴가 켜져있을 땐 무시하도록 설정
+    document.getElementById('overlay').onclick = function() {
         const menu = document.getElementById('side-menu');
-        
-        // 메뉴가 열려있다면 배경 클릭 무시 (닫기 버튼으로만 닫히게 함)
-        if (menu.style.display === 'flex') {
+        // 메뉴가 보이고 있다면 배경 클릭으로 안 닫히게 함
+        if (menu && menu.style.display === 'flex') {
             return; 
         }
-
-        // 다이어리 모달 등이 켜져 있을 때 배경을 누르면 닫히도록 설정
-        if (typeof closeModal === 'function') {
-            closeModal();
-        }
-    };
-
-    /* 📍 지도 닫기 함수 추가 (블러 제거 포함) */
-    window.closeMap = function() {
-        document.getElementById('map-container').style.display = 'none';
-        // 지도를 닫을 때 메뉴나 다이어리가 없다면 블러도 제거
-        if (document.getElementById('side-menu').style.display === 'none' && 
-            document.getElementById('diary-modal').style.display === 'none') {
-            document.getElementById('overlay').style.display = 'none';
-        }
+        // 그 외(다이어리 등) 상황에서는 closeModal 실행
+        if (typeof closeModal === 'function') closeModal();
     };
 
     /* 지도 관련 변수 선언 */
@@ -954,6 +938,7 @@
 </script>
 </body>
 </html>
+
 
 
 
