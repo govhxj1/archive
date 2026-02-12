@@ -391,43 +391,37 @@
     <div id="loading-text">사랑 다이어리 펼치는 중... 🌸</div>
 </div>
 <div id="question-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center; touch-action: none;">
-    <div class="surprise-box" style="width: 90%; max-width: 360px; padding: 25px;">
-        <span class="surprise-title">📅 오늘의 질문</span>
+    <div class="surprise-box" style="width: 90%; max-width: 360px; padding: 25px; box-sizing: border-box;">
+        <span class="surprise-title" style="color: #ffb7c5;">📅 오늘의 질문</span>
         
-        <div class="surprise-msg-container" style="margin: 15px 0;">
-            <div id="question-content" style="font-size: 1.05rem; font-weight: 900; color: var(--point-pink); text-align: center; word-break: keep-all;">
+        <div class="surprise-msg-container" style="margin: 15px 0; background-color: #fff9fa;">
+            <div id="question-content" style="font-size: 1.05rem; font-weight: 900; color: #555; text-align: center; word-break: keep-all;">
                 질문을 불러오는 중...
             </div>
         </div>
 
         <div id="answers-display" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
-            <div id="yumi-answer" style="font-size: 0.85rem; background: #fff0f3; padding: 10px; border-radius: 10px; display: none;">
+            <div id="yumi-answer" style="font-size: 0.85rem; background: #ffe5ec; padding: 12px; border-radius: 12px; display: none; color: #d63384; border: 1px solid #ffc1cc;">
                 <b>유미:</b> <span class="text"></span>
             </div>
-            <div id="goni-answer" style="font-size: 0.85rem; background: #eef7ff; padding: 10px; border-radius: 10px; display: none;">
+            <div id="goni-answer" style="font-size: 0.85rem; background: #fff9db; padding: 12px; border-radius: 12px; display: none; color: #856404; border: 1px solid #ffeeba;">
                 <b>거니:</b> <span class="text"></span>
             </div>
         </div>
 
         <div id="writer-selector" style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <button class="confirm-btn" onclick="openInput('유미')" style="flex: 1; background: #ff8fab; font-size: 0.9rem;">유미가 쓰기</button>
-            <button class="confirm-btn" onclick="openInput('거니')" style="flex: 1; background: #4da3ff; font-size: 0.9rem;">거니가 쓰기</button>
+            <button class="confirm-btn" onclick="openInput('유미')" style="flex: 1; background: #ffb7c5; color: white; font-size: 0.9rem; border: none; padding: 12px; border-radius: 12px; box-sizing: border-box;">유미가 쓰기</button>
+            <button class="confirm-btn" onclick="openInput('거니')" style="flex: 1; background: #ffde59; color: #555; font-size: 0.9rem; border: none; padding: 12px; border-radius: 12px; box-sizing: border-box;">거니가 쓰기</button>
         </div>
 
         <div id="q-input-area" style="display: none; flex-direction: column; gap: 10px;">
-<textarea id="q-answer-input" placeholder="내용을 입력해주세요..." 
-    style="width: 100%; height: 100px; border-radius: 15px; border: 2px solid #fff0f3; 
-           background-color: #fff9fa; padding: 15px; font-family: inherit; 
-           font-size: 0.9rem; line-height: 1.5; color: #555; outline: none; 
-           resize: none; 
-           /* 📍 이 아래 두 줄이 삐져나감을 방지하는 핵심입니다 */
-           box-sizing: border-box; 
-           display: block; 
-           margin: 0 auto 15px auto;">
-</textarea>            <button class="confirm-btn" onclick="submitDailyAnswer()" style="width: 100%; margin: 0;">기록 완료</button>
+            <textarea id="q-answer-input" placeholder="내용을 입력해주세요..." 
+                style="width: 100%; height: 80px; border-radius: 12px; border: 2px solid #fff0f3; background-color: #fff9fa; padding: 12px; font-family: inherit; font-size: 0.9rem; resize: none; box-sizing: border-box; outline: none;">
+            </textarea>
+            <button class="confirm-btn" onclick="submitDailyAnswer()" style="width: 100%; margin: 0; background: #ffafcc; box-sizing: border-box;">기록 완료 ✨</button>
         </div>
 
-        <button class="confirm-btn btn-delete" onclick="closeQuestion()" style="width: 100%; margin-top: 10px; background: #ccc; font-size: 0.9rem;">닫기</button>
+        <button class="confirm-btn" onclick="closeQuestion()" style="width: 100%; margin-top: 10px; background: #eee; color: #888; font-size: 0.9rem; border: none; padding: 10px; border-radius: 10px; box-sizing: border-box;">닫기</button>
     </div>
 </div>
 <div class="main-title-container">
@@ -1060,6 +1054,7 @@ window.closeQuestion = function() {
 </script>
 </body>
 </html>
+
 
 
 
