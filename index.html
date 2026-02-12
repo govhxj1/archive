@@ -855,7 +855,16 @@
 // 배경(오버레이) 클릭 시 메뉴도 같이 닫히게 설정
 document.getElementById('overlay').addEventListener('click', () => {
     const menu = document.getElementById('side-menu');
+    const diaryModal = document.getElementById('diary-modal');
+    const mapContainer = document.getElementById('map-container');
+
+    // 1. 메뉴 팝업 닫기
     if (menu) menu.style.display = 'none';
+
+    // 2. 중요: 다이어리 모달과 지도 화면도 모두 닫혀있는 상태라면 블러(오버레이) 제거
+    if (diaryModal.style.display === 'none' && mapContainer.style.display === 'none') {
+        document.getElementById('overlay').style.display = 'none';
+    }
 });
     /* 지도 관련 변수 선언 */
 let diaryMap;
@@ -920,6 +929,7 @@ window.closeMap = function() {
 </script>
 </body>
 </html>
+
 
 
 
