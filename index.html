@@ -758,92 +758,71 @@ window.setupOriginalDiary = function(dateKey) {
 
     const diaryModal = document.getElementById('diary-modal');
     
-    // 1. 모달 구조 재구성
+    // 1. 모달 구조 그리기
     diaryModal.innerHTML = `
-        <button class="close-modal-btn" id="close-modal" onclick="closeModal()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:1.2rem; color:#ccc; cursor:pointer; z-index:110;">✕</button>
-        <div class="modal-header" style="display:flex; justify-content:center; align-items:center; margin-bottom:10px; flex-shrink:0;">
-            <h3 id="selected-date" class="modal-title" style="color:var(--point-pink); margin:0; font-size:1.1rem; font-weight:900;">${viewMonth + 1}월 ${currentDay}일 기록</h3>
+        <button class="close-modal-btn" onclick="closeModal()">✕</button>
+        <div class="modal-header"><h3 class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div>
+        
+        <div class="sticker-slider-container" id="sticker-slider">
+            <div class="sticker-wrapper" id="sticker-wrapper"></div>
         </div>
         
-        <div class="sticker-slider-container" id="sticker-slider" style="width:100%; overflow:hidden; position:relative; background:var(--bg-pink); border-radius:15px; margin-bottom:10px; padding:10px 0; touch-action:pan-x; flex-shrink:0;">
-            <div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:400%;"></div>
-        </div>
-        
-        <div class="pagination-dots" id="pagination-dots" style="display:flex; justify-content:center; gap:8px; margin-bottom:10px; flex-shrink:0;">
-            <div class="dot active" data-page="0" onclick="goToStickerPage(0)" style="width:6px; height:6px; background:var(--main-pink); border-radius:50%; cursor:pointer;"></div>
-            <div class="dot" data-page="1" onclick="goToStickerPage(1)" style="width:6px; height:6px; background:#ddd; border-radius:50%; cursor:pointer;"></div>
-            <div class="dot" data-page="2" onclick="goToStickerPage(2)" style="width:6px; height:6px; background:#ddd; border-radius:50%; cursor:pointer;"></div>
-            <div class="dot" data-page="3" onclick="goToStickerPage(3)" style="width:6px; height:6px; background:#ddd; border-radius:50%; cursor:pointer;"></div>
+        <div class="pagination-dots">
+            <div class="dot active" onclick="goToStickerPage(0)"></div>
+            <div class="dot" onclick="goToStickerPage(1)"></div>
+            <div class="dot" onclick="goToStickerPage(2)"></div>
+            <div class="dot" onclick="goToStickerPage(3)"></div>
         </div>
 
-        <div class="comment-section" id="comment-scroll-area" style="flex:1; max-height:280px; overflow-y:auto; margin-bottom:15px; padding-right:5px;">
+        <div class="comment-section" id="comment-scroll-area">
             <div id="comment-list"></div>
         </div>
 
-        <div class="input-area" style="width:100%; display:flex; flex-direction:column; align-items:center;">
-            <div id="preview-box" style="display:none; position:relative; margin-bottom:10px;">
+        <div class="input-area">
+            <div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;">
                 <img id="img-preview" src="" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:2px solid var(--main-pink);">
-                <div class="remove-img-btn" id="remove-img" style="position:absolute; top:-8px; left:45px; background:var(--point-pink); color:white; border-radius:50%; width:20px; height:20px; font-size:10px; display:flex; align-items:center; justify-content:center; border:2px solid white; cursor:pointer;">✕</div>
+                <div class="remove-img-btn" id="remove-img">✕</div>
             </div>
-            <div class="input-controls" style="display:flex; align-items:center; background:#fff0f3; border-radius:20px; padding:10px 15px; border:2px solid #ffafcc; width:100%; box-sizing:border-box;">
-                <label for="img-upload" style="cursor:pointer; margin-right:8px;">📷</label>
+            <div class="input-controls">
+                <label for="img-upload" style="cursor:pointer;">📷</label>
                 <input type="file" id="img-upload" accept="image/*" style="display:none;">
-                <input type="text" id="diary-input" placeholder="추억을 남겨요!" style="flex:1; border:none; background:transparent; outline:none; font-size:1rem; font-weight:600; color:#444;">
-                <button class="add-btn" id="add-comment-btn" style="background:#ff8fab; color:white; border:none; padding:6px 12px; border-radius:15px; font-weight:900; font-size:0.8rem; cursor:pointer; flex-shrink:0;">등록</button>
+                <input type="text" id="diary-input" placeholder="추억을 남겨요!">
+                <button class="add-btn" id="add-comment-btn">등록</button>
             </div>
         </div>
     `;
 
-    // 2. 중요: 전역 변수 'commentListContainer'를 현재 새로 만들어진 박스로 업데이트!
-    window.commentListContainer = document.getElementById('comment-list'); 
+    // 2. 내용 채우기
+    initStickers(); // 스티커 생성 (전역 함수 호출)
+    updateStickerUI();
+    renderComments(true); // 위에서 수정한 함수 호출 (목록이 나타남)
 
-    // 3. 스티커 생성
-    const stickerWrapper = document.getElementById('sticker-wrapper');
-    stickerWrapper.innerHTML = "";
-    for (let p = 0; p < 4; p++) {
-        const pageDiv = document.createElement('div');
-        pageDiv.style.cssText = "width:25%; display:grid; grid-template-columns:repeat(8, 1fr); grid-template-rows:repeat(3, 1fr); gap:4px; padding:0 10px; box-sizing:border-box;";
-        allStickers.slice(p * 24, (p + 1) * 24).forEach(s => {
-            const span = document.createElement('span');
-            span.className = 'sticker-option';
-            span.style.cssText = "font-size:1.15rem; cursor:pointer; text-align:center; padding:6px 0; border-radius:8px;";
-            if (s === selectedSticker) span.style.background = "var(--main-pink)";
-            span.innerText = s;
-            span.onclick = () => {
-                selectedSticker = (selectedSticker === s) ? "" : s;
-                document.querySelectorAll('.sticker-option').forEach(opt => {
-                    opt.style.background = (opt.innerText === selectedSticker) ? "var(--main-pink)" : "transparent";
-                });
-                saveData();
-            };
-            pageDiv.appendChild(span);
-        });
-        stickerWrapper.appendChild(pageDiv);
-    }
-
-    // 4. 댓글 목록 출력 (변수 업데이트 후 호출)
-    renderComments(true);
-
-    // 5. 사진 업로드 및 등록 이벤트 바인딩
+    // 3. 이벤트 재연결
     document.getElementById('img-upload').onchange = (e) => {
-        const file = e.target.files[0]; if (!file) return;
-        const reader = new FileReader(); reader.onload = (ev) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
             selectedImgBase64 = ev.target.result;
             document.getElementById('img-preview').src = selectedImgBase64;
             document.getElementById('preview-box').style.display = 'block';
-        }; reader.readAsDataURL(file);
+        };
+        reader.readAsDataURL(file);
     };
 
-    document.getElementById('remove-img').onclick = () => { 
-        selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none'; 
+    document.getElementById('remove-img').onclick = () => {
+        selectedImgBase64 = "";
+        document.getElementById('preview-box').style.display = 'none';
     };
 
     document.getElementById('add-comment-btn').onclick = async () => {
         const input = document.getElementById('diary-input');
         if (!input.value.trim() && !selectedImgBase64) return;
         comments.push({ text: input.value.trim() || "사진 기록", img: selectedImgBase64 });
-        input.value = ""; selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none';
-        renderComments(true); await saveData();
+        input.value = ""; selectedImgBase64 = "";
+        document.getElementById('preview-box').style.display = 'none';
+        renderComments(true);
+        await saveData();
     };
 };
 
@@ -896,13 +875,15 @@ window.setupOriginalDiary = function(dateKey) {
     const updateStickerUI = () => document.querySelectorAll('.sticker-option').forEach(opt => opt.classList.toggle('selected', opt.innerText === selectedSticker));
     
     function renderComments(scrollToBottom = false) {
-    commentListContainer.innerHTML = comments.length ? "" : '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">유미랑 거니의 추억🌸</p>';
+    // 실시간으로 현재 화면에 있는 목록창을 찾음
+    const listContainer = document.getElementById('comment-list');
+    if (!listContainer) return; // 창이 없으면 실행 안 함
+
+    listContainer.innerHTML = comments.length ? "" : '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">유미랑 거니의 추억🌸</p>';
     
     comments.forEach((c, i) => {
         const div = document.createElement('div');
         div.className = 'comment-item';
-        
-        // 구조: [내용(이미지+텍스트)] [삭제버튼]
         div.innerHTML = `
             <div class="comment-content">
                 ${c.img ? `<img src="${c.img}" class="comment-img">` : ''}
@@ -910,13 +891,12 @@ window.setupOriginalDiary = function(dateKey) {
             </div>
             <button class="delete-btn" onclick="window.requestDel(${i})">✕</button>
         `;
-        
-        commentListContainer.appendChild(div);
+        listContainer.appendChild(div);
     });
 
     if(scrollToBottom) { 
         const s = document.getElementById('comment-scroll-area'); 
-        s.scrollTop = s.scrollHeight; 
+        if(s) s.scrollTop = s.scrollHeight; 
     }
 }
 
@@ -1000,6 +980,7 @@ document.addEventListener('touchend', (e) => {
 </script>
 </body>
 </html>
+
 
 
 
