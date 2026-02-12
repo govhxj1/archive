@@ -335,13 +335,11 @@
     </div>
     <div class="dates" id="calendar-dates"></div>
 </div>
-
-    </div> <div class="weather-container" id="weather-widget">
+    <div class="weather-container" id="weather-widget">
     <div class="weather-info">
-        <img id="w-icon" class="weather-icon" src="" alt="날씨">
-        <div>
+        <div style="display: flex; flex-direction: column; align-items: flex-start;">
             <div class="weather-text" id="w-desc">날씨 불러오는 중...</div>
-            <div class="weather-city">대전</div>
+            <div class="weather-city" style="font-weight: 900; color: #555; font-size: 0.8rem; margin-top: 2px;">대전</div>
         </div>
     </div>
     <div class="weather-temp" id="w-temp">--°C</div>
@@ -645,7 +643,6 @@
     
     // 날씨 정보 가져오기 함수 (대전)
 async function getDaejeonWeather() {
-    // 가장 최근에 발급한 API 키입니다.
     const API_KEY = "363e77f0a7114b0b153e70d744f9713e"; 
     const city = "Daejeon";
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric&lang=kr`;
@@ -671,6 +668,7 @@ getDaejeonWeather();
 </script>
 </body>
 </html>
+
 
 
 
