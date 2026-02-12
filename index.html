@@ -847,19 +847,23 @@
 
     getDaejeonWeather(); renderCalendar(); updateDday();
 
-    // 1. 메뉴 토글 함수: '닫기' 버튼을 누르면 블러(오버레이)까지 확실히 제거합니다.
+    // 1. 메뉴 토글 함수: 열 때와 닫을 때의 상태를 명확히 제어합니다.
     window.toggleMenu = function() {
         const menu = document.getElementById('side-menu');
         const overlay = document.getElementById('overlay');
         
+        // 메뉴가 닫혀있거나 아예 display 설정이 없는 경우 (열기 로직)
         if (menu.style.display === 'none' || menu.style.display === '') {
-            // 메뉴 열기
             menu.style.display = 'flex';
             overlay.style.display = 'block';
-        } else {
-            // 메뉴 닫기
+            // 📍 팝업이 블러보다 위에 오도록 z-index 강제 재설정
+            menu.style.zIndex = "1001"; 
+            overlay.style.zIndex = "1000";
+        } 
+        // 메뉴가 열려있는 경우 (닫기 로직)
+        else {
             menu.style.display = 'none';
-            // 메뉴를 닫을 때 다이어리 모달과 지도가 모두 닫혀있다면 블러도 제거
+            // 메뉴를 닫을 때 다이어리나 지도가 안 켜져 있다면 블러도 제거
             if (document.getElementById('diary-modal').style.display === 'none' && 
                 document.getElementById('map-container').style.display === 'none') {
                 overlay.style.display = 'none';
@@ -867,18 +871,29 @@
         }
     };
 
-    // 2. 배경(오버레이) 클릭 이벤트 수정
-    document.getElementById('overlay').onclick = function() {
+    // 2. 오버레이(배경) 클릭 이벤트: 
+    // "메뉴가 떠 있을 때는 배경을 눌러도 반응 없게" 하여 먹통 현상을 방지합니다.
+    document.getElementById('overlay').onclick = function(e) {
         const menu = document.getElementById('side-menu');
         
-        // 📍 메뉴가 열려있을 때는 배경을 눌러도 아무 반응 없게 만듦 (닫기 버튼 유도)
+        // 메뉴가 열려있다면 배경 클릭 무시 (닫기 버튼으로만 닫히게 함)
         if (menu.style.display === 'flex') {
             return; 
         }
 
-        // 만약 다이어리 모달이 켜져 있을 때 배경을 누르면 닫히게 하고 싶다면 아래 유지
+        // 다이어리 모달 등이 켜져 있을 때 배경을 누르면 닫히도록 설정
         if (typeof closeModal === 'function') {
             closeModal();
+        }
+    };
+
+    /* 📍 지도 닫기 함수 추가 (블러 제거 포함) */
+    window.closeMap = function() {
+        document.getElementById('map-container').style.display = 'none';
+        // 지도를 닫을 때 메뉴나 다이어리가 없다면 블러도 제거
+        if (document.getElementById('side-menu').style.display === 'none' && 
+            document.getElementById('diary-modal').style.display === 'none') {
+            document.getElementById('overlay').style.display = 'none';
         }
     };
 
@@ -939,6 +954,7 @@
 </script>
 </body>
 </html>
+
 
 
 
