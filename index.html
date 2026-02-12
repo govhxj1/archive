@@ -277,10 +277,10 @@
 
         .comment-section { flex: 1; max-height: 280px; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; padding-right: 5px; touch-action: pan-y; }
         .comment-item {
-    display: flex;          /* 📍 좌우 배치를 위해 반드시 필요 */
-    flex-direction: row;    /* 📍 왼쪽(내용)과 오른쪽(x)으로 나눔 */
+    display: flex !important;   /* 반드시 가로 정렬 */
+    flex-direction: row !important; 
     justify-content: space-between; 
-    align-items: center;    /* x버튼을 글자 높이의 중앙에 맞춤 */
+    align-items: center;        /* x버튼 세로 중앙 정렬 */
     background: white;
     border-radius: 18px;
     padding: 12px 15px;
@@ -290,12 +290,11 @@
     width: 100%;
 }
         .comment-content {
-    flex: 1;                /* 📍 x버튼이 차지하는 공간을 제외한 모든 가로 확보 */
-    min-width: 0;           /* 📍 중요: 글자가 길어도 버튼을 밀어내지 않고 스스로 줄바꿈 */
     display: flex;
-    flex-direction: column; 
-    align-items: flex-start;
-    padding-right: 15px;    /* x버튼과의 안전 간격 */
+    flex-direction: column;
+    flex: 1;                /* 📍 버튼 제외한 나머지 공간만 써라 */
+    min-width: 0;           /* 📍 중요: 너비를 초과하면 버튼을 밀지 말고 줄바꿈해라 */
+    padding-right: 10px;    /* 버튼과의 최소 간격 */
 }
         .comment-img {
             width: 100%;                   /* 사진이 댓글 창 가로에 맞게 꽉 참 */
@@ -311,16 +310,16 @@
             word-break: break-all;         /* 긴 문장 자동 줄바꿈 */
         }
         .delete-btn {
+    display: block !important;
     background: none;
     border: none;
     color: #ccc;
     font-size: 1.2rem;
     cursor: pointer;
-    flex-shrink: 0;         /* 📍 중요: 어떤 상황에서도 버튼 크기가 줄거나 아래로 밀리지 않음 */
-    padding: 5px;
+    flex-shrink: 0;         /* 📍 중요: 어떤 일이 있어도 내 크기를 줄이거나 밀려나지 않겠다 */
+    width: 24px;            /* 버튼 공간 확보 */
+    text-align: right;
     line-height: 1;
-    display: flex;
-    align-items: center;
 }
         .input-area {
             width: 100%;           /* 전체 너비 사용 */
@@ -827,6 +826,7 @@ document.addEventListener('touchend', (e) => {
 </script>
 </body>
 </html>
+
 
 
 
