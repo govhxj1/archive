@@ -758,7 +758,7 @@ window.setupOriginalDiary = function(dateKey) {
 
     const diaryModal = document.getElementById('diary-modal');
     
-    // 1. 모달 구조 재구성 (CSS 클래스 의존도 낮춤)
+    // 1. 모달 구조 재구성
     diaryModal.innerHTML = `
         <button class="close-modal-btn" id="close-modal" onclick="closeModal()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:1.2rem; color:#ccc; cursor:pointer; z-index:110;">✕</button>
         <div class="modal-header" style="display:flex; justify-content:center; align-items:center; margin-bottom:10px; flex-shrink:0;">
@@ -776,11 +776,11 @@ window.setupOriginalDiary = function(dateKey) {
             <div class="dot" data-page="3" onclick="goToStickerPage(3)" style="width:6px; height:6px; background:#ddd; border-radius:50%; cursor:pointer;"></div>
         </div>
 
-        <div class="comment-section" id="comment-scroll-area" style="flex:1; max-height:280px; overflow-y:auto; margin-bottom:15px; -webkit-overflow-scrolling:touch; padding-right:5px; touch-action:pan-y;">
+        <div class="comment-section" id="comment-scroll-area" style="flex:1; max-height:280px; overflow-y:auto; margin-bottom:15px; padding-right:5px;">
             <div id="comment-list"></div>
         </div>
 
-        <div class="input-area" style="width:100%; padding:10px 0; box-sizing:border-box; display:flex; flex-direction:column; align-items:center;">
+        <div class="input-area" style="width:100%; display:flex; flex-direction:column; align-items:center;">
             <div id="preview-box" style="display:none; position:relative; margin-bottom:10px;">
                 <img id="img-preview" src="" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:2px solid var(--main-pink);">
                 <div class="remove-img-btn" id="remove-img" style="position:absolute; top:-8px; left:45px; background:var(--point-pink); color:white; border-radius:50%; width:20px; height:20px; font-size:10px; display:flex; align-items:center; justify-content:center; border:2px solid white; cursor:pointer;">✕</div>
@@ -794,7 +794,10 @@ window.setupOriginalDiary = function(dateKey) {
         </div>
     `;
 
-    // 2. 스티커 다시 생성 및 기능 바인딩
+    // 2. 중요: 전역 변수 'commentListContainer'를 현재 새로 만들어진 박스로 업데이트!
+    window.commentListContainer = document.getElementById('comment-list'); 
+
+    // 3. 스티커 생성
     const stickerWrapper = document.getElementById('sticker-wrapper');
     stickerWrapper.innerHTML = "";
     for (let p = 0; p < 4; p++) {
@@ -818,9 +821,10 @@ window.setupOriginalDiary = function(dateKey) {
         stickerWrapper.appendChild(pageDiv);
     }
 
-    // 3. 댓글 로드 및 이미지 이벤트 연결
+    // 4. 댓글 목록 출력 (변수 업데이트 후 호출)
     renderComments(true);
 
+    // 5. 사진 업로드 및 등록 이벤트 바인딩
     document.getElementById('img-upload').onchange = (e) => {
         const file = e.target.files[0]; if (!file) return;
         const reader = new FileReader(); reader.onload = (ev) => {
@@ -996,6 +1000,7 @@ document.addEventListener('touchend', (e) => {
 </script>
 </body>
 </html>
+
 
 
 
