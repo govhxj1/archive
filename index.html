@@ -390,7 +390,17 @@
     <div class="spinner"></div>
     <div id="loading-text">사랑 다이어리 펼치는 중... 🌸</div>
 </div>
-
+<div id="question-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center; touch-action: none;">
+    <div class="surprise-box" style="width: 85%; max-width: 340px;">
+        <span class="surprise-title">💌 오늘의 랜덤 질문</span>
+        <div class="surprise-msg-container" style="min-height: 100px; display: flex; align-items: center; justify-content: center; text-align: center;">
+            <div class="surprise-msg" id="question-content" style="font-size: 1.1rem; font-weight: 900; color: var(--point-pink);">
+                질문을 불러오는 중...
+            </div>
+        </div>
+        <button class="confirm-btn btn-delete" onclick="closeQuestion()" style="font-size: 1.2rem;">확인!</button>
+    </div>
+</div>
 <div class="main-title-container">
     <h1 class="main-title">
         <span class="secret-trigger" id="secret-heart-trigger">💛</span> 
@@ -404,8 +414,7 @@
     <span class="surprise-title">✨ 우리들의 비밀 메뉴 ✨</span>
     <div style="display:flex; flex-direction:column; gap:12px; padding:10px;">
         <button class="confirm-btn" style="background:var(--main-pink); color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="openMap()">🗺️ 우리의 추억 지도</button>
-        <button class="confirm-btn" style="background:#ffc107; color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="alert('랜덤 질문 준비 중! 💌')">💌 오늘의 랜덤 질문</button>
-    </div>
+<button class="confirm-btn" style="background:#ffc107; color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="showRandomQuestion()">💌 오늘의 랜덤 질문</button>    </div>
     <button class="confirm-btn btn-cancel" style="margin-top:10px;" onclick="toggleMenu()">닫기</button>
 </div>
     
@@ -935,9 +944,37 @@
         document.getElementById('map-container').style.display = 'none';
         document.getElementById('overlay').style.display = 'none';
     };
+    /* 💌 랜덤 질문 보여주기 함수 */
+window.showRandomQuestion = function() {
+    const questions = [
+        "우리 처음 만났을 때, 나의 첫인상은 어땠어? 😊",
+        "나랑 가장 가보고 싶은 대전 맛집은 어디야? 🥘",
+        "내가 가장 귀여워 보일 때는 언제야? 💛",
+        "우리가 함께한 날 중 가장 기억에 남는 날은? 🌸",
+        "나랑 꼭 같이 해보고 싶은 버킷리스트가 있어? ✨",
+        "나중에 우리 같이 꼭 가보고 싶은 여행지는 어디야? ✈️",
+        "최근에 나한테 말은 못 했지만 고마웠던 순간이 있어? 💝"
+    ];
+    
+    const randomIdx = Math.floor(Math.random() * questions.length);
+    const selectedQuestion = questions[randomIdx];
+    
+    // 팝업 띄우기
+    document.getElementById('question-content').innerText = selectedQuestion;
+    document.getElementById('question-overlay').style.display = 'flex';
+    
+    // 메뉴는 닫아주기
+    if (typeof toggleMenu === 'function') toggleMenu();
+};
+
+/* 💌 랜덤 질문 팝업 닫기 함수 */
+window.closeQuestion = function() {
+    document.getElementById('question-overlay').style.display = 'none';
+};
 </script>
 </body>
 </html>
+
 
 
 
