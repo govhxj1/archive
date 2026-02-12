@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -339,7 +341,7 @@
         .surprise-title { color: var(--point-pink); font-size: 1.2rem; margin-bottom: 15px; display: block; font-weight: 900; flex-shrink: 0; }
         .surprise-msg-container { flex: 1; overflow-y: auto; text-align: left; padding: 15px; background: var(--bg-pink); border-radius: 15px; margin-bottom: 15px; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
         .surprise-msg { color: var(--text-dark); font-weight: 500; font-size: 0.9rem; line-height: 1.8; word-break: keep-all; }
-        
+    
         .confirm-btns { display: flex; gap: 10px; flex-shrink: 0; }
         .confirm-btn { flex: 1; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: 900; font-size: 0.85rem; }
         .btn-cancel { background: #f0f0f0; color: #888; }
@@ -406,7 +408,15 @@
     </div>
     <button class="confirm-btn btn-cancel" style="margin-top:10px;" onclick="toggleMenu()">닫기</button>
 </div>
-
+    
+<div id="map-container" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; flex-direction: column;">
+    <div class="map-header" style="padding: 15px; background: var(--main-pink); color: white; display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin:0; font-weight: 900;">📍 우리들의 추억 지도</h3>
+        <button onclick="closeMap()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">✕</button>
+    </div>
+    <div id="map" style="flex: 1; width: 100%;"></div>
+</div>
+    
 <div class="calendar-container" id="calendar-swipe-area">
     <div class="header">
         <button class="nav-btn" id="prev-month">❮</button>
@@ -847,9 +857,70 @@ document.getElementById('overlay').addEventListener('click', () => {
     const menu = document.getElementById('side-menu');
     if (menu) menu.style.display = 'none';
 });
+    /* 지도 관련 변수 선언 */
+let diaryMap;
+let pathLine;
+let markers = [];
+
+/* 2월 14일 데이트 코스 좌표 데이터 */
+const feb14Path = [
+    { name: "1. 저스트슬립 호텔", lat: 36.3537, lng: 127.3415, memo: "우리의 아늑한 숙소 🏨" },
+    { name: "2. NC백화점 유성점", lat: 36.3540, lng: 127.3400, memo: "즐거운 쇼핑 데이트! 🛍️" },
+    { name: "3. 어묵사랑애", lat: 36.3515, lng: 127.3420, memo: "따끈한 오뎅바에서 한잔 🍢" },
+    { name: "4. 숙소 앞 산책", lat: 36.3530, lng: 127.3410, memo: "밤공기 마시며 걷기 🌙" }
+];
+
+/* 지도 열기 함수 */
+window.openMap = function() {
+    document.getElementById('map-container').style.display = 'flex';
+    document.getElementById('side-menu').style.display = 'none'; // 메뉴 닫기
+
+    // 지도 객체가 없으면 새로 생성
+    if (!diaryMap) {
+        diaryMap = L.map('map').setView([36.3537, 127.3415], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(diaryMap);
+    }
+
+    // 기존 핀과 선 지우기
+    if (pathLine) diaryMap.removeLayer(pathLine);
+    markers.forEach(m => diaryMap.removeLayer(m));
+    markers = [];
+
+    // 데이터 순서대로 핀 꽂기 및 팝업 연결
+    feb14Path.forEach((p) => {
+        const marker = L.marker([p.lat, p.lng]).addTo(diaryMap)
+            .bindPopup(`<div style="text-align:center;"><b>${p.name}</b><br>${p.memo}</div>`);
+        markers.push(marker);
+    });
+
+    // 분홍색 점선으로 동선 그리기
+    const latlngs = feb14Path.map(p => [p.lat, p.lng]);
+    pathLine = L.polyline(latlngs, {
+        color: '#ffafcc',
+        weight: 4,
+        opacity: 0.8,
+        dashArray: '10, 10'
+    }).addTo(diaryMap);
+
+    // 모든 핀이 보이게 화면 조정
+    const group = new L.featureGroup(markers);
+    diaryMap.fitBounds(group.getBounds().pad(0.3));
+    
+    // 지도가 잘리거나 깨지는 현상 방지
+    setTimeout(() => { diaryMap.invalidateSize(); }, 200);
+};
+
+/* 지도 닫기 함수 */
+window.closeMap = function() {
+    document.getElementById('map-container').style.display = 'none';
+    if (document.getElementById('diary-modal').style.display === 'none') {
+        document.getElementById('overlay').style.display = 'none';
+    }
+};
 </script>
 </body>
 </html>
+
 
 
 
