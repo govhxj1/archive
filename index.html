@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <title>우리들의 행복한 추억</title>
     <style>
         @font-face {
@@ -149,6 +150,21 @@
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
             border-radius: 10px; cursor: pointer; border: 1px solid #ffe5ec; background: #fff;
             padding-top: 4px; position: relative;
+    
+        /* 추가할 부분 */
+            height: 100%;           /* 그리드 행 높이를 꽉 채움 */
+            overflow: hidden;       /* 스티커가 커져도 칸이 늘어나지 않게 함 */
+            box-sizing: border-box; /* 테두리 포함 크기 계산 */
+        }
+    
+        /* 스티커 위치 고정 및 크기 제한 */
+        .sticker-display { 
+            font-size: 1.25rem; 
+            margin-top: 2px; 
+            height: 1.5rem;         /* 스티커 영역의 높이를 고정 */
+            display: flex;
+            align-items: center;
+        justify-content: center;
         }
         .date-cell:active { background: var(--bg-pink); }
         .date-cell.empty { border: 1px solid transparent; background: transparent; }
@@ -168,7 +184,12 @@
             text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.05);
         }
 
-        .record-heart { position: absolute; right: 3px; top: -1px; font-size: 0.55rem; color: var(--heart-yellow); }
+        .record-heart { 
+            position: absolute; 
+            right: 8px; 
+            top: 5px; 
+            font-size: 0.55rem; 
+            color: var(--heart-yellow); }
         .sticker-display { font-size: 1.25rem; margin-top: 2px; }
 
         /* D-day 바 디자인 */
@@ -501,8 +522,35 @@
     document.getElementById('next-month').onclick = () => changeMonth(1);
 
     function openModal(day) {
-        currentDay = day; const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        currentDay = day; 
+        const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
+
+        // --- 기념일 필터링 로직 ---
+    const startDate = new Date(2026, 0, 10);
+    const targetDate = new Date(viewYear, viewMonth, day);
+    const diff = Math.floor((targetDate - startDate) / 86400000) + 1;
+    
+    // 조건 1: 100일, 200일, 300일인 경우만
+    const isEarlyAnniv = (diff === 100 || diff === 200 || diff === 300);
+    
+    // 조건 2: 매년 돌아오는 1월 10일 (주년)
+    const isYearlyAnniv = (viewMonth === 0 && day === 10 && viewYear > 2026);
+
+    if (isEarlyAnniv || isYearlyAnniv) {
+        // 하트 뿅뿅 효과 실행
+        const heart = confetti.shapeFromPath({ path: 'M167 10c-75 0-111 78-111 78s-36-78-111-78c-41 0-73 32-73 73 0 101 184 216 184 216s184-115 184-216c0-41-32-73-73-73z' });
+        confetti({
+            shapes: [heart],
+            particleCount: 50,
+            spread: 100,
+            origin: { y: 0.7 },
+            colors: ['#ff8fab', '#ffafcc', '#ff4d6d'],
+            scalar: 2
+        });
+    }
+    // -----------------------
+        
         document.getElementById('selected-date').innerText = `${viewMonth + 1}월 ${day}일 기록`;
         selectedSticker = data.sticker || ""; comments = data.comments || [];
         updateStickerUI(); renderComments(true); previewBox.style.display = 'none'; window.goToStickerPage(0);
@@ -567,4 +615,5 @@
 </script>
 </body>
 </html>
+
 
