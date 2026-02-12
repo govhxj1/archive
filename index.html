@@ -278,39 +278,46 @@
         .comment-section { flex: 1; max-height: 280px; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; padding-right: 5px; touch-action: pan-y; }
         .comment-item {
             display: flex;
-            justify-content: space-between; /* 내용과 x버튼을 양끝으로 */
-            align-items: flex-start;
+            justify-content: space-between; /* 내용과 x버튼을 양 끝으로 분리 */
+            align-items: center;           /* x버튼이 세로로 중앙에 오게 함 */
             background: white;
-            border-radius: 15px;
-            padding: 12px;
-            margin-bottom: 10px;
+            border-radius: 18px;
+            padding: 15px;
+            margin-bottom: 12px;
             border: 1px solid #ffe5ec;
+            position: relative;
         }
-        .comment-img { width: 100%; border-radius: 8px; display: block; border: 2px solid white; }
+        .comment-img {
+            width: 100%;                   /* 사진이 댓글 창 가로에 맞게 꽉 참 */
+            max-width: 250px;              /* 너무 커지지 않게 제한 */
+            border-radius: 12px;
+            margin-bottom: 5px;            /* 사진과 아래 글씨 사이 간격 */
+            display: block;
+        }
         .comment-content {
             flex: 1;
             display: flex;
-            flex-direction: column;
-            text-align: left; /* 왼쪽 정렬 */
-            padding-right: 10px; /* x버튼과 안 겹치게 여백 */
+            flex-direction: column;        /* 📍 사진 아래에 글씨가 오도록 수직 정렬 */
+            align-items: flex-start;       /* 왼쪽 정렬 */
+            padding-right: 15px;           /* x버튼과 겹치지 않게 여백 */
         }
         .comment-text {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: #444;
-            line-height: 1.4;
+            line-height: 1.5;
             font-weight: 500;
-            text-align: left; /* 왼쪽 정렬 명시 */
-            word-break: break-all; /* 긴 단어도 줄바꿈 되도록 */
+            word-break: break-all;         /* 긴 문장 자동 줄바꿈 */
         }
         .delete-btn {
             background: none;
             border: none;
             color: #ccc;
-            font-size: 1rem;
+            font-size: 1.2rem;
             cursor: pointer;
-            flex-shrink: 0;
-            padding: 0 5px;
+            flex-shrink: 0;                /* 버튼 크기 고정 */
+            padding: 5px;
             line-height: 1;
+            transition: color 0.2s;
         }
         .input-area {
             width: 100%;           /* 전체 너비 사용 */
@@ -817,6 +824,7 @@ document.addEventListener('touchend', (e) => {
 </script>
 </body>
 </html>
+
 
 
 
