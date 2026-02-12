@@ -595,7 +595,7 @@
 
     function makeHearts() {
     // 1. 하트 애니메이션 (노란색 & 핑크색 섞기)
-    const heartEmojis = ['💛', '💖', '💓', '💗', '❣️'];
+    const heartEmojis = ['💛', '💖', '💗'];
     for (let i = 0; i < 20; i++) {
         setTimeout(() => {
             const heart = document.createElement('div');
@@ -642,7 +642,7 @@
     const updateStickerUI = () => document.querySelectorAll('.sticker-option').forEach(opt => opt.classList.toggle('selected', opt.innerText === selectedSticker));
     
     function renderComments(scrollToBottom = false) {
-        commentListContainer.innerHTML = comments.length ? "" : '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">함께 추억을 남겨요 🌸</p>';
+        commentListContainer.innerHTML = comments.length ? "" : '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">유미랑 거니의 추억🌸</p>';
         comments.forEach((c, i) => {
             const div = document.createElement('div'); div.className = 'comment-item';
             div.innerHTML = `${c.img ? `<img src="${c.img}" class="comment-img">` : ''}<div class="comment-content"><span class="comment-text">${c.text}</span><button class="delete-btn" onclick="window.requestDel(${i})">✕</button></div>`;
@@ -711,9 +711,11 @@ async function getDaejeonWeather() {
 
 // 초기화 실행 시 날씨 함수도 호출
 getDaejeonWeather();
+    document.getElementById('diary-modal').onclick = (e) => { e.stopPropagation(); };
 </script>
 </body>
 </html>
+
 
 
 
