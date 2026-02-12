@@ -415,8 +415,16 @@
         </div>
 
         <div id="q-input-area" style="display: none; flex-direction: column; gap: 10px;">
-            <textarea id="q-answer-input" placeholder="내용을 입력해주세요..." style="width: 100%; height: 60px; border-radius: 10px; border: 2px solid #ffe4e8; padding: 10px; font-family: inherit; resize: none;"></textarea>
-            <button class="confirm-btn" onclick="submitDailyAnswer()" style="width: 100%; margin: 0;">기록 완료</button>
+<textarea id="q-answer-input" placeholder="내용을 입력해주세요..." 
+    style="width: 100%; height: 100px; border-radius: 15px; border: 2px solid #fff0f3; 
+           background-color: #fff9fa; padding: 15px; font-family: inherit; 
+           font-size: 0.9rem; line-height: 1.5; color: #555; outline: none; 
+           resize: none; 
+           /* 📍 이 아래 두 줄이 삐져나감을 방지하는 핵심입니다 */
+           box-sizing: border-box; 
+           display: block; 
+           margin: 0 auto 15px auto;">
+</textarea>            <button class="confirm-btn" onclick="submitDailyAnswer()" style="width: 100%; margin: 0;">기록 완료</button>
         </div>
 
         <button class="confirm-btn btn-delete" onclick="closeQuestion()" style="width: 100%; margin-top: 10px; background: #ccc; font-size: 0.9rem;">닫기</button>
@@ -1052,6 +1060,7 @@ window.closeQuestion = function() {
 </script>
 </body>
 </html>
+
 
 
 
