@@ -857,11 +857,12 @@
             overlay.style.display = 'block';
         } else {
             menu.style.display = 'none';
+            // 다이어리 모달도 닫혀있을 때만 오버레이 제거
             if (document.getElementById('diary-modal').style.display === 'none') {
                 overlay.style.display = 'none';
             }
         }
-    }; // <--- 이 중괄호와 세미콜론이 빠져있었습니다!
+    };
 
     // 배경(오버레이) 클릭 시 닫기 설정
     document.getElementById('overlay').addEventListener('click', () => {
@@ -932,6 +933,7 @@
 </script>
 </body>
 </html>
+
 
 
 
