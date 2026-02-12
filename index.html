@@ -605,56 +605,81 @@
     }
 
     window.setupOriginalDiary = function(dateKey) {
-        const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
-        selectedSticker = data.sticker || "";
-        comments = data.comments || [];
-        const diaryModal = document.getElementById('diary-modal');
+    const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
+    selectedSticker = data.sticker || "";
+    comments = data.comments || [];
+    const diaryModal = document.getElementById('diary-modal');
+    
+    // 1. UI 구조 생성 (기존과 동일하되 스타일 확실히 지정)
+    diaryModal.innerHTML = `
+        <button class="close-modal-btn" id="close-modal" onclick="closeModal()">✕</button>
+        <div class="modal-header"><h3 class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div>
         
-        diaryModal.innerHTML = `
-            <button class="close-modal-btn" id="close-modal" onclick="closeModal()">✕</button>
-            <div class="modal-header"><h3 class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div>
-            <div class="sticker-slider-container" id="sticker-slider">
-                <div class="sticker-wrapper" id="sticker-wrapper"></div>
-            </div>
-            <div class="pagination-dots" id="pagination-dots">
-                <div class="dot active" onclick="goToStickerPage(0)"></div>
-                <div class="dot" onclick="goToStickerPage(1)"></div>
-                <div class="dot" onclick="goToStickerPage(2)"></div>
-                <div class="dot" onclick="goToStickerPage(3)"></div>
-            </div>
-            <div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div>
-            <div class="input-area">
-                <div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;">
-                    <img id="img-preview" src="" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:2px solid var(--main-pink);">
-                    <div class="remove-img-btn" id="remove-img">✕</div>
-                </div>
-                <div class="input-controls">
-                    <label for="img-upload" style="cursor:pointer; font-size:1.2rem; margin-right:10px;">📷</label>
-                    <input type="file" id="img-upload" accept="image/*" style="display:none;">
-                    <input type="text" id="diary-input" placeholder="추억을 남겨요!">
-                    <button class="add-btn" id="add-comment-btn">등록</button>
-                </div>
-            </div>
-        `;
-        initStickers(); updateStickerUI(); renderComments(true);
+        <div class="sticker-slider-container" id="sticker-slider" style="width:100%; overflow:hidden; position:relative; background:var(--bg-pink); border-radius:15px; margin-bottom:10px; padding:10px 0; touch-action:pan-x;">
+            <div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:400%;"></div>
+        </div>
+        
+        <div class="pagination-dots" id="pagination-dots">
+            <div class="dot active" onclick="window.goToStickerPage(0)"></div>
+            <div class="dot" onclick="window.goToStickerPage(1)"></div>
+            <div class="dot" onclick="window.goToStickerPage(2)"></div>
+            <div class="dot" onclick="window.goToStickerPage(3)"></div>
+        </div>
 
-        const imgInput = document.getElementById('img-upload'), diaryInput = document.getElementById('diary-input');
-        imgInput.onchange = (e) => {
-            const file = e.target.files[0]; if (!file) return;
-            const reader = new FileReader(); reader.onload = (ev) => {
-                selectedImgBase64 = ev.target.result;
-                document.getElementById('img-preview').src = selectedImgBase64;
-                document.getElementById('preview-box').style.display = 'block';
-            }; reader.readAsDataURL(file);
-        };
-        document.getElementById('remove-img').onclick = () => { selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none'; imgInput.value = ""; };
-        document.getElementById('add-comment-btn').onclick = async () => {
-            if (!diaryInput.value.trim() && !selectedImgBase64) return;
-            comments.push({ text: diaryInput.value.trim() || "사진 기록", img: selectedImgBase64 });
-            diaryInput.value = ""; selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none';
-            renderComments(true); await saveData();
-        };
+        <div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div>
+        
+        <div class="input-area">
+            <div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;">
+                <img id="img-preview" src="" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:2px solid var(--main-pink);">
+                <div class="remove-img-btn" id="remove-img">✕</div>
+            </div>
+            <div class="input-controls">
+                <label for="img-upload" style="cursor:pointer; font-size:1.2rem; margin-right:10px;">📷</label>
+                <input type="file" id="img-upload" accept="image/*" style="display:none;">
+                <input type="text" id="diary-input" placeholder="추억을 남겨요!">
+                <button class="add-btn" id="add-comment-btn">등록</button>
+            </div>
+        </div>
+    `;
+
+    // 2. 내용 채우기 및 기능 연결
+    initStickers(); 
+    updateStickerUI(); 
+    renderComments(true);
+    currentPage = 0; // 페이지 초기화
+    window.goToStickerPage(0); // 첫 페이지로 이동
+
+    // 3. 📍 모바일 터치 스와이프(밀어서 넘기기) 기능 추가
+    const slider = document.getElementById('sticker-slider');
+    let touchStartX = 0;
+    slider.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    slider.addEventListener('touchend', e => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) { // 50px 이상 밀었을 때
+            if (diff > 0 && currentPage < 3) window.goToStickerPage(currentPage + 1);
+            else if (diff < 0 && currentPage > 0) window.goToStickerPage(currentPage - 1);
+        }
+    }, { passive: true });
+
+    // 4. 이미지 및 등록 버튼 이벤트 (기존과 동일)
+    const imgInput = document.getElementById('img-upload'), diaryInput = document.getElementById('diary-input');
+    imgInput.onchange = (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader(); reader.onload = (ev) => {
+            selectedImgBase64 = ev.target.result;
+            document.getElementById('img-preview').src = selectedImgBase64;
+            document.getElementById('preview-box').style.display = 'block';
+        }; reader.readAsDataURL(file);
     };
+    document.getElementById('remove-img').onclick = () => { selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none'; imgInput.value = ""; };
+    document.getElementById('add-comment-btn').onclick = async () => {
+        if (!diaryInput.value.trim() && !selectedImgBase64) return;
+        comments.push({ text: diaryInput.value.trim() || "사진 기록", img: selectedImgBase64 });
+        diaryInput.value = ""; selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none';
+        renderComments(true); await saveData();
+    };
+};
 
     function renderComments(scrollToBottom = false) {
         const listContainer = document.getElementById('comment-list');
@@ -740,3 +765,4 @@
 </script>
 </body>
 </html>
+
