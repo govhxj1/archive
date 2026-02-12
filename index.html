@@ -278,21 +278,21 @@
         .comment-section { flex: 1; max-height: 280px; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; padding-right: 5px; touch-action: pan-y; }
         .comment-item {
             display: flex;
-            align-items: flex-start; /* 위쪽 기준으로 정렬 */
+            justify-content: space-between; /* 내용과 x버튼을 양끝으로 */
+            align-items: flex-start;
             background: white;
-            border-radius: 18px;
+            border-radius: 15px;
             padding: 12px;
             margin-bottom: 10px;
             border: 1px solid #ffe5ec;
-            text-align: left; /* 전체 텍스트 왼쪽 정렬 */
-        } 
+        }
         .comment-img { width: 100%; border-radius: 8px; display: block; border: 2px solid white; }
         .comment-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* 내부 요소들도 왼쪽으로 */
-            margin-left: 8px;
+            text-align: left; /* 왼쪽 정렬 */
+            padding-right: 10px; /* x버튼과 안 겹치게 여백 */
         }
         .comment-text {
             font-size: 0.9rem;
@@ -302,8 +302,16 @@
             text-align: left; /* 왼쪽 정렬 명시 */
             word-break: break-all; /* 긴 단어도 줄바꿈 되도록 */
         }
-        .delete-btn { background: none; border: none; color: #ccc; cursor: pointer; padding: 5px; font-size: 1rem; flex-shrink: 0; }
-
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 1rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            padding: 0 5px;
+            line-height: 1;
+        }
         .input-area {
             background: #fff0f3; /* 연한 핑크 배경 */
             padding: 15px;
@@ -319,7 +327,10 @@
         .input-controls {
             display: flex;
             align-items: center;
-            gap: 8px; /* 간격을 살짝 좁힘 */
+            background: #fff0f3; /* 입력창 배경색 */
+            border-radius: 20px;
+            padding: 5px 10px;
+            border: 2px solid #ffafcc;
             width: 100%;
             box-sizing: border-box;
         }
@@ -328,24 +339,22 @@
             border: none;
             background: transparent;
             outline: none;
-            font-family: inherit;
-            font-size: 0.95rem;
-            padding: 5px;
-            font-weight: 600; /* 입력 글씨를 선명하게 */
-            color: #555;
+            font-size: 0.9rem;
+            padding: 8px;
+            color: #444;
+            min-width: 0; /* 좁은 화면에서 삐져나감 방지 */
         }
-        
         .add-btn {
             background: #ff8fab;
             color: white;
             border: none;
-            padding: 8px 14px; /* 패딩을 살짝 줄임 */
-            border-radius: 12px;
-            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 15px;
             font-weight: 900;
-            font-size: 0.85rem; /* 글자 크기를 살짝 줄임 */
-            flex-shrink: 0; /* 버튼이 찌그러지거나 밀리지 않게 고정 */
-            white-space: nowrap; /* 글자가 두 줄로 넘어가는 것 방지 */
+            font-size: 0.8rem;
+            flex-shrink: 0; /* 버튼 크기 유지 */
+            cursor: pointer;
+            margin-left: 5px;
         }
         
         .add-btn:active {
@@ -812,6 +821,7 @@ document.addEventListener('touchend', (e) => {
 </script>
 </body>
 </html>
+
 
 
 
