@@ -1033,9 +1033,26 @@ window.submitDailyAnswer = function() {
     alert(currentWriter + "님의 답변이 기록되었습니다! 💛");
     showRandomQuestion(); 
 };
+    /* 📍 질문 팝업 닫기 함수 */
+window.closeQuestion = function() {
+    const qOverlay = document.getElementById('question-overlay');
+    const diaryModal = document.getElementById('diary-modal');
+    
+    // 질문 팝업 숨기기
+    if (qOverlay) {
+        qOverlay.style.display = 'none';
+    }
+    
+    // 만약 다이어리 모달이나 다른 팝업이 켜져 있지 않다면 배경(블러)도 함께 제거
+    if (diaryModal && diaryModal.style.display === 'none') {
+        const overlay = document.getElementById('overlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+};
 </script>
 </body>
 </html>
+
 
 
 
