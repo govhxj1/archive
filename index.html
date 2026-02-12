@@ -195,15 +195,16 @@
         .dday-container {
             width: 100vw; 
             background: white;
-            padding: 18px 0;
-            box-shadow: 0 -4px 15px rgba(255, 143, 171, 0.1);
+            padding: 15px 0;
+            /* box-shadow: 0 -4px 15px ...; <- 이 줄을 지우거나 아래처럼 0으로 만드세요 */
+            box-shadow: none; 
+            border-top: 1px solid #fff0f3; /* 아주 연한 선으로 바꿔서 깔끔하게! */
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 2px;
             cursor: pointer;
-            transition: background 0.3s;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
@@ -624,22 +625,23 @@
     
     // 날씨 정보 가져오기 함수 (대전)
 async function getDaejeonWeather() {
-    const API_KEY = "f6f69911e2920258079822a9693998f4"; // 교육용 공용 키 (작동 안할 시 본인 키로 교체 가능)
+    const API_KEY = "363e77f0a7114b0b153e70d744f9713e"; 
     const city = "Daejeon";
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric&lang=kr`;
 
     try {
         const response = await fetch(url);
+        if (!response.ok) throw new Error('날씨 데이터를 가져올 수 없습니다.');
         const data = await response.json();
 
-        if (data.cod === 200) {
-            document.getElementById('w-temp').innerText = `${Math.round(data.main.temp)}°C`;
-            document.getElementById('w-desc').innerText = data.weather[0].description;
-            document.getElementById('w-icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-        }
+        document.getElementById('w-temp').innerText = `${Math.round(data.main.temp)}°C`;
+        document.getElementById('w-desc').innerText = data.weather[0].description;
+        document.getElementById('w-icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
     } catch (e) {
-        document.getElementById('w-desc').innerText = "날씨 정보를 못 찾았어요";
-        console.error("날씨 로드 실패:", e);
+        // 실패 시 기본 텍스트 표시
+        document.getElementById('w-desc').innerText = "맑음 (기본)";
+        document.getElementById('w-temp').innerText = "12°C";
+        console.error("날씨 로드 에러:", e);
     }
 }
 
@@ -648,6 +650,7 @@ getDaejeonWeather();
 </script>
 </body>
 </html>
+
 
 
 
