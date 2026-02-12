@@ -34,7 +34,8 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            touch-action: none; 
+            touch-action: pan-x pan-y;
+            -webkit-text-size-adjust: none;
         }
 
         body {
@@ -712,9 +713,26 @@ async function getDaejeonWeather() {
 // 초기화 실행 시 날씨 함수도 호출
 getDaejeonWeather();
     document.getElementById('diary-modal').onclick = (e) => { e.stopPropagation(); };
+
+    document.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) {
+        e.preventDefault(); // 두 손가락 이상 터치(핀치 줌) 방지
+    }
+}, { passive: false });
+
+let lastTouchEnd = 0;
+document.addEventListener('touchend', (e) => {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+        e.preventDefault(); // 300ms 이내 재터치(더블 클릭) 시 확대 방지
+    }
+    lastTouchEnd = now;
+}, false);
+    
 </script>
 </body>
 </html>
+
 
 
 
