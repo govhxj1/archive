@@ -187,7 +187,7 @@
             position: absolute; 
             right: 3px; 
             top: 3px; 
-            font-size: 0.55rem; 
+            font-size: 0.4rem; 
             color: var(--heart-yellow); }
         .sticker-display { font-size: 1.25rem; margin-top: 2px; }
 
@@ -268,6 +268,26 @@
         .confirm-btn { flex: 1; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: 900; font-size: 0.85rem; }
         .btn-cancel { background: #f0f0f0; color: #888; }
         .btn-delete { background: var(--point-pink); color: white; transition: opacity 0.2s; }
+
+        .weather-container {
+            width: var(--container-width);
+            max-width: var(--container-max-width);
+            background: white;
+            border-radius: var(--main-radius);
+            margin: 10px 0; /* 상하 여백으로 공간 채우기 */
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(255, 143, 171, 0.05);
+            box-sizing: border-box;
+        }
+
+        .weather-info { display: flex; align-items: center; gap: 8px; }
+        .weather-icon { width: 40px; height: 40px; }
+        .weather-text { font-size: 0.85rem; color: var(--text-dark); font-weight: 700; }
+        .weather-temp { font-size: 1rem; color: var(--point-pink); font-weight: 900; }
+        .weather-city { font-size: 0.7rem; color: #bbb; font-weight: 500; }    
     </style>
 </head>
 <body>
@@ -295,6 +315,19 @@
     <div class="dates" id="calendar-dates"></div>
 </div>
 
+    </div> <div class="weather-container" id="weather-widget">
+    <div class="weather-info">
+        <img id="w-icon" class="weather-icon" src="https://openweathermap.org/img/wn/01d@2x.png" alt="날씨">
+        <div>
+            <div class="weather-text" id="w-desc">날씨 불러오는 중...</div>
+            <div class="weather-city">대전</div>
+        </div>
+    </div>
+    <div class="weather-temp" id="w-temp">--°C</div>
+</div>
+
+<div class="dday-container" id="dday-container">
+    
 <div class="dday-container" id="dday-container">
     <div class="dday-label" id="dday-label">우리가 함께한 소중한 시간</div>
     <div class="dday-value" id="dday-text">하고싶어? 0일째 사랑하는중</div>
@@ -588,9 +621,34 @@
     const holidays2026 = {"01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", "03-01": "삼일절", "03-02": "대체공휴일", "05-05": "어린이날", "05-24": "부처님오신날", "05-25": "대체공휴일", "06-03": "지방선거", "06-06": "현충일", "08-15": "광복절", "08-17": "대체공휴일", "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", "10-03": "개천절", "10-05": "대체공휴일", "10-09": "한글날", "12-25": "성탄절"};
 
     initStickers(); renderCalendar(); updateDday(); 
+    
+    // 날씨 정보 가져오기 함수 (대전)
+async function getDaejeonWeather() {
+    const API_KEY = "f6f69911e2920258079822a9693998f4"; // 교육용 공용 키 (작동 안할 시 본인 키로 교체 가능)
+    const city = "Daejeon";
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric&lang=kr`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.cod === 200) {
+            document.getElementById('w-temp').innerText = `${Math.round(data.main.temp)}°C`;
+            document.getElementById('w-desc').innerText = data.weather[0].description;
+            document.getElementById('w-icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+        }
+    } catch (e) {
+        document.getElementById('w-desc').innerText = "날씨 정보를 못 찾았어요";
+        console.error("날씨 로드 실패:", e);
+    }
+}
+
+// 초기화 실행 시 날씨 함수도 호출
+getDaejeonWeather();
 </script>
 </body>
 </html>
+
 
 
 
