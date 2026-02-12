@@ -313,32 +313,32 @@
             line-height: 1;
         }
         .input-area {
-            padding: 15px;
+            width: 100%;           /* 전체 너비 사용 */
+            padding: 10px 0;       /* 위아래 여백을 살짝 주어 답답함 해소 */
             box-sizing: border-box;
-            flex-shrink: 0;
-            margin-top: 10px;
-            touch-action: none;
+            display: flex;
+            justify-content: center; /* 내부 요소를 중앙으로 */
         }
         .input-controls {
             display: flex;
             align-items: center;
-            background: #fff0f3; /* 연한 핑크 배경 */
+            background: #fff0f3;
             border-radius: 20px;
-            padding: 5px 12px;
-            border: 2px solid #ffafcc; /* 여기서만 테두리 1겹 생성 */
-            width: 100%;
+            padding: 10px 15px;    /* 📍 위아래 10px로 키워서 더 시원하게 만듦 */
+            border: 2px solid #ffafcc;
+            width: 100%;           /* 스티커 창 좌우 길이와 맞춤 */
             box-sizing: border-box;
-            box-shadow: 0 2px 8px rgba(255, 175, 204, 0.1); /* 미세한 그림자 */
+            box-shadow: 0 2px 8px rgba(255, 175, 204, 0.1);
         }
         #diary-input {
             flex: 1;
+            min-width: 0;
             border: none;
             background: transparent;
             outline: none;
-            font-size: 0.9rem;
-            padding: 8px;
+            font-size: 1rem;       /* 📍 입력 글씨 크기를 살짝 키움 */
+            font-weight: 600;
             color: #444;
-            min-width: 0; /* 좁은 화면에서 삐져나감 방지 */
         }
         .add-btn {
             background: #ff8fab;
@@ -817,6 +817,7 @@ document.addEventListener('touchend', (e) => {
 </script>
 </body>
 </html>
+
 
 
 
