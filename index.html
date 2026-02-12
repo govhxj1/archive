@@ -883,28 +883,48 @@ const feb14Path = [
 
 /* 지도 열기 함수 */
 window.openMap = function() {
-    document.getElementById('map-container').style.display = 'flex';
-    document.getElementById('side-menu').style.display = 'none'; // 메뉴 닫기
-
-    // 지도 객체가 없으면 새로 생성
-    if (!diaryMap) {
-        diaryMap = L.map('map').setView([36.3537, 127.3415], 16);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(diaryMap);
+    const mapContainer = document.getElementById('map-container');
+    const mapElement = document.getElementById('map');
+    
+    // 1) 지도를 그릴 상자가 있는지 먼저 확인
+    if (!mapContainer || !mapElement) {
+        console.error("지도를 그릴 공간이 없습니다.");
+        return;
     }
 
-    // 기존 핀과 선 지우기
+    mapContainer.style.display = 'flex';
+    document.getElementById('side-menu').style.display = 'none';
+
+    // 2) 지도 초기화 및 심플 스타일 적용
+    if (!diaryMap) {
+        // Leaflet 객체가 로드되었는지 확인 후 생성
+        if (typeof L === 'undefined') {
+            alert("지도 라이브러리가 아직 로딩 중입니다. 잠시 후 다시 시도해 주세요!");
+            return;
+        }
+        
+        diaryMap = L.map('map').setView([36.3537, 127.3415], 16);
+        
+        // 📍 유미님이 원하신 심플한 지도 스타일 적용
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(diaryMap);
+    }
+
+    // 3) 기존 마커 및 선 초기화
     if (pathLine) diaryMap.removeLayer(pathLine);
     markers.forEach(m => diaryMap.removeLayer(m));
     markers = [];
 
-    // 데이터 순서대로 핀 꽂기 및 팝업 연결
+    // 4) 핀 꽂기 및 동선 그리기
     feb14Path.forEach((p) => {
         const marker = L.marker([p.lat, p.lng]).addTo(diaryMap)
             .bindPopup(`<div style="text-align:center;"><b>${p.name}</b><br>${p.memo}</div>`);
         markers.push(marker);
     });
 
-    // 분홍색 점선으로 동선 그리기
     const latlngs = feb14Path.map(p => [p.lat, p.lng]);
     pathLine = L.polyline(latlngs, {
         color: '#ffafcc',
@@ -913,24 +933,17 @@ window.openMap = function() {
         dashArray: '10, 10'
     }).addTo(diaryMap);
 
-    // 모든 핀이 보이게 화면 조정
-    const group = new L.featureGroup(markers);
-    diaryMap.fitBounds(group.getBounds().pad(0.3));
-    
-    // 지도가 잘리거나 깨지는 현상 방지
-    setTimeout(() => { diaryMap.invalidateSize(); }, 200);
-};
-
-/* 지도 닫기 함수 */
-window.closeMap = function() {
-    document.getElementById('map-container').style.display = 'none';
-    if (document.getElementById('diary-modal').style.display === 'none') {
-        document.getElementById('overlay').style.display = 'none';
-    }
+    // 5) 📍 중요: 화면 크기 재계산 (지도가 잘려 보이는 현상 방지)
+    setTimeout(() => { 
+        diaryMap.invalidateSize();
+        const group = new L.featureGroup(markers);
+        diaryMap.fitBounds(group.getBounds().pad(0.3));
+    }, 300);
 };
 </script>
 </body>
 </html>
+
 
 
 
