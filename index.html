@@ -411,14 +411,14 @@
 
         <div id="writer-selector" style="display: flex; gap: 10px; margin-bottom: 10px;">
             <button class="confirm-btn" onclick="openInput('유미')" style="flex: 1; background: #ffb7c5; color: white; font-size: 0.9rem; border: none; padding: 12px; border-radius: 12px; box-sizing: border-box;">유미가 쓰기</button>
-            <button class="confirm-btn" onclick="openInput('거니')" style="flex: 1; background: #ffde59; color: #555; font-size: 0.9rem; border: none; padding: 12px; border-radius: 12px; box-sizing: border-box;">거니가 쓰기</button>
+            <button class="confirm-btn" onclick="openInput('거니')" style="flex: 1; background: #ffde59; color: white; font-size: 0.9rem; border: none; padding: 12px; border-radius: 12px; box-sizing: border-box;">거니가 쓰기</button>
         </div>
 
         <div id="q-input-area" style="display: none; flex-direction: column; gap: 10px;">
             <textarea id="q-answer-input" placeholder="내용을 입력해주세요..." 
                 style="width: 100%; height: 80px; border-radius: 12px; border: 2px solid #fff0f3; background-color: #fff9fa; padding: 12px; font-family: inherit; font-size: 0.9rem; resize: none; box-sizing: border-box; outline: none;">
             </textarea>
-            <button class="confirm-btn" onclick="submitDailyAnswer()" style="width: 100%; margin: 0; background: #ffafcc; box-sizing: border-box;">기록 완료 ✨</button>
+            <button class="confirm-btn" onclick="submitDailyAnswer()" style="width: 100%; margin: 0; background: #ffafcc; color: white; box-sizing: border-box;">기록 완료 ✨</button>
         </div>
 
         <button class="confirm-btn" onclick="closeQuestion()" style="width: 100%; margin-top: 10px; background: #eee; color: #888; font-size: 0.9rem; border: none; padding: 10px; border-radius: 10px; box-sizing: border-box;">닫기</button>
@@ -1014,7 +1014,7 @@ window.openInput = function(name) {
     currentWriter = name;
     document.getElementById('writer-selector').style.display = 'none';
     document.getElementById('q-input-area').style.display = 'flex';
-    document.getElementById('q-answer-input').placeholder = name + "(이)가 입력 중...";
+    document.getElementById('q-answer-input').placeholder = name + "의 고민시간...";
     document.getElementById('q-answer-input').focus();
 };
 
@@ -1054,6 +1054,7 @@ window.closeQuestion = function() {
 </script>
 </body>
 </html>
+
 
 
 
