@@ -541,7 +541,15 @@
           loadingOverlay = document.getElementById('loading-overlay');
 
     const hideLoading = () => { loadingOverlay.style.opacity = '0'; setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500); };
-
+    
+/* 📍 여기에 2번 안전장치 코드를 추가하세요 */
+    setTimeout(() => { 
+        if (loadingOverlay && loadingOverlay.style.display !== 'none') {
+            console.log("로딩이 길어져서 강제로 화면을 표시합니다.");
+            hideLoading(); 
+        }
+    }, 5000);
+    
     onAuthStateChanged(auth, async (u) => {
         user = u;
         if (user) {
@@ -943,6 +951,7 @@ window.openMap = function() {
 </script>
 </body>
 </html>
+
 
 
 
