@@ -499,7 +499,33 @@
         stickerWrapper.style.transform = `translateX(-${index * 25}%)`;
         Array.from(paginationContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
     };
+    
+// --- 달력 스와이프 기능 추가 시작 ---
+    let calTouchStartX = 0;
+    let calTouchStartY = 0;
+    const calSwipeArea = document.getElementById('calendar-swipe-area');
 
+    // 터치 시작 시 위치 저장
+    calSwipeArea.addEventListener('touchstart', (e) => {
+        calTouchStartX = e.touches[0].clientX;
+        calTouchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    // 터치 끝날 때 계산해서 달력 넘기기
+    calSwipeArea.addEventListener('touchend', (e) => {
+        let diffX = calTouchStartX - e.changedTouches[0].clientX;
+        let diffY = calTouchStartY - e.changedTouches[0].clientY;
+
+        // 가로 움직임이 세로보다 클 때만 작동 (오작동 방지)
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+            if (Math.abs(diffX) > 50) { // 50px 이상 밀었을 때
+                if (diffX > 0) changeMonth(1);  // 왼쪽으로 밀면 다음달
+                else changeMonth(-1);           // 오른쪽으로 밀면 이전달
+            }
+        }
+    }, { passive: true });
+    // --- 달력 스와이프 기능 추가 끝 ---
+    
     function updateDday() {
         if (isDateMode) {
             ddayLabel.innerText = "우리가 시작한 소중한 날짜";
@@ -676,6 +702,7 @@ getDaejeonWeather();
 </script>
 </body>
 </html>
+
 
 
 
