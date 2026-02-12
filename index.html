@@ -848,9 +848,11 @@
         overlay.style.display = 'block';
     } else {
         menu.style.display = 'none';
-        overlay.style.display = 'none';
+        // 메뉴를 닫을 때 다이어리 모달이 안 켜져 있다면 오버레이도 닫기
+        if (document.getElementById('diary-modal').style.display === 'none') {
+            overlay.style.display = 'none';
+        }
     }
-};
 
 // 배경(오버레이) 클릭 시 메뉴도 같이 닫히게 설정
 document.getElementById('overlay').addEventListener('click', () => {
@@ -929,6 +931,7 @@ window.closeMap = function() {
 </script>
 </body>
 </html>
+
 
 
 
