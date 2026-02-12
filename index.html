@@ -357,6 +357,29 @@
         .weather-text { font-size: 0.85rem; color: var(--text-dark); font-weight: 700; }
         .weather-temp { font-size: 1.2rem; font-weight: 900; color: var(--point-pink); }
         .weather-city { font-size: 0.8rem; font-weight: 900; color: #555; margin-top: 2px; }
+
+        @keyframes simpleFade {
+        from { opacity: 0; transform: translate(-50%, -45%); } 
+        to { opacity: 1; transform: translate(-50%, -50%); }   
+        }
+    
+        #side-menu {
+            display: none; 
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); /* 중앙 고정 */
+            background: white; 
+            width: 85%; 
+            max-width: 340px; 
+            padding: 25px; 
+            border-radius: 25px; 
+            text-align: center; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+            z-index: 1000;
+            flex-direction: column;
+            animation: simpleFade 0.3s ease-out; /* 새로운 애니메이션 적용 */
+        }
     </style>
 </head>
 <body>
@@ -827,6 +850,7 @@ document.getElementById('overlay').addEventListener('click', () => {
 </script>
 </body>
 </html>
+
 
 
 
