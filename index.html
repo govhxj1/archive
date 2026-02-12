@@ -973,34 +973,78 @@ let currentWriter = "";
 // 질문 리스트 (dailyQuestions 배열이 없다면 여기에 정의하세요)
 const dailyQuestions = [
     "우리 처음 만났을 때, 나의 첫인상은 어땠어? 😊",
-    "나랑 가장 가보고 싶은 대전 맛집은 어디야? 🥘",
+    "나랑 가장 먹고싶은 음식 어떤거야? 🥘",
     "내가 가장 귀여워 보일 때는 언제야? 💛",
+    "지구 마지막 날이라면, 나랑 가장 먼저 하고 싶은 일은 뭐야? 🌎",
+    "'이 사람 만나길 잘했다'라고 확신이 들었던 순간은? 💍",
+    "나랑 연애하며 새롭게 발견한 너의 모습은? ✨",
     "우리가 함께한 날 중 가장 기억에 남는 날은? 🌸",
-    "나랑 꼭 같이 해보고 싶은 버킷리스트가 있어? ✨"
+    "나랑 꼭 같이 해보고 싶은 버킷리스트가 있어? ✨",
+    "한 달 동안 연락 안 되기 📞 VS 한 달 동안 못 만나기 🏠",
+    "우리 관계에서 가장 고마웠던 순간은 언제야? 💝",
+    "매일 말로만 애정표하기 👄 VS 말은 없지만 행동으로 다 보여주기 💪",
+    "서운할 때 내가 어떻게 다가와 주면 마음이 풀려? 🧸",
+    "10년 뒤 우리 모습은 어떨 것 같아? ⏳",
+    "나를 세 단어로 표현한다면? 🏷️"
 ];
 
 /* 1. 질문 불러오기 */
+/* 1. 질문 불러오기 (중복 제거 로직 추가) */
 window.showRandomQuestion = function() {
     const today = new Date();
     const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
-    const seed = today.getFullYear() * 1000 + (today.getMonth() + 1) * 100 + today.getDate();
-    const qIdx = seed % dailyQuestions.length;
     
-    document.getElementById('question-content').innerText = dailyQuestions[qIdx];
+    // 1-1. 오늘 이미 뽑힌 질문이 있는지 확인
+    let dailyData = JSON.parse(localStorage.getItem('daily_q_' + dateKey) || "{}");
+    let questionIdx;
 
-    // 저장된 답변 불러오기
-    const savedData = JSON.parse(localStorage.getItem('daily_q_' + dateKey) || "{}");
-    
+    if (dailyData.questionIdx !== undefined) {
+        // 이미 오늘 뽑힌 질문이 있다면 그대로 사용
+        questionIdx = dailyData.questionIdx;
+    } else {
+        // 오늘 처음 여는 거라면 새로운 질문 뽑기
+        let viewedQuestions = JSON.parse(localStorage.getItem('viewed_questions') || "[]");
+        
+        // 아직 안 본 질문들의 인덱스 찾기
+        let availableIdx = [];
+        for (let i = 0; i < dailyQuestions.length; i++) {
+            if (!viewedQuestions.includes(i)) {
+                availableIdx.push(i);
+            }
+        }
+
+        // 만약 모든 질문을 다 봤다면 기록 초기화하고 다시 시작
+        if (availableIdx.length === 0) {
+            viewedQuestions = [];
+            for (let i = 0; i < dailyQuestions.length; i++) availableIdx.push(i);
+        }
+
+        // 남은 질문 중 랜덤으로 하나 선택
+        const randomPos = Math.floor(Math.random() * availableIdx.length);
+        questionIdx = availableIdx[randomPos];
+
+        // 본 목록에 추가 및 오늘 데이터에 고정
+        viewedQuestions.push(questionIdx);
+        localStorage.setItem('viewed_questions', JSON.stringify(viewedQuestions));
+        
+        dailyData.questionIdx = questionIdx;
+        localStorage.setItem('daily_q_' + dateKey, JSON.stringify(dailyData));
+    }
+
+    // 질문 텍스트 표시
+    document.getElementById('question-content').innerText = dailyQuestions[questionIdx];
+
+    // 답변 불러오기 표시 (기존 로직 동일)
     const yBox = document.getElementById('yumi-answer');
-    if (savedData.유미) {
+    if (dailyData.유미) {
         yBox.style.display = 'block';
-        yBox.querySelector('.text').innerText = savedData.유미;
+        yBox.querySelector('.text').innerText = dailyData.유미;
     } else { yBox.style.display = 'none'; }
 
     const gBox = document.getElementById('goni-answer');
-    if (savedData.거니) {
+    if (dailyData.거니) {
         gBox.style.display = 'block';
-        gBox.querySelector('.text').innerText = savedData.거니;
+        gBox.querySelector('.text').innerText = dailyData.거니;
     } else { gBox.style.display = 'none'; }
 
     document.getElementById('q-input-area').style.display = 'none';
@@ -1054,6 +1098,7 @@ window.closeQuestion = function() {
 </script>
 </body>
 </html>
+
 
 
 
