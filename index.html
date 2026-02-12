@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <title>우리들의 행복한 추억</title>
     <style>
         @font-face {
@@ -370,7 +369,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -394,15 +393,6 @@
     const hideLoading = () => { loadingOverlay.style.opacity = '0'; setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500); };
     setTimeout(() => { if (loadingOverlay.style.display !== 'none') hideLoading(); }, 6000);
 
-    // 강력한 줌 방지 로직
-    document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', (e) => {
-        const now = (new Date()).getTime();
-        if (now - lastTouchEnd <= 300) e.preventDefault();
-        lastTouchEnd = now;
-    }, false);
-
     onAuthStateChanged(auth, async (u) => {
         user = u;
         if (user) {
@@ -417,17 +407,10 @@
                     updateStickerUI(); renderComments(true);
                 }
             }, (err) => { hideLoading(); });
+        } else {
+            signInAnonymously(auth);
         }
     });
-
-    const initAuth = async () => {
-        try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                try { await signInWithCustomToken(auth, __initial_auth_token); } catch (e) { await signInAnonymously(auth); }
-            } else { await signInAnonymously(auth); }
-        } catch (e) { hideLoading(); }
-    };
-    initAuth();
 
     document.getElementById('secret-heart-trigger').onclick = () => {
         secretClickCount++;
@@ -436,7 +419,6 @@
     };
     window.closeSurprise = () => { document.getElementById('surprise-overlay').style.display = 'none'; };
 
-    // [수정] 96종 스티커 (3번째 하트를 💓로 변경 및 24개 추가)
     const allStickers = [
         '💛', '💖', '💓', '🧡', '💚', '💙', '💜', '❣️', '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇', '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️',
         '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️', '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕', '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤',
@@ -459,26 +441,9 @@
 
     window.goToStickerPage = (index) => {
         if (index < 0 || index > 3) return; currentPage = index;
-        stickerWrapper.style.transform = `translateX(-${index * 25}%)`; /* 4페이지 기준 */
+        stickerWrapper.style.transform = `translateX(-${index * 25}%)`;
         Array.from(paginationContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
     };
-
-    let touchStartX = 0;
-    document.getElementById('sticker-slider').addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive: true});
-    document.getElementById('sticker-slider').addEventListener('touchend', (e) => {
-        let diff = touchStartX - e.changedTouches[0].clientX;
-        if (Math.abs(diff) > 40) window.goToStickerPage(currentPage + (diff > 0 ? 1 : -1));
-    });
-
-    let calTouchStartX = 0;
-    const calSwipeArea = document.getElementById('calendar-swipe-area');
-    calSwipeArea.addEventListener('touchstart', (e) => { calTouchStartX = e.touches[0].clientX; }, {passive: true});
-    calSwipeArea.addEventListener('touchend', (e) => {
-        let diff = calTouchStartX - e.changedTouches[0].clientX;
-        if (diff > 60) changeMonth(1); else if (diff < -60) changeMonth(-1); 
-    });
-
-    Array.from(paginationContainer.children).forEach(dot => dot.onclick = () => window.goToStickerPage(parseInt(dot.dataset.page)));
 
     function updateDday() {
         if (isDateMode) {
@@ -491,8 +456,6 @@
         }
     }
     document.getElementById('dday-container').onclick = () => { isDateMode = !isDateMode; updateDday(); };
-
-    const holidays2026 = {"01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", "03-01": "삼일절", "03-02": "대체공휴일", "05-05": "어린이날", "05-24": "부처님오신날", "05-25": "대체공휴일", "06-03": "지방선거", "06-06": "현충일", "08-15": "광복절", "08-17": "대체공휴일", "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", "10-03": "개천절", "10-05": "대체공휴일", "10-09": "한글날", "12-25": "성탄절"};
 
     function renderCalendar() {
         dateContainer.innerHTML = ""; monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
@@ -507,10 +470,12 @@
             if (dow === 6) cell.classList.add('saturday');
             if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) cell.classList.add('holiday');
             if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
+            
             const diff = Math.floor((new Date(viewYear, viewMonth, i) - new Date(2026, 0, 10)) / 86400000) + 1;
             let anniv = "";
-            if (diff > 0 && diff <= 300 && diff % 100 === 0) anniv = `${diff}일`;
+            if (diff === 100 || diff === 200 || diff === 300) anniv = `${diff}일`;
             else if (viewMonth === 0 && i === 10 && viewYear > 2026) anniv = `${viewYear-2026}주년`;
+            
             cell.innerHTML = `<div class="date-header"><span class="date-num">${i}</span>${data.comments?.length ? '<span class="record-heart">💛</span>' : ''}</div><span class="sticker-display">${data.sticker || ""}</span>${anniv ? `<span class="anniv-label">${anniv}</span>` : ''}`;
             cell.onclick = () => openModal(i);
             dateContainer.appendChild(cell);
@@ -521,81 +486,51 @@
     document.getElementById('prev-month').onclick = () => changeMonth(-1);
     document.getElementById('next-month').onclick = () => changeMonth(1);
 
-function openModal(day) {
-    try {
+    function openModal(day) {
         currentDay = day; 
         const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
         
-        // 기념일 로직
+        // 기념일 체크
         const startDate = new Date(2026, 0, 10);
         const targetDate = new Date(viewYear, viewMonth, day);
         const diff = Math.floor((targetDate - startDate) / 86400000) + 1;
-        
         const isEarlyAnniv = (diff === 100 || diff === 200 || diff === 300);
         const isYearlyAnniv = (viewMonth === 0 && day === 10 && viewYear > 2026);
 
-        // 폭죽/하트 효과 (에러 방지를 위해 윈도우 객체 확인)
-        if ((isEarlyAnniv || isYearlyAnniv) && typeof confetti === 'function') {
-            const heart = confetti.shapeFromPath({ path: 'M167 10c-75 0-111 78-111 78s-36-78-111-78c-41 0-73 32-73 73 0 101 184 216 184 216s184-115 184-216c0-41-32-73-73-73z' });
-            confetti({
-                shapes: [heart],
-                particleCount: 50,
-                spread: 100,
-                origin: { y: 0.7 },
-                colors: ['#ff8fab', '#ffafcc', '#ff4d6d'],
-                scalar: 2
-            });
+        if (isEarlyAnniv || isYearlyAnniv) {
+            makeHearts();
         }
 
-        // 모달 데이터 로드 및 표시 (이 부분이 반드시 실행되어야 창이 뜹니다)
         document.getElementById('selected-date').innerText = `${viewMonth + 1}월 ${day}일 기록`;
         selectedSticker = data.sticker || ""; 
         comments = data.comments || [];
-        updateStickerUI(); 
-        renderComments(true); 
-        previewBox.style.display = 'none'; 
-        window.goToStickerPage(0);
-        document.getElementById('diary-modal').style.display = 'flex'; 
-        document.getElementById('overlay').style.display = 'block';
-
-    } catch (e) {
-        console.error("모달 열기 오류:", e);
-        // 혹시나 효과에서 에러가 나더라도 창은 띄우도록 처리
+        updateStickerUI(); renderComments(true); 
+        previewBox.style.display = 'none'; window.goToStickerPage(0);
         document.getElementById('diary-modal').style.display = 'flex'; 
         document.getElementById('overlay').style.display = 'block';
     }
-}
 
-        // --- 기념일 필터링 로직 ---
-    const startDate = new Date(2026, 0, 10);
-    const targetDate = new Date(viewYear, viewMonth, day);
-    const diff = Math.floor((targetDate - startDate) / 86400000) + 1;
-    
-    // 조건 1: 100일, 200일, 300일인 경우만
-    const isEarlyAnniv = (diff === 100 || diff === 200 || diff === 300);
-    
-    // 조건 2: 매년 돌아오는 1월 10일 (주년)
-    const isYearlyAnniv = (viewMonth === 0 && day === 10 && viewYear > 2026);
-
-    if (isEarlyAnniv || isYearlyAnniv) {
-        // 하트 뿅뿅 효과 실행
-        const heart = confetti.shapeFromPath({ path: 'M167 10c-75 0-111 78-111 78s-36-78-111-78c-41 0-73 32-73 73 0 101 184 216 184 216s184-115 184-216c0-41-32-73-73-73z' });
-        confetti({
-            shapes: [heart],
-            particleCount: 50,
-            spread: 100,
-            origin: { y: 0.7 },
-            colors: ['#ff8fab', '#ffafcc', '#ff4d6d'],
-            scalar: 2
-        });
-    }
-    // -----------------------
-        
-        document.getElementById('selected-date').innerText = `${viewMonth + 1}월 ${day}일 기록`;
-        selectedSticker = data.sticker || ""; comments = data.comments || [];
-        updateStickerUI(); renderComments(true); previewBox.style.display = 'none'; window.goToStickerPage(0);
-        document.getElementById('diary-modal').style.display = 'flex'; document.getElementById('overlay').style.display = 'block';
+    function makeHearts() {
+        for (let i = 0; i < 15; i++) {
+            setTimeout(() => {
+                const heart = document.createElement('div');
+                heart.innerText = '💛';
+                heart.style.position = 'fixed';
+                heart.style.left = (Math.random() * 80 + 10) + 'vw';
+                heart.style.bottom = '-5vh';
+                heart.style.fontSize = (Math.random() * 20 + 20) + 'px';
+                heart.style.zIndex = '3000';
+                heart.style.transition = 'all 2.5s ease-out';
+                heart.style.pointerEvents = 'none';
+                document.body.appendChild(heart);
+                setTimeout(() => {
+                    heart.style.transform = `translateY(-110vh) rotate(${Math.random() * 360}deg)`;
+                    heart.style.opacity = '0';
+                }, 100);
+                setTimeout(() => heart.remove(), 2600);
+            }, i * 150);
+        }
     }
 
     document.getElementById('img-upload').onchange = (e) => {
@@ -642,9 +577,7 @@ function openModal(day) {
     }
 
     const closeModal = () => { 
-        diaryInput.value = ""; 
-        selectedImgBase64 = ""; 
-        previewBox.style.display = 'none'; 
+        diaryInput.value = ""; selectedImgBase64 = ""; previewBox.style.display = 'none'; 
         document.getElementById('img-upload').value = ""; 
         document.getElementById('diary-modal').style.display = 'none'; 
         document.getElementById('overlay').style.display = 'none'; 
@@ -652,10 +585,13 @@ function openModal(day) {
     };
     document.getElementById('close-modal').onclick = closeModal; document.getElementById('overlay').onclick = closeModal;
 
+    const holidays2026 = {"01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", "03-01": "삼일절", "03-02": "대체공휴일", "05-05": "어린이날", "05-24": "부처님오신날", "05-25": "대체공휴일", "06-03": "지방선거", "06-06": "현충일", "08-15": "광복절", "08-17": "대체공휴일", "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", "10-03": "개천절", "10-05": "대체공휴일", "10-09": "한글날", "12-25": "성탄절"};
+
     initStickers(); renderCalendar(); updateDday(); 
 </script>
 </body>
 </html>
+
 
 
 
