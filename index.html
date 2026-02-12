@@ -847,34 +847,40 @@
 
     getDaejeonWeather(); renderCalendar(); updateDday();
 
-    // [수정된 부분] 메뉴 열고 닫기 함수
+    // 1. 메뉴 토글 함수: '닫기' 버튼을 누르면 블러(오버레이)까지 확실히 제거합니다.
     window.toggleMenu = function() {
         const menu = document.getElementById('side-menu');
         const overlay = document.getElementById('overlay');
         
         if (menu.style.display === 'none' || menu.style.display === '') {
+            // 메뉴 열기
             menu.style.display = 'flex';
             overlay.style.display = 'block';
         } else {
+            // 메뉴 닫기
             menu.style.display = 'none';
-            // 다이어리 모달도 닫혀있을 때만 오버레이 제거
-            if (document.getElementById('diary-modal').style.display === 'none') {
+            // 메뉴를 닫을 때 다이어리 모달과 지도가 모두 닫혀있다면 블러도 제거
+            if (document.getElementById('diary-modal').style.display === 'none' && 
+                document.getElementById('map-container').style.display === 'none') {
                 overlay.style.display = 'none';
             }
         }
     };
 
-    // 배경(오버레이) 클릭 시 닫기 설정
-    document.getElementById('overlay').addEventListener('click', () => {
+    // 2. 배경(오버레이) 클릭 이벤트 수정
+    document.getElementById('overlay').onclick = function() {
         const menu = document.getElementById('side-menu');
-        const diaryModal = document.getElementById('diary-modal');
-        const mapContainer = document.getElementById('map-container');
-
-        if (menu) menu.style.display = 'none';
-        if (diaryModal.style.display === 'none' && mapContainer.style.display === 'none') {
-            document.getElementById('overlay').style.display = 'none';
+        
+        // 📍 메뉴가 열려있을 때는 배경을 눌러도 아무 반응 없게 만듦 (닫기 버튼 유도)
+        if (menu.style.display === 'flex') {
+            return; 
         }
-    });
+
+        // 만약 다이어리 모달이 켜져 있을 때 배경을 누르면 닫히게 하고 싶다면 아래 유지
+        if (typeof closeModal === 'function') {
+            closeModal();
+        }
+    };
 
     /* 지도 관련 변수 선언 */
     let diaryMap;
@@ -933,6 +939,7 @@
 </script>
 </body>
 </html>
+
 
 
 
