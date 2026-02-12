@@ -117,7 +117,7 @@
             box-sizing: border-box;
             flex-shrink: 0;
             margin-bottom: auto;
-            touch-action: pan-x;
+            touch-action: none;
         }
 
         .header {
@@ -134,7 +134,7 @@
 
         .days {
             display: grid; grid-template-columns: repeat(7, 1fr);
-            text-align: center; padding: 11px 5px; font-weight: 900; 
+            text-align: center; padding: 10px 5px; font-weight: 900; 
             font-size: 0.9rem; border-bottom: 1px solid #fff5f7; color: #333
         }
         .days div:nth-child(1) { color: var(--holiday-red); text-shadow: 0.3px 0 0 var(--holiday-red);}
@@ -676,6 +676,7 @@ getDaejeonWeather();
 </script>
 </body>
 </html>
+
 
 
 
