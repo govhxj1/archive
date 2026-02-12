@@ -533,7 +533,36 @@
         messagingSenderId: "585863845966",
         appId: "1:585863845966:web:ddc811abff636222590b1f"
     };
-
+    
+const specialDates = {
+    "2026-02-14": {
+        title: "💛 토요일 데이트 (2/14)",
+        plans: [
+            { icon: "🏨", name: "저스트슬립 호텔", link: "https://naver.me/xnh1MzBd" },
+            { icon: "🛍️", name: "쇼핑 (NC백화점)", link: "https://naver.me/Gq845LFP" },
+            { icon: "🍢", name: "오뎅바 (어묵사랑애)", link: "https://naver.me/FpxlCCJk" },
+            { icon: "🌙", name: "숙소 앞 밤산책", note: "함께 걷기" }
+        ],
+        footer: "✨ 이번 데이트도 재밌게 놀자!"
+    },
+    "2026-02-15": {
+        title: "💗 일요일 데이트 (2/15)",
+        plans: [
+            { icon: "🦁", name: "오월드 / 사파리", link: "https://naver.me/5mI5LMtE" },
+            { icon: "🥘", name: "아리네 닭볶음탕", link: "https://naver.me/FW0IIu9e" }
+        ],
+        footer: "🌙 집에서도 하루종일 별 보여줄게요"
+    },
+    "2026-02-16": {
+        title: "💝 월요일 데이트 (2/16)",
+        plans: [
+            { icon: "🍖", name: "농민뜨끈이 옥천뼈구이", link: "https://naver.me/GRukZPUE" },
+            { icon: "🎲", name: "보드게임카페 (홈즈앤루팡)", link: "https://naver.me/xqu5B8IR" }
+        ],
+        footer: "🌸 마지막 날까지 행복하게 보내자!"
+    }
+};
+    
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -666,29 +695,126 @@
     document.getElementById('next-month').onclick = () => changeMonth(1);
 
     function openModal(day) {
-        currentDay = day; 
-        const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
-        
-        // 기념일 체크
-        const startDate = new Date(2026, 0, 10);
-        const targetDate = new Date(viewYear, viewMonth, day);
-        const diff = Math.floor((targetDate - startDate) / 86400000) + 1;
-        const isEarlyAnniv = (diff === 100 || diff === 200 || diff === 300);
-        const isYearlyAnniv = (viewMonth === 0 && day === 10 && viewYear > 2026);
+    currentDay = day; 
+    const mStr = String(viewMonth + 1).padStart(2, '0');
+    const dStr = String(day).padStart(2, '0');
+    const dateKey = `${viewYear}-${mStr}-${dStr}`;
+    
+    // [1] 기념일 체크 & 하트 효과 살리기
+    const startDate = new Date(2026, 0, 10);
+    const targetDate = new Date(viewYear, viewMonth, day);
+    const diff = Math.floor((targetDate - startDate) / 86400000) + 1;
+    const isEarlyAnniv = (diff === 100 || diff === 200 || diff === 300);
+    const isYearlyAnniv = (viewMonth === 0 && day === 10 && viewYear > 2026);
 
-        if (isEarlyAnniv || isYearlyAnniv) {
-            makeHearts();
-        }
-
-        document.getElementById('selected-date').innerText = `${viewMonth + 1}월 ${day}일 기록`;
-        selectedSticker = data.sticker || ""; 
-        comments = data.comments || [];
-        updateStickerUI(); renderComments(true); 
-        previewBox.style.display = 'none'; window.goToStickerPage(0);
-        document.getElementById('diary-modal').style.display = 'flex'; 
-        document.getElementById('overlay').style.display = 'block';
+    if (isEarlyAnniv || isYearlyAnniv) {
+        makeHearts(); 
     }
+
+    const specialPlan = specialDates[dateKey];
+    const diaryModal = document.getElementById('diary-modal');
+    const overlay = document.getElementById('overlay');
+
+    if (specialPlan) {
+        // 데이트 일정표 화면 구성
+        let plansHtml = specialPlan.plans.map(p => `
+            <div style="margin-bottom: 12px; text-align: left; padding: 12px; background: white; border-radius: 15px; border: 1px solid #ffe5ec;">
+                <div style="font-weight: 900; font-size: 0.95rem; color: #444; display: flex; align-items: center; gap: 8px;">
+                    <span>${p.icon}</span> <span>${p.name}</span>
+                </div>
+                ${p.link ? `<a href="${p.link}" target="_blank" style="display: inline-block; margin-top: 5px; font-size: 0.8rem; color: #ff8fab; text-decoration: none; font-weight: bold;">📍 지도 보기</a>` : ''}
+                ${p.note ? `<div style="font-size: 0.8rem; color: #999; margin-top: 4px;">${p.note}</div>` : ''}
+            </div>
+        `).join('');
+
+        diaryModal.innerHTML = `
+            <button class="close-modal-btn" onclick="closeModal()">✕</button>
+            <div style="padding: 10px 5px; display: flex; flex-direction: column; height: 100%; box-sizing: border-box;">
+                <h3 style="color: #ff8fab; font-weight: 900; margin-bottom: 15px; font-size: 1.1rem;">${specialPlan.title}</h3>
+                <div style="background: #fff0f3; border-radius: 25px; padding: 15px; overflow-y: auto; flex: 1;">
+                    ${plansHtml}
+                </div>
+                <p style="margin: 15px 0; font-size: 0.85rem; color: #ff8fab; font-weight: 900; line-height: 1.4;">${specialPlan.footer}</p>
+                <button onclick="setupOriginalDiary('${dateKey}')" style="width: 100%; padding: 15px; background: #ff8fab; border: none; border-radius: 20px; color: white; font-weight: 900; font-size: 1rem; cursor: pointer;">
+                    우리 추억 기록하기 ✏️
+                </button>
+            </div>
+        `;
+    } else {
+        // 일반 날짜는 원래 다이어리 실행
+        setupOriginalDiary(dateKey);
+    }
+
+    diaryModal.style.display = 'flex';
+    overlay.style.display = 'block';
+}
+
+// [중요] [우리 추억 기록하기] 버튼을 눌렀을 때 실행될 함수입니다.
+// openModal 함수 바로 아래에 이어서 붙여넣으세요.
+window.setupOriginalDiary = function(dateKey) {
+    const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
+    selectedSticker = data.sticker || "";
+    comments = data.comments || [];
+
+    const diaryModal = document.getElementById('diary-modal');
+    diaryModal.innerHTML = `
+        <button class="close-modal-btn" id="close-modal" onclick="closeModal()">✕</button>
+        <div class="modal-header"><h3 id="selected-date" class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div>
+        <div class="sticker-slider-container" id="sticker-slider">
+            <div class="sticker-wrapper" id="sticker-wrapper"></div>
+        </div>
+        <div class="pagination-dots" id="pagination-dots">
+            <div class="dot active" data-page="0"></div>
+            <div class="dot" data-page="1"></div>
+            <div class="dot" data-page="2"></div>
+            <div class="dot" data-page="3"></div>
+        </div>
+        <div class="comment-section" id="comment-scroll-area">
+            <div id="comment-list"></div>
+        </div>
+        <div class="input-area">
+            <div id="preview-box" style="display:none; position: relative; margin-bottom: 10px;">
+                <img id="img-preview" src="" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:2px solid #ffafcc;">
+                <div class="remove-img-btn" id="remove-img" style="position: absolute; top: -8px; left: 45px; background: #ff8fab; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid white; cursor:pointer;">✕</div>
+            </div>
+            <div class="input-controls">
+                <label for="img-upload" class="icon-btn" style="cursor:pointer; font-size:1.2rem; margin-right:10px;">📷</label>
+                <input type="file" id="img-upload" accept="image/*" style="display:none;">
+                <input type="text" id="diary-input" placeholder="추억을 남겨요!" style="flex:1; border:none; background:transparent; outline:none; font-size:1rem;">
+                <button class="add-btn" id="add-comment-btn">등록</button>
+            </div>
+        </div>
+    `;
+
+    // 스티커 및 기능 다시 연결
+    initStickers();
+    updateStickerUI();
+    renderComments(true);
+    
+    // 사진 업로드 기능 다시 연결
+    document.getElementById('img-upload').onchange = (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader(); reader.onload = (ev) => {
+            selectedImgBase64 = ev.target.result;
+            document.getElementById('img-preview').src = selectedImgBase64;
+            document.getElementById('preview-box').style.display = 'block';
+        }; reader.readAsDataURL(file);
+    };
+    document.getElementById('remove-img').onclick = () => { 
+        selectedImgBase64 = ""; 
+        document.getElementById('preview-box').style.display = 'none'; 
+    };
+
+    // 등록 버튼 기능 다시 연결
+    document.getElementById('add-comment-btn').onclick = async () => {
+        const input = document.getElementById('diary-input');
+        if (!input.value.trim() && !selectedImgBase64) return;
+        comments.push({ text: input.value.trim() || "사진 기록", img: selectedImgBase64 });
+        input.value = ""; selectedImgBase64 = ""; 
+        document.getElementById('preview-box').style.display = 'none';
+        renderComments(true); await saveData();
+    };
+};
 
     function makeHearts() {
     // 1. 하트 애니메이션 (노란색 & 핑크색 섞기)
@@ -843,4 +969,5 @@ document.addEventListener('touchend', (e) => {
 </script>
 </body>
 </html>
+
 
