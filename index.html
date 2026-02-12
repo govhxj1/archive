@@ -758,82 +758,89 @@ window.setupOriginalDiary = function(dateKey) {
 
     const diaryModal = document.getElementById('diary-modal');
     
-    // 1. 모달의 기본 구조를 먼저 잡습니다.
+    // 1. 모달 구조 재구성 (CSS 클래스 의존도 낮춤)
     diaryModal.innerHTML = `
-        <button class="close-modal-btn" id="close-modal" onclick="closeModal()">✕</button>
-        <div class="modal-header">
-            <h3 id="selected-date" class="modal-title" style="color: #ff8fab; font-weight: 900;">${viewMonth + 1}월 ${currentDay}일 기록</h3>
+        <button class="close-modal-btn" id="close-modal" onclick="closeModal()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:1.2rem; color:#ccc; cursor:pointer; z-index:110;">✕</button>
+        <div class="modal-header" style="display:flex; justify-content:center; align-items:center; margin-bottom:10px; flex-shrink:0;">
+            <h3 id="selected-date" class="modal-title" style="color:var(--point-pink); margin:0; font-size:1.1rem; font-weight:900;">${viewMonth + 1}월 ${currentDay}일 기록</h3>
         </div>
         
-        <div class="sticker-slider-container" id="sticker-slider" style="width: 100%; overflow: hidden; background: #fff0f3; border-radius: 15px; margin-bottom: 10px; padding: 10px 0;">
-            <div class="sticker-wrapper" id="sticker-wrapper" style="display: flex; transition: transform 0.3s ease-out; width: 400%;"></div>
+        <div class="sticker-slider-container" id="sticker-slider" style="width:100%; overflow:hidden; position:relative; background:var(--bg-pink); border-radius:15px; margin-bottom:10px; padding:10px 0; touch-action:pan-x; flex-shrink:0;">
+            <div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:400%;"></div>
         </div>
         
-        <div class="pagination-dots" id="pagination-dots" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 10px;">
-            <div class="dot active" data-page="0" onclick="goToStickerPage(0)"></div>
-            <div class="dot" data-page="1" onclick="goToStickerPage(1)"></div>
-            <div class="dot" data-page="2" onclick="goToStickerPage(2)"></div>
-            <div class="dot" data-page="3" onclick="goToStickerPage(3)"></div>
+        <div class="pagination-dots" id="pagination-dots" style="display:flex; justify-content:center; gap:8px; margin-bottom:10px; flex-shrink:0;">
+            <div class="dot active" data-page="0" onclick="goToStickerPage(0)" style="width:6px; height:6px; background:var(--main-pink); border-radius:50%; cursor:pointer;"></div>
+            <div class="dot" data-page="1" onclick="goToStickerPage(1)" style="width:6px; height:6px; background:#ddd; border-radius:50%; cursor:pointer;"></div>
+            <div class="dot" data-page="2" onclick="goToStickerPage(2)" style="width:6px; height:6px; background:#ddd; border-radius:50%; cursor:pointer;"></div>
+            <div class="dot" data-page="3" onclick="goToStickerPage(3)" style="width:6px; height:6px; background:#ddd; border-radius:50%; cursor:pointer;"></div>
         </div>
 
-        <div class="comment-section" id="comment-scroll-area" style="flex: 1; max-height: 280px; overflow-y: auto; margin-bottom: 15px; padding: 0 5px;">
+        <div class="comment-section" id="comment-scroll-area" style="flex:1; max-height:280px; overflow-y:auto; margin-bottom:15px; -webkit-overflow-scrolling:touch; padding-right:5px; touch-action:pan-y;">
             <div id="comment-list"></div>
         </div>
 
-        <div class="input-area" style="width: 100%;">
-            <div id="preview-box" style="display:none; position: relative; margin-bottom: 10px; text-align: center;">
-                <img id="img-preview" src="" style="width:60px; height:60px; object-fit:cover; border-radius:12px; border:2px solid #ffafcc;">
-                <div class="remove-img-btn" id="remove-img" style="position: absolute; top: -10px; left: 50%; transform: translateX(20px); background: #ff8fab; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 2px solid white; cursor:pointer; font-size:12px;">✕</div>
+        <div class="input-area" style="width:100%; padding:10px 0; box-sizing:border-box; display:flex; flex-direction:column; align-items:center;">
+            <div id="preview-box" style="display:none; position:relative; margin-bottom:10px;">
+                <img id="img-preview" src="" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:2px solid var(--main-pink);">
+                <div class="remove-img-btn" id="remove-img" style="position:absolute; top:-8px; left:45px; background:var(--point-pink); color:white; border-radius:50%; width:20px; height:20px; font-size:10px; display:flex; align-items:center; justify-content:center; border:2px solid white; cursor:pointer;">✕</div>
             </div>
-            <div class="input-controls" style="display: flex; align-items: center; background: #fff0f3; border-radius: 20px; padding: 10px 15px; border: 2px solid #ffafcc;">
-                <label for="img-upload" style="cursor:pointer; font-size:1.3rem; margin-right:10px;">📷</label>
+            <div class="input-controls" style="display:flex; align-items:center; background:#fff0f3; border-radius:20px; padding:10px 15px; border:2px solid #ffafcc; width:100%; box-sizing:border-box;">
+                <label for="img-upload" style="cursor:pointer; margin-right:8px;">📷</label>
                 <input type="file" id="img-upload" accept="image/*" style="display:none;">
                 <input type="text" id="diary-input" placeholder="추억을 남겨요!" style="flex:1; border:none; background:transparent; outline:none; font-size:1rem; font-weight:600; color:#444;">
-                <button class="add-btn" id="add-comment-btn" style="background: #ff8fab; color: white; border: none; padding: 8px 15px; border-radius: 15px; font-weight: 900; cursor: pointer; margin-left: 5px;">등록</button>
+                <button class="add-btn" id="add-comment-btn" style="background:#ff8fab; color:white; border:none; padding:6px 12px; border-radius:15px; font-weight:900; font-size:0.8rem; cursor:pointer; flex-shrink:0;">등록</button>
             </div>
         </div>
     `;
 
-    // 2. 중요: HTML이 그려진 후 '약간의 시간차'를 두고 내부 데이터를 채웁니다.
-    setTimeout(() => {
-        // 전역 변수들 다시 할당 (기능 연결을 위해)
-        const stickerWrapper = document.getElementById('sticker-wrapper');
-        const commentListContainer = document.getElementById('comment-list');
-        const diaryInput = document.getElementById('diary-input');
+    // 2. 스티커 다시 생성 및 기능 바인딩
+    const stickerWrapper = document.getElementById('sticker-wrapper');
+    stickerWrapper.innerHTML = "";
+    for (let p = 0; p < 4; p++) {
+        const pageDiv = document.createElement('div');
+        pageDiv.style.cssText = "width:25%; display:grid; grid-template-columns:repeat(8, 1fr); grid-template-rows:repeat(3, 1fr); gap:4px; padding:0 10px; box-sizing:border-box;";
+        allStickers.slice(p * 24, (p + 1) * 24).forEach(s => {
+            const span = document.createElement('span');
+            span.className = 'sticker-option';
+            span.style.cssText = "font-size:1.15rem; cursor:pointer; text-align:center; padding:6px 0; border-radius:8px;";
+            if (s === selectedSticker) span.style.background = "var(--main-pink)";
+            span.innerText = s;
+            span.onclick = () => {
+                selectedSticker = (selectedSticker === s) ? "" : s;
+                document.querySelectorAll('.sticker-option').forEach(opt => {
+                    opt.style.background = (opt.innerText === selectedSticker) ? "var(--main-pink)" : "transparent";
+                });
+                saveData();
+            };
+            pageDiv.appendChild(span);
+        });
+        stickerWrapper.appendChild(pageDiv);
+    }
 
-        // 스티커 목록 다시 만들기
-        initStickers(); 
-        updateStickerUI();
-        
-        // 댓글 목록 다시 그리기
-        renderComments(true);
+    // 3. 댓글 로드 및 이미지 이벤트 연결
+    renderComments(true);
 
-        // 사진 업로드 이벤트 다시 걸기
-        document.getElementById('img-upload').onchange = (e) => {
-            const file = e.target.files[0]; if (!file) return;
-            const reader = new FileReader(); reader.onload = (ev) => {
-                selectedImgBase64 = ev.target.result;
-                document.getElementById('img-preview').src = selectedImgBase64;
-                document.getElementById('preview-box').style.display = 'block';
-            }; reader.readAsDataURL(file);
-        };
+    document.getElementById('img-upload').onchange = (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader(); reader.onload = (ev) => {
+            selectedImgBase64 = ev.target.result;
+            document.getElementById('img-preview').src = selectedImgBase64;
+            document.getElementById('preview-box').style.display = 'block';
+        }; reader.readAsDataURL(file);
+    };
 
-        document.getElementById('remove-img').onclick = () => { 
-            selectedImgBase64 = ""; 
-            document.getElementById('preview-box').style.display = 'none'; 
-            document.getElementById('img-upload').value = "";
-        };
+    document.getElementById('remove-img').onclick = () => { 
+        selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none'; 
+    };
 
-        // 등록 버튼 이벤트 다시 걸기
-        document.getElementById('add-comment-btn').onclick = async () => {
-            if (!diaryInput.value.trim() && !selectedImgBase64) return;
-            comments.push({ text: diaryInput.value.trim() || "사진 기록", img: selectedImgBase64 });
-            diaryInput.value = ""; selectedImgBase64 = "";
-            document.getElementById('preview-box').style.display = 'none';
-            renderComments(true); 
-            await saveData();
-        };
-    }, 50); // 0.05초 뒤에 실행 (화면 갱신 보장)
+    document.getElementById('add-comment-btn').onclick = async () => {
+        const input = document.getElementById('diary-input');
+        if (!input.value.trim() && !selectedImgBase64) return;
+        comments.push({ text: input.value.trim() || "사진 기록", img: selectedImgBase64 });
+        input.value = ""; selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none';
+        renderComments(true); await saveData();
+    };
 };
 
     function makeHearts() {
@@ -989,5 +996,6 @@ document.addEventListener('touchend', (e) => {
 </script>
 </body>
 </html>
+
 
 
