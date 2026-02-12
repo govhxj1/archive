@@ -288,13 +288,15 @@
     border: 1px solid #ffe5ec;
     box-sizing: border-box;
     width: 100%;
+    position: relative;        
 }
         .comment-content {
     display: flex;
     flex-direction: column;
     flex: 1;                /* 📍 버튼 제외한 나머지 공간만 써라 */
     min-width: 0;           /* 📍 중요: 너비를 초과하면 버튼을 밀지 말고 줄바꿈해라 */
-    padding-right: 10px;    /* 버튼과의 최소 간격 */
+    padding-right: 12px;    /* 버튼과의 최소 간격 */
+    text-align: left;
 }
         .comment-img {
             width: 100%;                   /* 사진이 댓글 창 가로에 맞게 꽉 참 */
@@ -826,39 +828,3 @@ document.addEventListener('touchend', (e) => {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
