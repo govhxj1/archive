@@ -279,13 +279,14 @@
         .comment-item {
             display: flex;
             justify-content: space-between; 
-            align-items: flex-start; /* 글 내용이 길어지면 x버튼은 상단 고정 */
+            align-items: center;
             background: white;
             border-radius: 18px;
-            padding: 15px;
+            padding: 12px 15px;
             margin-bottom: 12px;
             border: 1px solid #ffe5ec;
-            box-sizing: border-box; /* 패딩이 너비를 넘지 않게 고정 */
+            box-sizing: border-box;/* 패딩이 너비를 넘지 않게 고정 */
+            width 100%
         }
         .comment-img {
             width: 100%;                   /* 사진이 댓글 창 가로에 맞게 꽉 참 */
@@ -295,29 +296,28 @@
             display: block;
         }
         .comment-content {
-            flex: 1;               /* 남은 모든 가로 공간 차지 */
+            flex: 1;                /* 버튼 제외한 나머지 공간 다 차지 */
+            min-width: 0;           /* 글자가 길어도 버튼을 밀지 않음 */
             display: flex;
             flex-direction: column; 
             align-items: flex-start;
-            padding-right: 10px;    /* x버튼과 절대 겹치지 않게 보호구역 설정 */
-            min-width: 0;           /* 글자가 길어도 버튼을 밀어내지 않게 설정 */
+            text-align: left;
+            padding-right: 12px;    /* 버튼과의 간격 */
         }
         .comment-text {
             font-size: 0.95rem;
             color: #444;
-            line-height: 1.5;
-            font-weight: 500;
+            line-height: 1.4;
             word-break: break-all;         /* 긴 문장 자동 줄바꿈 */
         }
         .delete-btn {
             background: none;
             border: none;
             color: #ccc;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             cursor: pointer;
-            flex-shrink: 0;         /* 📍 중요: 어떤 상황에서도 버튼 크기가 줄거나 밀리지 않음 */
-            padding: 2px 5px;
-            margin-top: -2px;       /* 텍스트 첫 줄과 높이 맞춤 */
+            flex-shrink: 0;         /* 어떤 상황에서도 밀리지 않음 */
+            padding: 5px;
             line-height: 1;
         }
         .input-area {
@@ -825,6 +825,7 @@ document.addEventListener('touchend', (e) => {
 </script>
 </body>
 </html>
+
 
 
 
