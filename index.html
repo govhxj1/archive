@@ -1026,30 +1026,24 @@ const dailyQuestions = [
 ];
 
 /* 1. 질문 불러오기 (중복 제거 로직 추가) */
+/* 1. 질문 창 열기 (메뉴에서 클릭 시) */
 window.showRandomQuestion = function() {
     const today = new Date();
     const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
     const questionIdx = dateSeed % dailyQuestions.length;
     const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
 
-    // 질문 텍스트 표시
     document.getElementById('question-content').innerText = dailyQuestions[questionIdx];
 
-    // 📍 Firebase에서 오늘 날짜의 답변 데이터 실시간으로 가져오기
     const qDocRef = doc(db, "daily_answers", dateKey);
-    
-    // getDoc 대신 onSnapshot을 쓰면 상대방이 쓰는 즉시 화면에 나타납니다.
     onSnapshot(qDocRef, (docSnap) => {
         const dailyData = docSnap.exists() ? docSnap.data() : {};
-        
-        // 유미 답변 표시
         const yBox = document.getElementById('yumi-answer');
         if (dailyData.유미) {
             yBox.style.display = 'block';
             yBox.querySelector('.text').innerText = dailyData.유미;
         } else { yBox.style.display = 'none'; }
 
-        // 거니 답변 표시
         const gBox = document.getElementById('goni-answer');
         if (dailyData.거니) {
             gBox.style.display = 'block';
@@ -1060,6 +1054,62 @@ window.showRandomQuestion = function() {
     document.getElementById('q-input-area').style.display = 'none';
     document.getElementById('writer-selector').style.display = 'flex';
     document.getElementById('question-overlay').style.display = 'flex';
+};
+
+/* 2. [에러 지점] 작성자 선택 버튼 (유미가 쓰기 / 거니가 쓰기) */
+window.openInput = function(name) {
+    currentWriter = name;
+    document.getElementById('writer-selector').style.display = 'none';
+    document.getElementById('q-input-area').style.display = 'flex';
+    // 📍 HTML의 textarea ID는 q-answer-input 입니다.
+    const inputField = document.getElementById('q-answer-input'); 
+    inputField.placeholder = name + "의 고민시간...";
+    inputField.focus();
+};
+
+/* 3. 기록 완료 버튼 */
+window.submitDailyAnswer = async function() {
+    const answerInput = document.getElementById('q-answer-input'); 
+    const answerText = answerInput.value;
+    
+    if (!answerText || !answerText.trim()) {
+        alert("내용을 입력해주세요! 🌸");
+        return;
+    }
+
+    const today = new Date();
+    const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+    const qDocRef = doc(db, "daily_answers", dateKey);
+
+    try {
+        await setDoc(qDocRef, {
+            [currentWriter]: answerText,
+            timestamp: serverTimestamp()
+        }, { merge: true });
+
+        const inputArea = document.getElementById('q-input-area');
+        inputArea.style.opacity = '0'; 
+        
+        setTimeout(() => {
+            inputArea.style.display = 'none'; 
+            inputArea.style.opacity = '1';    
+            document.getElementById('writer-selector').style.display = 'flex'; 
+            answerInput.value = "";           
+            window.showRandomQuestion(); 
+        }, 400);
+
+    } catch (e) {
+        console.error("저장 오류:", e);
+        alert("저장에 실패했어요. 다시 시도해줘! ✨");
+    }
+};
+
+/* 4. 닫기 버튼 */
+window.closeQuestion = function() {
+    document.getElementById('question-overlay').style.display = 'none';
+    if (document.getElementById('diary-modal').style.display === 'none') {
+        document.getElementById('overlay').style.display = 'none';
+    }
 };
 
     window.submitDailyAnswer = async function() {
@@ -1107,6 +1157,7 @@ window.showRandomQuestion = function() {
 </script>
 </body>
 </html>
+
 
 
 
