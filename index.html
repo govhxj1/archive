@@ -563,6 +563,39 @@
     </div>
 </div>
 
+    <div id="surprise-overlay">
+    </div>
+
+<div id="menu-secret-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div class="surprise-box" style="background: #fffbe6; border: 3px solid #ffde59; width: 85%; max-width: 340px;">
+        <span class="surprise-title" style="color: #f59f00;">💛 유미에게 닿은 비밀 편지 💛</span>
+        <div class="surprise-msg-container" style="background: white; border: 1px solid #fff3bf;">
+            <div class="surprise-msg" id="menu-secret-content" style="color: #666; font-weight: 500; line-height: 1.8; text-align: left;">
+                귀염둥이 곰돌이 거니야💛 <br><br>
+                나 요즘 너무 행복해 거니 덕분에💛<br>
+                너처럼 괜찮은 사람을 만난 것도 행운인데, 날 있는그대로 예쁘게 봐주고 많이 사랑해줘서 고마워💛<br>
+                매일매일 넘치도록 사랑 받는 중이라 진짜 행복해~~<br>
+                거니 덕분에 많이 웃게 되고 감동도 많이 받고 있고 예쁜 생각들로 가득찬 하루들을 보내게 되넹! 진짜 고맙고 많이 많이 사랑해💛<br>
+                대전 꿀잼 도시라는거 알게 해준 우리 거닝ㅋㅋ 완전 대문자 P의 여행만 다녔던 거니가 완벽한 계획을 세운 것 보니까 진짜 너무 고맙고 감동이고 대단하다고 느꼈어💛<br>
+                거니 덕분에 몸도 편하고 마음도 편한 여행들을 다닐 수 있었넹! 고마워 대박사거니~💛<br>
+                우리 처음 만나기로 했던 날! 만나자 이야기 나오고 진짜 만나는거 계획했을 때를 떠올려보면ㅋㅋ<br>
+                그땐 진짜 만나면 막 떨리고 긴장되고 어색할 것 같아서 걱정했었거든? 근데 만나는 날이 다가오면 다가올수록 점점 마음이 편해지더라?<br>
+                거니가 그동안 보여줬던 모습들이 한결같아서 뭔가 안심이 된걸까? 그냥 너라는 사람에게 믿음이 갔던 걸까? 만나는 당일에도 긴장이랑 어색함보단 기대가 되고 재미있을 것 같단 생각뿐이였어ㅋㅋ<br>
+                그날은 차분한 거니, 점잖은 거니의 온도가 나랑 잘 맞았던 것 같아ㅋㅋ 거니 말처럼 가식거니는 아니였겠지만ㅋㅋ 내가 생각하는 이미지는 완전 개구쟁이였는데 만났을땐 그정도는 아니였넹!<br>
+                근데 어떤 모습을 해도 좋아~ 난 거니가 이상한 모습을 보여줘도 이젠 이미 사랑에 빠져버렸으니🤭 그냥 다 귀엽게 바라볼 것 같아 ㅋㅋ<br>
+                진짜 거니가 편하게 대해주고 배려해주고 예뻐해줘서 난 내 모습 그대로 보여주는 중이야!<br>
+                거니도 있는그대로 모습 보여줬으면 좋겠고 나 만날 땐 걱정같은거 하나도 안했으면 좋겠어!💛<br>
+                소중한 우리 거니! 앞으로도 많이많이 웃었으면 좋겠고, 사랑 받고 있다는 느낌 들도록 내가 많이 표현하고 아껴줄게!💛<br>
+                거니 덕분에 행복한 하루들 보내고 있어서 요즘엔 나 진짜 운 좋은 사람이다~ 이런 생각 많이 해 ㅋㅋ 로또보다 더 값진 우리 거닝💛<br><br>
+                많이 고맙고 많이 사랑해💛💛💛"
+            </div>
+        </div>
+        <button class="confirm-btn" onclick="closeMenuSecret()" style="background: #ffde59; color: #856404; border: none; padding: 12px; border-radius: 12px; font-weight: 900; cursor: pointer;">❣️ 우리들만의 비밀로 하기</button>
+    </div>
+</div>
+
+<div class="overlay" id="overlay"></div> <div id="diary-modal"></div>
+    
 <div class="overlay" id="overlay"></div>
 <div id="diary-modal"></div>
 
@@ -652,30 +685,29 @@
 let secretWordClickCount = 0;
 
 document.getElementById('secret-word-trigger').onclick = (e) => {
-    e.stopPropagation(); // 메뉴가 닫히지 않게 방지
+    e.stopPropagation(); // 메뉴가 닫히는 이벤트 방해 방지
     secretWordClickCount++;
     
     if (secretWordClickCount === 5) {
-        // 1. 메뉴 팝업을 일단 닫고
-        document.getElementById('side-menu').style.display = 'none';
+        // 1단계: 기존 블러와 메뉴를 싹 다 지우기 (블러 버그 해결!)
+        const menu = document.getElementById('side-menu');
+        const overlay = document.getElementById('overlay');
+        if (menu) menu.style.display = 'none';
+        if (overlay) overlay.style.display = 'none';
         
-        // 2. 진짜 비밀 편지 팝업을 짠! 하고 띄우기
-        const surpriseOverlay = document.getElementById('surprise-overlay');
-        const surpriseMsg = document.getElementById('surprise-msg-content');
-        
-        // 기존에 적어둔 감동적인 장문의 편지가 나오게 설정
-        surpriseOverlay.style.display = 'flex';
-        
-        // 날씨 팝업과 달리 이건 길어서 유미 님이 직접 닫아야 하니 
-        // ❣️ 버튼이 다시 보이게 설정합니다.
-        const closeBtn = surpriseOverlay.querySelector('.btn-delete');
-        if (closeBtn) closeBtn.style.display = 'block';
+        // 2단계: 노란색 전용 비밀 편지창 띄우기
+        const menuSecretOverlay = document.getElementById('menu-secret-overlay');
+        menuSecretOverlay.style.display = 'flex';
         
         secretWordClickCount = 0;
     }
     
-    // 2초 지나면 클릭 횟수 초기화
     setTimeout(() => { secretWordClickCount = 0; }, 2000);
+};
+
+// 노란 편지창 닫기 함수
+window.closeMenuSecret = () => {
+    document.getElementById('menu-secret-overlay').style.display = 'none';
 };
     
     // [4] 스티커 및 달력 로직 (5페이지 120종)
@@ -1005,6 +1037,7 @@ document.getElementById('secret-word-trigger').onclick = (e) => {
 </script>
 </body>
 </html>
+
 
 
 
