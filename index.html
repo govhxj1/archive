@@ -894,15 +894,41 @@
 
     getDaejeonWeather(); renderCalendar(); updateDday();
 
+    // 1. 메뉴 토글 함수 수정
     window.toggleMenu = function() {
         const menu = document.getElementById('side-menu');
         const overlay = document.getElementById('overlay');
+        const diaryModal = document.getElementById('diary-modal');
+        
         if (menu.style.display === 'none' || menu.style.display === '') {
-            menu.style.display = 'flex'; overlay.style.display = 'block'; menu.style.zIndex = "1001"; overlay.style.zIndex = "1000";
+            // 메뉴 열 때
+            menu.style.display = 'flex'; 
+            overlay.style.display = 'block'; 
+            menu.style.zIndex = "1001"; 
+            overlay.style.zIndex = "1000";
         } else {
+            // 메뉴 닫을 때
             menu.style.display = 'none';
-            const diaryModal = document.getElementById('diary-modal');
-            if (!diaryModal || diaryModal.style.display === 'none' || diaryModal.style.display === '') overlay.style.display = 'none';
+            // 📍 핵심: 다이어리 기록창이나 질문창이 둘 다 안 열려 있을 때만 블러를 완전히 제거
+            const qOverlay = document.getElementById('question-overlay');
+            if ((!diaryModal || diaryModal.style.display === 'none') && 
+                (!qOverlay || qOverlay.style.display === 'none')) {
+                overlay.style.display = 'none';
+            }
+        }
+    };
+
+    // 2. 질문 팝업 닫기 함수 수정
+    window.closeQuestion = function() {
+        const qOverlay = document.getElementById('question-overlay');
+        const diaryModal = document.getElementById('diary-modal');
+        const overlay = document.getElementById('overlay');
+        
+        if (qOverlay) qOverlay.style.display = 'none';
+        
+        // 📍 질문창을 닫을 때, 다이어리 기록창도 안 떠 있다면 배경 블러 제거
+        if (!diaryModal || diaryModal.style.display === 'none' || diaryModal.style.display === '') {
+            if (overlay) overlay.style.display = 'none';
         }
     };
 
@@ -1045,14 +1071,21 @@
     };
 
     window.closeQuestion = function() {
-        document.getElementById('question-overlay').style.display = 'none';
-        if (document.getElementById('diary-modal').style.display === 'none') {
-            document.getElementById('overlay').style.display = 'none';
+        const qOverlay = document.getElementById('question-overlay');
+        const diaryModal = document.getElementById('diary-modal');
+        const overlay = document.getElementById('overlay');
+        
+        if (qOverlay) qOverlay.style.display = 'none';
+        
+        // 📍 질문창을 닫을 때, 다이어리 기록창도 안 떠 있다면 배경 블러 제거
+        if (!diaryModal || diaryModal.style.display === 'none' || diaryModal.style.display === '') {
+            if (overlay) overlay.style.display = 'none';
         }
     };
 </script>
 </body>
 </html>
+
 
 
 
