@@ -684,6 +684,18 @@
         // [비밀] '비밀' 버튼 추가
 let secretWordClickCount = 0;
 
+            // 기존 핑크색 비밀 편지 로직
+        document.getElementById('secret-heart-trigger').onclick = () => {
+            secretClickCount++;
+            if (secretClickCount === 5) { 
+                // 기존 핑크색 팝업 띄우기
+                const surpriseOverlay = document.getElementById('surprise-overlay');
+                surpriseOverlay.style.display = 'flex'; 
+                secretClickCount = 0; 
+            }
+            setTimeout(() => { secretClickCount = 0; }, 2000);
+        };
+    
 document.getElementById('secret-word-trigger').onclick = (e) => {
     e.stopPropagation(); // 메뉴가 닫히는 이벤트 방해 방지
     secretWordClickCount++;
@@ -1053,6 +1065,7 @@ window.closeMenuSecret = () => {
 </script>
 </body>
 </html>
+
 
 
 
