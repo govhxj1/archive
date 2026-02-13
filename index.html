@@ -895,25 +895,30 @@
     getDaejeonWeather(); renderCalendar(); updateDday();
 
     // 1. 메뉴 토글 함수 수정
-    window.toggleMenu = function() {
+   window.toggleMenu = function() {
         const menu = document.getElementById('side-menu');
         const overlay = document.getElementById('overlay');
         const diaryModal = document.getElementById('diary-modal');
+        const qOverlay = document.getElementById('question-overlay');
         
+        // 메뉴 열기
         if (menu.style.display === 'none' || menu.style.display === '') {
-            // 메뉴 열 때
-            menu.style.display = 'flex'; 
-            overlay.style.display = 'block'; 
+            menu.style.display = 'flex';
+            overlay.style.display = 'block';
             menu.style.zIndex = "1001"; 
             overlay.style.zIndex = "1000";
-        } else {
-            // 메뉴 닫을 때
+        } 
+        // 메뉴 닫기
+        else {
             menu.style.display = 'none';
-            // 📍 핵심: 다이어리 기록창이나 질문창이 둘 다 안 열려 있을 때만 블러를 완전히 제거
-            const qOverlay = document.getElementById('question-overlay');
-            if ((!diaryModal || diaryModal.style.display === 'none') && 
-                (!qOverlay || qOverlay.style.display === 'none')) {
+            
+            // 📍 핵심: 질문창이나 다이어리 모달이 둘 다 닫혀있을 때만 오버레이를 끕니다.
+            const isDiaryOpen = diaryModal && diaryModal.style.display === 'flex';
+            const isQuestionOpen = qOverlay && qOverlay.style.display === 'flex';
+            
+            if (!isDiaryOpen && !isQuestionOpen) {
                 overlay.style.display = 'none';
+                overlay.style.zIndex = "100"; // 기본 레이어로 복구
             }
         }
     };
@@ -934,7 +939,14 @@
 
     document.getElementById('overlay').onclick = function() {
         const menu = document.getElementById('side-menu');
-        if (menu && menu.style.display === 'flex') return; 
+        const qOverlay = document.getElementById('question-overlay');
+        
+        // 메뉴나 질문창이 떠 있으면 배경 클릭으로 안 닫히게 보호 (실수 방지)
+        if ((menu && menu.style.display === 'flex') || (qOverlay && qOverlay.style.display === 'flex')) {
+            return; 
+        }
+        
+        // 다이어리 모달만 켜져 있을 때 배경 클릭하면 닫기
         if (typeof closeModal === 'function') closeModal();
     };
 
@@ -1085,6 +1097,7 @@
 </script>
 </body>
 </html>
+
 
 
 
