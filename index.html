@@ -930,6 +930,70 @@
 
     getDaejeonWeather(); renderCalendar(); updateDday();
 
+    let weatherClickCount = 0;
+let currentWeatherStatus = ""; // 📍 현재 날씨 상태를 저장할 변수
+
+// 1. 기존 날씨 불러오기 함수 수정
+async function getDaejeonWeather() {
+    try {
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Daejeon&appid=a50a410affb770d589de1bccf899ab63&units=metric&lang=kr`);
+        const data = await res.json();
+        
+        // 📍 날씨 상태 저장 (Clear, Clouds, Rain, Snow 등)
+        currentWeatherStatus = data.weather[0].main; 
+        
+        document.getElementById('w-desc').innerText = data.weather[0].description;
+        document.getElementById('w-clouds').innerText = `(구름 ${data.clouds.all}%)`;
+        document.getElementById('w-temp').innerText = `${Math.round(data.main.temp)}°C`;
+    } catch (e) { 
+        document.getElementById('w-desc').innerText = "날씨 로드 실패"; 
+    }
+}
+
+// 2. 날씨 위젯 5번 클릭 이벤트 (자동 닫기 포함)
+document.getElementById('weather-widget').onclick = () => {
+    weatherClickCount++;
+    if (weatherClickCount === 5) {
+        let specialMsg = "";
+
+                // 📍 날씨 상태별 유미를 위한 맞춤 메시지
+                switch(currentWeatherStatus) {
+                    case 'Clear':
+                        specialMsg = "유미야, 오늘 날씨 진짜 맑다! 이런날은 데이트하고싶은데... ☀️💛";
+                        break;
+                    case 'Clouds':
+                        specialMsg = "하늘에 구름이 많네? 별 못봐도 방에서 거니만의 별보러가자! ☁️✨";
+                        break;
+                    case 'Rain':
+                        specialMsg = "비가 오네? 유미랑 비맞으면서 뛰어노는 장면도 상상해볼까? ☔️❣️";
+                        break;
+                    case 'Snow':
+                        specialMsg = "와 눈이다! 눈오면 항상 여보가 뛰어 다니던 모습만 생각나 ❄️💗";
+                        break;
+                    default:
+                        specialMsg = "유미야, 날씨가 어떻든 너가 항상 생각나. 오늘도 많이 사랑해! 🌈❤️";
+                }
+        
+                const surpriseOverlay = document.getElementById('surprise-overlay');
+                const surpriseMsg = document.getElementById('surprise-msg-content');
+                
+                // 메시지 띄우기
+                surpriseMsg.innerHTML = `<div style="text-align:center; font-size:1.1rem; font-weight:900; line-height:1.5;">${specialMsg}</div>`;
+                surpriseOverlay.style.display = 'flex';
+                
+                // 📍 2초(2000ms) 뒤에 자동으로 팝업 닫기
+                setTimeout(() => {
+                    surpriseOverlay.style.display = 'none';
+                }, 2000);
+                
+                weatherClickCount = 0;
+            }
+            
+            // 2초 동안 클릭이 없으면 카운트 초기화
+            clearTimeout(window.weatherTimer);
+            window.weatherTimer = setTimeout(() => { weatherClickCount = 0; }, 2000);
+        };
+    
     // 1. 메뉴 토글 함수 수정
    window.toggleMenu = function() {
         const menu = document.getElementById('side-menu');
@@ -1207,5 +1271,6 @@ window.closeMap = function() {
 </script>
 </body>
 </html>
+
 
 
