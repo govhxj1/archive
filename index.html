@@ -670,29 +670,28 @@
     
    // 1. 스티커 초기화 (중복된 함수 삭제하고 하나로 통합)
     function initStickers() {
-    const wrapper = document.getElementById('sticker-wrapper');
-    if (!wrapper) return;
-    wrapper.innerHTML = "";
-    // 📍 5페이지로 확장 (24개씩 5장 = 120개)
-    for (let p = 0; p < 5; p++) {
-        const pageDiv = document.createElement('div');
-        pageDiv.className = 'sticker-page';
-        pageDiv.style.width = '20%'; // 5페이지이므로 한 장당 20%
-        allStickers.slice(p * 24, (p + 1) * 24).forEach(s => {
-            const span = document.createElement('span');
-            span.className = 'sticker-option';
-            span.innerText = s;
-            if (s === selectedSticker) span.classList.add('selected');
-            span.onclick = () => {
-                selectedSticker = (selectedSticker === s) ? "" : s;
-                updateStickerUI();
-                saveData();
-            };
-            pageDiv.appendChild(span);
-        });
-        wrapper.appendChild(pageDiv);
+        const wrapper = document.getElementById('sticker-wrapper');
+        if (!wrapper) return;
+        wrapper.innerHTML = "";
+        for (let p = 0; p < 5; p++) {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'sticker-page';
+            pageDiv.style.width = '20%'; 
+            allStickers.slice(p * 24, (p + 1) * 24).forEach(s => {
+                const span = document.createElement('span');
+                span.className = 'sticker-option';
+                span.innerText = s;
+                if (s === selectedSticker) span.classList.add('selected');
+                span.onclick = () => {
+                    selectedSticker = (selectedSticker === s) ? "" : s;
+                    updateStickerUI();
+                    saveData();
+                };
+                pageDiv.appendChild(span);
+            });
+            wrapper.appendChild(pageDiv);
+        }
     }
-}
 
     function updateStickerUI() {
         document.querySelectorAll('.sticker-option').forEach(opt => {
@@ -700,16 +699,14 @@
         });
     }
 
-    // 2. 페이지 이동 함수 수정 (5페이지 기준)
     window.goToStickerPage = (index) => {
-    const wrapper = document.getElementById('sticker-wrapper');
-    const dots = document.getElementById('pagination-dots');
-    if (!wrapper || index < 0 || index > 4) return; 
-    
-    currentPage = index; 
-    wrapper.style.transform = `translateX(-${index * 20}%)`; // 20%씩 이동
-    if (dots) Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
-};
+        const wrapper = document.getElementById('sticker-wrapper');
+        const dots = document.getElementById('pagination-dots');
+        if (!wrapper || index < 0 || index > 4) return;
+        currentPage = index;
+        wrapper.style.transform = `translateX(-${index * 20}%)`;
+        if (dots) Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+    };
 
     function renderCalendar() {
         dateContainer.innerHTML = ""; monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
@@ -724,11 +721,7 @@
             if (dow === 6) cell.classList.add('saturday');
             if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) cell.classList.add('holiday');
             if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
-            const diff = Math.floor((new Date(viewYear, viewMonth, i) - new Date(2026, 0, 10)) / 86400000) + 1;
-            let anniv = "";
-            if (diff === 100 || diff === 200 || diff === 300) anniv = `${diff}일`;
-            else if (viewMonth === 0 && i === 10 && viewYear > 2026) anniv = `${viewYear-2026}주년`;
-            cell.innerHTML = `<div class="date-header"><span class="date-num">${i}</span>${data.comments?.length ? '<span class="record-heart">💛</span>' : ''}</div><span class="sticker-display">${data.sticker || ""}</span>${anniv ? `<span class="anniv-label">${anniv}</span>` : ''}`;
+            cell.innerHTML = `<div class="date-header"><span class="date-num">${i}</span>${data.comments?.length ? '<span class="record-heart">💛</span>' : ''}</div><span class="sticker-display">${data.sticker || ""}</span>`;
             cell.onclick = () => openModal(i);
             dateContainer.appendChild(cell);
         }
@@ -795,40 +788,40 @@
                 <div class="dot" onclick="window.goToStickerPage(1)"></div>
                 <div class="dot" onclick="window.goToStickerPage(2)"></div>
                 <div class="dot" onclick="window.goToStickerPage(3)"></div>
-                <div class="dot" onclick="window.goToStickerPage(4)"></div> </div>
+                <div class="dot" onclick="window.goToStickerPage(4)"></div>
             </div>
             <div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div>
             <div class="input-area">
-                <div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;">
-                    <img id="img-preview" src="" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:2px solid var(--main-pink);">
-                    <div class="remove-img-btn" id="remove-img">✕</div>
-                </div>
                 <div class="input-controls">
-                    <label for="img-upload" style="cursor:pointer; font-size:1.2rem; margin-right:10px;">📷</label>
-                    <input type="file" id="img-upload" accept="image/*" style="display:none;">
                     <input type="text" id="diary-input" placeholder="추억을 남겨요!">
                     <button class="add-btn" id="add-comment-btn">등록</button>
                 </div>
             </div>
         `;
 
-        initStickers(); 
-        updateStickerUI(); 
+        initStickers();
         renderComments(true);
-        currentPage = 0; 
-        window.goToStickerPage(0); 
-
+        
         const slider = document.getElementById('sticker-slider');
         let touchStartX = 0;
         slider.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
         slider.addEventListener('touchend', e => {
             const touchEndX = e.changedTouches[0].clientX;
             const diff = touchStartX - touchEndX;
-            if (Math.abs(diff) > 50) { 
-                if (diff > 0 && currentPage < 3) window.goToStickerPage(currentPage + 1);
+            if (Math.abs(diff) > 50) {
+                if (diff > 0 && currentPage < 4) window.goToStickerPage(currentPage + 1);
                 else if (diff < 0 && currentPage > 0) window.goToStickerPage(currentPage - 1);
             }
         }, { passive: true });
+
+        document.getElementById('add-comment-btn').onclick = async () => {
+            const diaryInput = document.getElementById('diary-input');
+            if (!diaryInput.value.trim()) return;
+            comments.push({ text: diaryInput.value.trim() });
+            diaryInput.value = "";
+            renderComments(true); await saveData();
+        };
+    };
 
         const imgInput = document.getElementById('img-upload'), diaryInput = document.getElementById('diary-input');
         imgInput.onchange = (e) => {
@@ -931,68 +924,48 @@
     getDaejeonWeather(); renderCalendar(); updateDday();
 
     let weatherClickCount = 0;
-let currentWeatherStatus = ""; // 📍 현재 날씨 상태를 저장할 변수
+    let currentWeatherStatus = "";
 
-// 1. 기존 날씨 불러오기 함수 수정
-async function getDaejeonWeather() {
-    try {
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Daejeon&appid=a50a410affb770d589de1bccf899ab63&units=metric&lang=kr`);
-        const data = await res.json();
-        
-        // 📍 날씨 상태 저장 (Clear, Clouds, Rain, Snow 등)
-        currentWeatherStatus = data.weather[0].main; 
-        
-        document.getElementById('w-desc').innerText = data.weather[0].description;
-        document.getElementById('w-clouds').innerText = `(구름 ${data.clouds.all}%)`;
-        document.getElementById('w-temp').innerText = `${Math.round(data.main.temp)}°C`;
-    } catch (e) { 
-        document.getElementById('w-desc').innerText = "날씨 로드 실패"; 
+    async function getDaejeonWeather() {
+        try {
+            const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Daejeon&appid=a50a410affb770d589de1bccf899ab63&units=metric&lang=kr`);
+            const data = await res.json();
+            currentWeatherStatus = data.weather[0].main;
+            document.getElementById('w-desc').innerText = data.weather[0].description;
+            document.getElementById('w-clouds').innerText = `(구름 ${data.clouds.all}%)`;
+            document.getElementById('w-temp').innerText = `${Math.round(data.main.temp)}°C`;
+        } catch (e) { document.getElementById('w-desc').innerText = "날씨 로드 실패"; }
     }
-}
 
-// 2. 날씨 위젯 5번 클릭 이벤트 (자동 닫기 포함)
-document.getElementById('weather-widget').onclick = () => {
-    weatherClickCount++;
-    if (weatherClickCount === 5) {
-        let specialMsg = "";
-
-                // 📍 날씨 상태별 유미를 위한 맞춤 메시지
-                switch(currentWeatherStatus) {
-                    case 'Clear':
-                        specialMsg = "유미야, 오늘 날씨 진짜 맑다! 이런날은 데이트하고싶은데... ☀️💛";
-                        break;
-                    case 'Clouds':
-                        specialMsg = "하늘에 구름이 많네? 별 못봐도 방에서 거니만의 별보러가자! ☁️✨";
-                        break;
-                    case 'Rain':
-                        specialMsg = "비가 오네? 유미랑 비맞으면서 뛰어노는 장면도 상상해볼까? ☔️❣️";
-                        break;
-                    case 'Snow':
-                        specialMsg = "와 눈이다! 눈오면 항상 여보가 뛰어 다니던 모습만 생각나 ❄️💗";
-                        break;
-                    default:
-                        specialMsg = "유미야, 날씨가 어떻든 너가 항상 생각나. 오늘도 많이 사랑해! 🌈❤️";
-                }
-        
-                const surpriseOverlay = document.getElementById('surprise-overlay');
-                const surpriseMsg = document.getElementById('surprise-msg-content');
-                
-                // 메시지 띄우기
-                surpriseMsg.innerHTML = `<div style="text-align:center; font-size:1.1rem; font-weight:900; line-height:1.5;">${specialMsg}</div>`;
-                surpriseOverlay.style.display = 'flex';
-                
-                // 📍 2초(2000ms) 뒤에 자동으로 팝업 닫기
-                setTimeout(() => {
-                    surpriseOverlay.style.display = 'none';
-                }, 2000);
-                
-                weatherClickCount = 0;
+    document.getElementById('weather-widget').onclick = () => {
+        weatherClickCount++;
+        if (weatherClickCount === 5) {
+            let specialMsg = "";
+            switch(currentWeatherStatus) {
+                case 'Clear': specialMsg = "유미야, 오늘 날씨 진짜 맑다! 이런날은 데이트하고싶은데... ☀️💛"; break;
+                case 'Clouds': specialMsg = "하늘에 구름이 많네? 별 못봐도 방에서 거니만의 별보러가자! ☁️✨"; break;
+                case 'Rain': specialMsg = "비가 오네? 유미랑 비맞으면서 뛰어노는 장면도 상상해볼까? ☔️❣️"; break;
+                case 'Snow': specialMsg = "와 눈이다! 눈오면 항상 여보가 뛰어 다니던 모습만 생각나 ❄️💗"; break;
+                default: specialMsg = "유미야, 날씨가 어떻든 너가 항상 생각나. 오늘도 많이 사랑해! 🌈❤️";
             }
-            
-            // 2초 동안 클릭이 없으면 카운트 초기화
-            clearTimeout(window.weatherTimer);
-            window.weatherTimer = setTimeout(() => { weatherClickCount = 0; }, 2000);
-        };
+            const surpriseOverlay = document.getElementById('surprise-overlay');
+            document.getElementById('surprise-msg-content').innerHTML = `<div style="text-align:center; font-size:1.1rem; font-weight:900;">${specialMsg}</div>`;
+            surpriseOverlay.style.display = 'flex';
+            setTimeout(() => { surpriseOverlay.style.display = 'none'; }, 2000);
+            weatherClickCount = 0;
+        }
+        clearTimeout(window.weatherTimer);
+        window.weatherTimer = setTimeout(() => { weatherClickCount = 0; }, 2000);
+    };
+
+    window.closeMap = function() {
+        document.getElementById('map-container').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('overlay').style.zIndex = "100";
+    };
+
+    // 📍 초기 실행 함수들 (이 줄들이 있어야 달력이 뜹니다)
+    getDaejeonWeather(); renderCalendar(); updateDday();
     
     // 1. 메뉴 토글 함수 수정
    window.toggleMenu = function() {
@@ -1271,6 +1244,7 @@ window.closeMap = function() {
 </script>
 </body>
 </html>
+
 
 
 
