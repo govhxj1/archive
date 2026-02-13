@@ -988,57 +988,28 @@ const dailyQuestions = [
     "나를 세 단어로 표현한다면? 🏷️"
 ];
 
-/* 1. 질문 불러오기 */
 /* 1. 질문 불러오기 (중복 제거 로직 추가) */
 window.showRandomQuestion = function() {
     const today = new Date();
-    const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+    // 1. 오늘 날짜를 숫자로 만듭니다 (예: 20260213)
+    const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
     
-    // 1-1. 오늘 이미 뽑힌 질문이 있는지 확인
-    let dailyData = JSON.parse(localStorage.getItem('daily_q_' + dateKey) || "{}");
-    let questionIdx;
+    // 2. 날짜 숫자를 전체 질문 개수로 나눠서 오늘만의 질문 번호를 결정합니다.
+    // 이렇게 하면 유미님 폰에서도, 거니님 폰에서도 오늘 하루는 무조건 같은 숫자가 나옵니다.
+    const questionIdx = dateSeed % dailyQuestions.length;
+    const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
 
-    if (dailyData.questionIdx !== undefined) {
-        // 이미 오늘 뽑힌 질문이 있다면 그대로 사용
-        questionIdx = dailyData.questionIdx;
-    } else {
-        // 오늘 처음 여는 거라면 새로운 질문 뽑기
-        let viewedQuestions = JSON.parse(localStorage.getItem('viewed_questions') || "[]");
-        
-        // 아직 안 본 질문들의 인덱스 찾기
-        let availableIdx = [];
-        for (let i = 0; i < dailyQuestions.length; i++) {
-            if (!viewedQuestions.includes(i)) {
-                availableIdx.push(i);
-            }
-        }
-
-        // 만약 모든 질문을 다 봤다면 기록 초기화하고 다시 시작
-        if (availableIdx.length === 0) {
-            viewedQuestions = [];
-            for (let i = 0; i < dailyQuestions.length; i++) availableIdx.push(i);
-        }
-
-        // 남은 질문 중 랜덤으로 하나 선택
-        const randomPos = Math.floor(Math.random() * availableIdx.length);
-        questionIdx = availableIdx[randomPos];
-
-        // 본 목록에 추가 및 오늘 데이터에 고정
-        viewedQuestions.push(questionIdx);
-        localStorage.setItem('viewed_questions', JSON.stringify(viewedQuestions));
-        
-        dailyData.questionIdx = questionIdx;
-        localStorage.setItem('daily_q_' + dateKey, JSON.stringify(dailyData));
-    }
-
-    // 질문 텍스트 표시
+    // 3. 질문 텍스트 표시
     document.getElementById('question-content').innerText = dailyQuestions[questionIdx];
 
-    // 답변 불러오기 표시 (기존 로직 동일)
+    // 4. 답변 표시는 기존 로직 유지 (단, 답변은 서버 데이터 cloudRecords 등을 활용하는 것이 좋습니다)
+    // 현재는 로컬 스토리지 방식을 유지하되, 질문 번호만 고정되도록 수정했습니다.
+    let dailyData = JSON.parse(localStorage.getItem('daily_q_' + dateKey) || "{}");
+
     const yBox = document.getElementById('yumi-answer');
     if (dailyData.유미) {
         yBox.style.display = 'block';
-        yBox.querySelector('.text').innerText = dailyData.유미;
+        yBox.querySelector('.text').innerText = dailyData.유mi;
     } else { yBox.style.display = 'none'; }
 
     const gBox = document.getElementById('goni-answer');
@@ -1112,6 +1083,7 @@ window.closeQuestion = function() {
 </script>
 </body>
 </html>
+
 
 
 
