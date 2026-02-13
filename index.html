@@ -661,30 +661,29 @@
     
    // 1. 스티커 초기화 (중복된 함수 삭제하고 하나로 통합)
     function initStickers() {
-        const wrapper = document.getElementById('sticker-wrapper');
-        if (!wrapper) return;
-        wrapper.innerHTML = "";
-        // 📍 5페이지로 확장 (24개씩 5장 = 120개)
-        for (let p = 0; p < 5; p++) {
-            const pageDiv = document.createElement('div');
-            pageDiv.className = 'sticker-page';
-            // 페이지당 20%씩 차지하도록 스타일 조정 (5장 기준)
-            pageDiv.style.width = '20%'; 
-            allStickers.slice(p * 24, (p + 1) * 24).forEach(s => {
-                const span = document.createElement('span');
-                span.className = 'sticker-option';
-                span.innerText = s;
-                if (s === selectedSticker) span.classList.add('selected');
-                span.onclick = () => {
-                    selectedSticker = (selectedSticker === s) ? "" : s;
-                    updateStickerUI();
-                    saveData();
-                };
-                pageDiv.appendChild(span);
-            });
-            wrapper.appendChild(pageDiv);
-        }
+    const wrapper = document.getElementById('sticker-wrapper');
+    if (!wrapper) return;
+    wrapper.innerHTML = "";
+    // 📍 5페이지로 확장 (24개씩 5장 = 120개)
+    for (let p = 0; p < 5; p++) {
+        const pageDiv = document.createElement('div');
+        pageDiv.className = 'sticker-page';
+        pageDiv.style.width = '20%'; // 5페이지이므로 한 장당 20%
+        allStickers.slice(p * 24, (p + 1) * 24).forEach(s => {
+            const span = document.createElement('span');
+            span.className = 'sticker-option';
+            span.innerText = s;
+            if (s === selectedSticker) span.classList.add('selected');
+            span.onclick = () => {
+                selectedSticker = (selectedSticker === s) ? "" : s;
+                updateStickerUI();
+                saveData();
+            };
+            pageDiv.appendChild(span);
+        });
+        wrapper.appendChild(pageDiv);
     }
+}
 
     function updateStickerUI() {
         document.querySelectorAll('.sticker-option').forEach(opt => {
@@ -694,15 +693,14 @@
 
     // 2. 페이지 이동 함수 수정 (5페이지 기준)
     window.goToStickerPage = (index) => {
-        const wrapper = document.getElementById('sticker-wrapper');
-        const dots = document.getElementById('pagination-dots');
-        if (!wrapper || index < 0 || index > 4) return; // 📍 최대 인덱스 4로 변경
-        
-        currentPage = index; 
-        // 📍 이동 단위를 25%에서 20%로 변경 (100 / 5페이지)
-        wrapper.style.transform = `translateX(-${index * 20}%)`;
-        if (dots) Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
-    };
+    const wrapper = document.getElementById('sticker-wrapper');
+    const dots = document.getElementById('pagination-dots');
+    if (!wrapper || index < 0 || index > 4) return; 
+    
+    currentPage = index; 
+    wrapper.style.transform = `translateX(-${index * 20}%)`; // 20%씩 이동
+    if (dots) Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+};
 
     function renderCalendar() {
         dateContainer.innerHTML = ""; monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
@@ -781,13 +779,14 @@
             <button class="close-modal-btn" id="close-modal" onclick="closeModal()">✕</button>
             <div class="modal-header"><h3 class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div>
             <div class="sticker-slider-container" id="sticker-slider" style="width:100%; overflow:hidden; position:relative; background:var(--bg-pink); border-radius:15px; margin-bottom:10px; padding:10px 0; touch-action:pan-x;">
-                <div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:400%;"></div>
+                <div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:500%;"></div>
             </div>
             <div class="pagination-dots" id="pagination-dots">
                 <div class="dot active" onclick="window.goToStickerPage(0)"></div>
                 <div class="dot" onclick="window.goToStickerPage(1)"></div>
                 <div class="dot" onclick="window.goToStickerPage(2)"></div>
                 <div class="dot" onclick="window.goToStickerPage(3)"></div>
+                <div class="dot" onclick="window.goToStickerPage(4)"></div> </div>
             </div>
             <div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div>
             <div class="input-area">
@@ -1199,3 +1198,4 @@ window.closeMap = function() {
 </script>
 </body>
 </html>
+
