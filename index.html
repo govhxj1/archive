@@ -744,14 +744,47 @@
 
     window.setupOriginalDiary = function(dateKey) {
         const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
-        selectedSticker = data.sticker || ""; comments = data.comments || [];
+        selectedSticker = data.sticker || ""; 
+        comments = data.comments || [];
         const diaryModal = document.getElementById('diary-modal');
-        diaryModal.innerHTML = `<button class="close-modal-btn" onclick="closeModal()">✕</button><div class="modal-header"><h3 class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div><div class="sticker-slider-container" id="sticker-slider" style="width:100%; overflow:hidden; position:relative; background:var(--bg-pink); border-radius:15px; margin-bottom:10px; padding:10px 0; touch-action:pan-x;"><div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:500%;"></div></div><div class="pagination-dots" id="pagination-dots"><div class="dot active" onclick="window.goToStickerPage(0)"></div><div class="dot" onclick="window.goToStickerPage(1)"></div><div class="dot" onclick="window.goToStickerPage(2)"></div><div class="dot" onclick="window.goToStickerPage(3)"></div><div class="dot" onclick="window.goToStickerPage(4)"></div></div><div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div><div class="input-area"><div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;"><img id="img-preview" src="" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:2px solid #ffafcc;"><div id="remove-img" style="position:absolute; top:-5px; right:50%; margin-right:-35px; background:rgba(0,0,0,0.5); color:white; border-radius:50%; width:18px; height:18px; font-size:12px; line-height:18px; cursor:pointer;">✕</div></div><div class="input-controls"><label for="img-upload" style="cursor:pointer; font-size:1.2rem; margin-right:10px;">📷</label><input type="file" id="img-upload" accept="image/*" style="display:none;"><input type="text" id="diary-input" placeholder="추억을 남겨요!"><button class="add-btn" id="add-comment-btn">등록</button></div></div>`;
-        initStickers(); renderComments(true);
 
+        // [1] 모달 내부 HTML 생성
+        diaryModal.innerHTML = `
+            <button class="close-modal-btn" onclick="closeModal()">✕</button>
+            <div class="modal-header"><h3 class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div>
+            <div class="sticker-slider-container" id="sticker-slider" style="width:100%; overflow:hidden; position:relative; background:var(--bg-pink); border-radius:15px; margin-bottom:10px; padding:10px 0; touch-action:pan-x;">
+                <div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:500%;"></div>
+            </div>
+            <div class="pagination-dots" id="pagination-dots">
+                <div class="dot active" onclick="window.goToStickerPage(0)"></div>
+                <div class="dot" onclick="window.goToStickerPage(1)"></div>
+                <div class="dot" onclick="window.goToStickerPage(2)"></div>
+                <div class="dot" onclick="window.goToStickerPage(3)"></div>
+                <div class="dot" onclick="window.goToStickerPage(4)"></div>
+            </div>
+            <div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div>
+            <div class="input-area">
+                <div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;">
+                    <img id="img-preview" src="" style="width:60px; height:60px; object-fit:cover; border-radius:10px; border:2px solid #ffafcc;">
+                    <div id="remove-img" style="position:absolute; top:-8px; right:50%; margin-right:-40px; background:rgba(0,0,0,0.6); color:white; border-radius:50%; width:20px; height:20px; font-size:12px; line-height:20px; cursor:pointer; font-weight:bold;">✕</div>
+                </div>
+                <div class="input-controls">
+                    <label for="img-upload" style="cursor:pointer; font-size:1.3rem; margin-right:10px;">📷</label>
+                    <input type="file" id="img-upload" accept="image/*" style="display:none;">
+                    <input type="text" id="diary-input" placeholder="추억을 남겨요!">
+                    <button class="add-btn" id="add-comment-btn">등록</button>
+                </div>
+            </div>
+        `;
+
+        // [2] 스티커 및 초기 렌더링
+        initStickers();
+        renderComments(true);
+
+        // [3] 스티커 슬라이더 터치 로직
         const slider = document.getElementById('sticker-slider');
         let touchStartX = 0;
-        slider.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX, { passive: true });
+        slider.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
         slider.addEventListener('touchend', e => {
             const diff = touchStartX - e.changedTouches[0].clientX;
             if (Math.abs(diff) > 50) {
@@ -760,62 +793,47 @@
             }
         }, { passive: true });
 
-        document.getElementById('img-upload').onchange = (e) => {
-            const reader = new FileReader(); reader.onload = (ev) => { selectedImgBase64 = ev.target.result; document.getElementById('img-preview').src = selectedImgBase64; document.getElementById('preview-box').style.display = 'block'; };
-            reader.readAsDataURL(e.target.files[0]);
-        };
-        document.getElementById('remove-img').onclick = () => { selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none'; };
-        document.getElementById('add-comment-btn').onclick = async () => {
-            const imgInput = document.getElementById('img-upload');
-    if (imgInput) {
+        // [4] 이미지 업로드 로직
+        const imgInput = document.getElementById('img-upload');
+        const previewBox = document.getElementById('preview-box');
+        const previewImg = document.getElementById('img-preview');
+        const removeBtn = document.getElementById('remove-img');
+
         imgInput.onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = (ev) => {
                 selectedImgBase64 = ev.target.result;
-                const preview = document.getElementById('img-preview');
-                const previewBox = document.getElementById('preview-box');
-                if(preview && previewBox) {
-                    preview.src = selectedImgBase64;
-                    previewBox.style.display = 'block';
-                }
+                previewImg.src = selectedImgBase64;
+                previewBox.style.display = 'block';
             };
             reader.readAsDataURL(file);
         };
-    }
 
-    const removeImgBtn = document.getElementById('remove-img');
-    if (removeImgBtn) {
-        removeImgBtn.onclick = () => {
+        removeBtn.onclick = () => {
             selectedImgBase64 = "";
-            const previewBox = document.getElementById('preview-box');
-            if(previewBox) previewBox.style.display = 'none';
-            if(imgInput) imgInput.value = "";
+            previewBox.style.display = 'none';
+            imgInput.value = "";
         };
-    }
 
-    const addBtn = document.getElementById('add-comment-btn');
-    if (addBtn) {
-        addBtn.onclick = async () => {
+        // [5] 등록 버튼 클릭 로직
+        document.getElementById('add-comment-btn').onclick = async () => {
             const diaryInput = document.getElementById('diary-input');
             if (!diaryInput.value.trim() && !selectedImgBase64) return;
-            
+
             comments.push({ 
                 text: diaryInput.value.trim() || "사진 기록", 
                 img: selectedImgBase64 
             });
-            
+
             diaryInput.value = "";
             selectedImgBase64 = "";
-            const previewBox = document.getElementById('preview-box');
-            if(previewBox) previewBox.style.display = 'none';
-            
+            previewBox.style.display = 'none';
             renderComments(true);
             await saveData();
         };
-    }
-};
+    }; // window.setupOriginalDiary 끝
 
     function renderComments(scrollToBottom = false) {
         const list = document.getElementById('comment-list'); if (!list) return;
@@ -950,6 +968,7 @@
 </script>
 </body>
 </html>
+
 
 
 
