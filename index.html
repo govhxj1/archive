@@ -991,39 +991,64 @@ const dailyQuestions = [
 /* 1. 질문 불러오기 (중복 제거 로직 추가) */
 window.showRandomQuestion = function() {
     const today = new Date();
-    // 1. 오늘 날짜를 숫자로 만듭니다 (예: 20260213)
     const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-    
-    // 2. 날짜 숫자를 전체 질문 개수로 나눠서 오늘만의 질문 번호를 결정합니다.
-    // 이렇게 하면 유미님 폰에서도, 거니님 폰에서도 오늘 하루는 무조건 같은 숫자가 나옵니다.
     const questionIdx = dateSeed % dailyQuestions.length;
     const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
 
-    // 3. 질문 텍스트 표시
+    // 질문 텍스트 표시
     document.getElementById('question-content').innerText = dailyQuestions[questionIdx];
 
-    // 4. 답변 표시는 기존 로직 유지 (단, 답변은 서버 데이터 cloudRecords 등을 활용하는 것이 좋습니다)
-    // 현재는 로컬 스토리지 방식을 유지하되, 질문 번호만 고정되도록 수정했습니다.
-    let dailyData = JSON.parse(localStorage.getItem('daily_q_' + dateKey) || "{}");
+    // 📍 Firebase에서 오늘 날짜의 답변 데이터 실시간으로 가져오기
+    const qDocRef = doc(db, "daily_answers", dateKey);
+    
+    // getDoc 대신 onSnapshot을 쓰면 상대방이 쓰는 즉시 화면에 나타납니다.
+    onSnapshot(qDocRef, (docSnap) => {
+        const dailyData = docSnap.exists() ? docSnap.data() : {};
+        
+        // 유미 답변 표시
+        const yBox = document.getElementById('yumi-answer');
+        if (dailyData.유미) {
+            yBox.style.display = 'block';
+            yBox.querySelector('.text').innerText = dailyData.유미;
+        } else { yBox.style.display = 'none'; }
 
-    const yBox = document.getElementById('yumi-answer');
-    if (dailyData.유미) {
-        yBox.style.display = 'block';
-        yBox.querySelector('.text').innerText = dailyData.유mi;
-    } else { yBox.style.display = 'none'; }
-
-    const gBox = document.getElementById('goni-answer');
-    if (dailyData.거니) {
-        gBox.style.display = 'block';
-        gBox.querySelector('.text').innerText = dailyData.거니;
-    } else { gBox.style.display = 'none'; }
+        // 거니 답변 표시
+        const gBox = document.getElementById('goni-answer');
+        if (dailyData.거니) {
+            gBox.style.display = 'block';
+            gBox.querySelector('.text').innerText = dailyData.거니;
+        } else { gBox.style.display = 'none'; }
+    });
 
     document.getElementById('q-input-area').style.display = 'none';
     document.getElementById('writer-selector').style.display = 'flex';
     document.getElementById('question-overlay').style.display = 'flex';
-    if (typeof toggleMenu === 'function') toggleMenu();
 };
 
+    window.saveDailyAnswer = async function(writer) {
+    const answerText = document.getElementById('q-diary-input').value;
+    if (!answerText.trim()) return alert("내용을 입력해줘! ✍️");
+
+    const today = new Date();
+    const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+    const qDocRef = doc(db, "daily_answers", dateKey);
+
+    try {
+        // 기존 데이터를 유지하면서 내 답변만 업데이트 (merge: true)
+        await setDoc(qDocRef, {
+            [writer]: answerText,
+            timestamp: serverTimestamp()
+        }, { merge: true });
+
+        document.getElementById('q-input-area').style.display = 'none';
+        document.getElementById('q-diary-input').value = "";
+        alert("답변이 저장됐어! 상대방도 바로 볼 수 있을 거야. 💖");
+    } catch (e) {
+        console.error("저장 오류:", e);
+        alert("저장에 실패했어. 다시 시도해줘!");
+    }
+};
+    
 /* 2. 입력창 열기 */
 window.openInput = function(name) {
     currentWriter = name;
@@ -1083,6 +1108,7 @@ window.closeQuestion = function() {
 </script>
 </body>
 </html>
+
 
 
 
