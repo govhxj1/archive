@@ -659,13 +659,17 @@
                 '🏤', '🏥', '🏦', '🏪', '🏫', '🏬', '🏩', '🎡'
             ];
     
+   // 1. 스티커 초기화 (중복된 함수 삭제하고 하나로 통합)
     function initStickers() {
         const wrapper = document.getElementById('sticker-wrapper');
         if (!wrapper) return;
         wrapper.innerHTML = "";
-        for (let p = 0; p < 4; p++) {
+        // 📍 5페이지로 확장 (24개씩 5장 = 120개)
+        for (let p = 0; p < 5; p++) {
             const pageDiv = document.createElement('div');
             pageDiv.className = 'sticker-page';
+            // 페이지당 20%씩 차지하도록 스타일 조정 (5장 기준)
+            pageDiv.style.width = '20%'; 
             allStickers.slice(p * 24, (p + 1) * 24).forEach(s => {
                 const span = document.createElement('span');
                 span.className = 'sticker-option';
@@ -688,31 +692,17 @@
         });
     }
 
-        function initStickers() {
-            const wrapper = document.getElementById('sticker-wrapper');
-            if (!wrapper) return;
-            wrapper.innerHTML = "";
-            // 📍 5페이지로 확장 (24개씩 5장 = 120개)
-            for (let p = 0; p < 5; p++) {
-                const pageDiv = document.createElement('div');
-                pageDiv.className = 'sticker-page';
-                // 페이지당 20%씩 차지하도록 스타일 조정
-                pageDiv.style.width = '20%'; 
-                allStickers.slice(p * 24, (p + 1) * 24).forEach(s => {
-                    const span = document.createElement('span');
-                    span.className = 'sticker-option';
-                    span.innerText = s;
-                    if (s === selectedSticker) span.classList.add('selected');
-                    span.onclick = () => {
-                        selectedSticker = (selectedSticker === s) ? "" : s;
-                        updateStickerUI();
-                        saveData();
-                    };
-                    pageDiv.appendChild(span);
-                });
-                wrapper.appendChild(pageDiv);
-            }
-        }
+    // 2. 페이지 이동 함수 수정 (5페이지 기준)
+    window.goToStickerPage = (index) => {
+        const wrapper = document.getElementById('sticker-wrapper');
+        const dots = document.getElementById('pagination-dots');
+        if (!wrapper || index < 0 || index > 4) return; // 📍 최대 인덱스 4로 변경
+        
+        currentPage = index; 
+        // 📍 이동 단위를 25%에서 20%로 변경 (100 / 5페이지)
+        wrapper.style.transform = `translateX(-${index * 20}%)`;
+        if (dots) Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+    };
 
     function renderCalendar() {
         dateContainer.innerHTML = ""; monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
@@ -1209,50 +1199,3 @@ window.closeMap = function() {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
