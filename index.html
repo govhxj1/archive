@@ -897,46 +897,35 @@
 
     const holidays2026 = {"01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", "03-01": "삼일절", "03-02": "대체공휴일", "05-05": "어린이날", "05-24": "부처님오신날", "05-25": "대체공휴일", "06-03": "지방선거", "06-06": "현충일", "08-15": "광복절", "08-17": "대체공휴일", "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", "10-03": "개천절", "10-05": "대체공휴일", "10-09": "한글날", "12-25": "성탄절"};
 
+// 1. 날씨 정보 불러오기 (중복 제거 통합본)
     async function getDaejeonWeather() {
         try {
             const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Daejeon&appid=a50a410affb770d589de1bccf899ab63&units=metric&lang=kr`);
             const data = await res.json();
+            
+            // 날씨 상태 저장 (비밀 편지용)
+            currentWeatherStatus = data.weather[0].main;
+            
             document.getElementById('w-desc').innerText = data.weather[0].description;
             document.getElementById('w-clouds').innerText = `(구름 ${data.clouds.all}%)`;
             document.getElementById('w-temp').innerText = `${Math.round(data.main.temp)}°C`;
-        } catch (e) { document.getElementById('w-desc').innerText = "날씨 로드 실패"; }
+        } catch (e) { 
+            document.getElementById('w-desc').innerText = "날씨 로드 실패"; 
+        }
     }
 
+    // 2. 하트(💛) 5번 클릭 비밀 편지
     document.getElementById('secret-heart-trigger').onclick = () => {
         secretClickCount++;
-        if (secretClickCount === 5) { document.getElementById('surprise-overlay').style.display = 'flex'; secretClickCount = 0; }
-        clearTimeout(window.secretTimer); window.secretTimer = setTimeout(() => { secretClickCount = 0; }, 2000);
+        if (secretClickCount === 5) { 
+            document.getElementById('surprise-overlay').style.display = 'flex'; 
+            secretClickCount = 0; 
+        }
+        clearTimeout(window.secretTimer); 
+        window.secretTimer = setTimeout(() => { secretClickCount = 0; }, 2000);
     };
 
-    const calSwipeArea = document.getElementById('calendar-swipe-area');
-    let calTouchStartX = 0, calTouchStartY = 0;
-    calSwipeArea.addEventListener('touchstart', e => { calTouchStartX = e.touches[0].clientX; calTouchStartY = e.touches[0].clientY; }, { passive: true });
-    calSwipeArea.addEventListener('touchend', e => {
-        let diffX = calTouchStartX - e.changedTouches[0].clientX;
-        if (Math.abs(diffX) > Math.abs(calTouchStartY - e.changedTouches[0].clientY) && Math.abs(diffX) > 50) changeMonth(diffX > 0 ? 1 : -1);
-    }, { passive: true });
-
-    getDaejeonWeather(); renderCalendar(); updateDday();
-
-    let weatherClickCount = 0;
-    let currentWeatherStatus = "";
-
-    async function getDaejeonWeather() {
-        try {
-            const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Daejeon&appid=a50a410affb770d589de1bccf899ab63&units=metric&lang=kr`);
-            const data = await res.json();
-            currentWeatherStatus = data.weather[0].main;
-            document.getElementById('w-desc').innerText = data.weather[0].description;
-            document.getElementById('w-clouds').innerText = `(구름 ${data.clouds.all}%)`;
-            document.getElementById('w-temp').innerText = `${Math.round(data.main.temp)}°C`;
-        } catch (e) { document.getElementById('w-desc').innerText = "날씨 로드 실패"; }
-    }
-
+    // 3. 날씨 위젯 5번 클릭 비밀 편지 (2초 후 자동 닫기)
     document.getElementById('weather-widget').onclick = () => {
         weatherClickCount++;
         if (weatherClickCount === 5) {
@@ -951,6 +940,8 @@
             const surpriseOverlay = document.getElementById('surprise-overlay');
             document.getElementById('surprise-msg-content').innerHTML = `<div style="text-align:center; font-size:1.1rem; font-weight:900;">${specialMsg}</div>`;
             surpriseOverlay.style.display = 'flex';
+            
+            // 2초 뒤 자동 닫기
             setTimeout(() => { surpriseOverlay.style.display = 'none'; }, 2000);
             weatherClickCount = 0;
         }
@@ -958,14 +949,27 @@
         window.weatherTimer = setTimeout(() => { weatherClickCount = 0; }, 2000);
     };
 
+    // 4. 달력 스와이프 (좌우 넘기기)
+    const calSwipeArea = document.getElementById('calendar-swipe-area');
+    let calTouchStartX = 0, calTouchStartY = 0;
+    calSwipeArea.addEventListener('touchstart', e => { calTouchStartX = e.touches[0].clientX; calTouchStartY = e.touches[0].clientY; }, { passive: true });
+    calSwipeArea.addEventListener('touchend', e => {
+        let diffX = calTouchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diffX) > Math.abs(calTouchStartY - e.changedTouches[0].clientY) && Math.abs(diffX) > 50) changeMonth(diffX > 0 ? 1 : -1);
+    }, { passive: true });
+
+    // 5. 지도 닫기 함수
     window.closeMap = function() {
         document.getElementById('map-container').style.display = 'none';
         document.getElementById('overlay').style.display = 'none';
         document.getElementById('overlay').style.zIndex = "100";
     };
 
-    // 📍 초기 실행 함수들 (이 줄들이 있어야 달력이 뜹니다)
-    getDaejeonWeather(); renderCalendar(); updateDday();
+    // 📍 6. 초기 실행 (이 순서대로 실행되어야 안전합니다)
+    getDaejeonWeather(); 
+    renderCalendar(); 
+    updateDday();
+    
     
     // 1. 메뉴 토글 함수 수정
    window.toggleMenu = function() {
@@ -1244,6 +1248,7 @@ window.closeMap = function() {
 </script>
 </body>
 </html>
+
 
 
 
