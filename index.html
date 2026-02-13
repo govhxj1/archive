@@ -697,12 +697,44 @@
         currentDay = day;
         const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const diaryModal = document.getElementById('diary-modal'), overlay = document.getElementById('overlay');
+        
+        // 📍 1. 기념일 폭죽 효과 로직 추가
+        const startDate = new Date(2026, 0, 10); // 1월 10일
+        const selectedDate = new Date(viewYear, viewMonth, day);
+        const diff = Math.floor((selectedDate - startDate) / 86400000) + 1;
+        
+        // 100일 단위거나 매년 1월 10일(주년)일 때 폭죽 발사!
+        if ((diff > 0 && diff % 100 === 0) || (viewMonth === 0 && day === 10 && viewYear > 2026)) {
+            makeHearts(); // 이 함수 내부에 confetti()가 포함되어 있습니다.
+        }
+
+        // 2. 특별 데이트 장소 여부 확인 및 모달 표시
         if (specialDates[dateKey]) {
             const p = specialDates[dateKey];
-            diaryModal.innerHTML = `<button class="close-modal-btn" onclick="closeModal()">✕</button><div style="padding:10px 5px; height:100%; display:flex; flex-direction:column;"><h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px;">${p.title}</h3><div style="background:#fff0f3; border-radius:25px; padding:15px; overflow-y:auto; flex:1;">${p.plans.map(pl => `<div style="margin-bottom:12px; text-align:left; padding:12px; background:white; border-radius:15px; border:1px solid #ffe5ec;"><div style="font-weight:900; color:#444;">${pl.icon} ${pl.name}</div>${pl.link ? `<a href="${pl.link}" target="_blank" style="font-size:0.8rem; color:#ff8fab; text-decoration:none;">📍 지도 보기</a>` : ''}</div>`).join('')}</div><p style="margin:15px 0; font-size:0.85rem; color:#ff8fab; font-weight:900;">${p.footer}</p><button id="go-to-diary" style="width:100%; padding:15px; background:#ff8fab; border:none; border-radius:20px; color:white; font-weight:900; cursor:pointer;">우리 추억 기록하기 ✏️</button></div>`;
+            diaryModal.innerHTML = `
+                <button class="close-modal-btn" onclick="closeModal()">✕</button>
+                <div style="padding:10px 5px; height:100%; display:flex; flex-direction:column;">
+                    <h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px;">${p.title}</h3>
+                    <div style="background:#fff0f3; border-radius:25px; padding:15px; overflow-y:auto; flex:1;">
+                        ${p.plans.map(pl => `
+                            <div style="margin-bottom:12px; text-align:left; padding:12px; background:white; border-radius:15px; border:1px solid #ffe5ec;">
+                                <div style="font-weight:900; color:#444;">${pl.icon} ${pl.name}</div>
+                                ${pl.link ? `<a href="${pl.link}" target="_blank" style="font-size:0.8rem; color:#ff8fab; text-decoration:none;">📍 지도 보기</a>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <p style="margin:15px 0; font-size:0.85rem; color:#ff8fab; font-weight:900;">${p.footer}</p>
+                    <button id="go-to-diary" style="width:100%; padding:15px; background:#ff8fab; border:none; border-radius:20px; color:white; font-weight:900; cursor:pointer;">
+                        우리 추억 기록하기 ✏️
+                    </button>
+                </div>`;
             document.getElementById('go-to-diary').onclick = () => setupOriginalDiary(dateKey);
-        } else { setupOriginalDiary(dateKey); }
-        diaryModal.style.display = 'flex'; overlay.style.display = 'block';
+        } else { 
+            setupOriginalDiary(dateKey); 
+        }
+        
+        diaryModal.style.display = 'flex'; 
+        overlay.style.display = 'block';
     }
 
     window.setupOriginalDiary = function(dateKey) {
@@ -869,6 +901,7 @@
 </script>
 </body>
 </html>
+
 
 
 
