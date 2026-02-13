@@ -416,6 +416,15 @@
             margin-top: 10px;
             text-align: right;
         }
+                /* 📍 모든 요소에서 터치 줌 현상을 방지합니다 */
+        * {
+            touch-action: pan-x pan-y; /* 줌은 막고 스크롤만 허용 */
+        }
+        
+        /* 📍 입력창(textarea, input) 클릭 시 확대되는 현상 방지 */
+        input, textarea {
+            font-size: 16px !important; /* 모바일 브라우저는 16px 미만일 때 자동 확대되므로 고정 */
+        }
     </style>
 </head>
 <body>
@@ -1198,4 +1207,5 @@ window.closeMap = function() {
 </script>
 </body>
 </html>
+
 
