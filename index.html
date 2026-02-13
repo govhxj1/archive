@@ -705,9 +705,25 @@ document.getElementById('secret-word-trigger').onclick = (e) => {
     setTimeout(() => { secretWordClickCount = 0; }, 2000);
 };
 
-// 노란 편지창 닫기 함수
+// 노란 편지창 닫을 때 블러까지 싹 치우기
 window.closeMenuSecret = () => {
-    document.getElementById('menu-secret-overlay').style.display = 'none';
+    // 1. 노란색 비밀 편지창 숨기기
+    const secretOverlay = document.getElementById('menu-secret-overlay');
+    if (secretOverlay) secretOverlay.style.display = 'none';
+
+    // 2. 혹시 남아있을지 모르는 공용 배경 블러(overlay)도 확실히 끄기
+    const commonOverlay = document.getElementById('overlay');
+    
+    // 📍 핵심: 다이어리 기록창(diary-modal)이나 질문창이 열려있지 않을 때만 배경을 완전히 제거
+    const isDiaryOpen = document.getElementById('diary-modal').style.display === 'flex';
+    const isQuestionOpen = document.getElementById('question-overlay').style.display === 'flex';
+    
+    if (!isDiaryOpen && !isQuestionOpen) {
+        if (commonOverlay) {
+            commonOverlay.style.display = 'none';
+            commonOverlay.style.zIndex = "100"; // 레이어 순서 원상복구
+        }
+    }
 };
     
     // [4] 스티커 및 달력 로직 (5페이지 120종)
@@ -1037,6 +1053,7 @@ window.closeMenuSecret = () => {
 </script>
 </body>
 </html>
+
 
 
 
