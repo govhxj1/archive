@@ -766,12 +766,56 @@
         };
         document.getElementById('remove-img').onclick = () => { selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none'; };
         document.getElementById('add-comment-btn').onclick = async () => {
-            const input = document.getElementById('diary-input'); if (!input.value.trim() && !selectedImgBase64) return;
-            comments.push({ text: input.value.trim() || "사진 기록", img: selectedImgBase64 });
-            input.value = ""; selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none';
-            renderComments(true); await saveData();
+            const imgInput = document.getElementById('img-upload');
+    if (imgInput) {
+        imgInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                selectedImgBase64 = ev.target.result;
+                const preview = document.getElementById('img-preview');
+                const previewBox = document.getElementById('preview-box');
+                if(preview && previewBox) {
+                    preview.src = selectedImgBase64;
+                    previewBox.style.display = 'block';
+                }
+            };
+            reader.readAsDataURL(file);
         };
-    };
+    }
+
+    const removeImgBtn = document.getElementById('remove-img');
+    if (removeImgBtn) {
+        removeImgBtn.onclick = () => {
+            selectedImgBase64 = "";
+            const previewBox = document.getElementById('preview-box');
+            if(previewBox) previewBox.style.display = 'none';
+            if(imgInput) imgInput.value = "";
+        };
+    }
+
+    const addBtn = document.getElementById('add-comment-btn');
+    if (addBtn) {
+        addBtn.onclick = async () => {
+            const diaryInput = document.getElementById('diary-input');
+            if (!diaryInput.value.trim() && !selectedImgBase64) return;
+            
+            comments.push({ 
+                text: diaryInput.value.trim() || "사진 기록", 
+                img: selectedImgBase64 
+            });
+            
+            diaryInput.value = "";
+            selectedImgBase64 = "";
+            const previewBox = document.getElementById('preview-box');
+            if(previewBox) previewBox.style.display = 'none';
+            
+            renderComments(true);
+            await saveData();
+        };
+    }
+};
 
     function renderComments(scrollToBottom = false) {
         const list = document.getElementById('comment-list'); if (!list) return;
@@ -906,6 +950,7 @@
 </script>
 </body>
 </html>
+
 
 
 
