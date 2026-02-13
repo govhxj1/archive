@@ -1073,6 +1073,14 @@ window.closeMenuSecret = () => {
     document.getElementById('prev-month').onclick = () => { viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderCalendar(); };
     document.getElementById('next-month').onclick = () => { viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); };
 
+    // 1994 타임머신 사진 팝업을 닫는 함수
+window.closeTimeTravel = () => {
+    const timeOverlay = document.getElementById('time-travel-overlay');
+    if (timeOverlay) {
+        timeOverlay.style.display = 'none';
+    }
+};
+    
     onAuthStateChanged(auth, async (u) => {
         user = u;
         if (user) {
@@ -1096,6 +1104,7 @@ window.closeMenuSecret = () => {
 </script>
 </body>
 </html>
+
 
 
 
