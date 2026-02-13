@@ -556,8 +556,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { 
-    getFirestore, doc, setDoc, collection, onSnapshot, 
-    serverTimestamp // 📍 이게 꼭 추가되어야 합니다!
+        getFirestore, doc, setDoc, collection, onSnapshot, 
+        serverTimestamp 
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -604,6 +604,7 @@
     const appId = 'shared-gomi-diary-app'; 
 
     let user = null, cloudRecords = {}, viewYear = 2026, viewMonth = 1, currentDay = 0, selectedSticker = "", comments = [], selectedImgBase64 = "", isDateMode = false, currentPage = 0, commentToDeleteIndex = -1, secretClickCount = 0;
+    let currentWriter = ""; 
 
     const dateContainer = document.getElementById('calendar-dates'), 
           monthTitle = document.getElementById('month-title'),
@@ -611,7 +612,6 @@
 
     const hideLoading = () => { loadingOverlay.style.opacity = '0'; setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500); };
     
-/* 📍 여기에 2번 안전장치 코드를 추가하세요 */
     setTimeout(() => { 
         if (loadingOverlay && loadingOverlay.style.display !== 'none') {
             console.log("로딩이 길어져서 강제로 화면을 표시합니다.");
@@ -626,7 +626,6 @@
             onSnapshot(diaryRef, (snapshot) => {
                 cloudRecords = {}; snapshot.forEach(doc => { cloudRecords[doc.id] = doc.data(); });
                 renderCalendar(); updateDday(); hideLoading();
-                // 모달이 열려있다면 데이터 갱신
                 if(document.getElementById('diary-modal').style.display === 'flex' && document.getElementById('comment-list')) {
                     const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
                     const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
@@ -669,16 +668,13 @@
     }
 
     window.goToStickerPage = (index) => {
-    const wrapper = document.getElementById('sticker-wrapper');
-    const dots = document.getElementById('pagination-dots');
-    if (!wrapper || index < 0 || index > 3) return;
-    
-    // 📍 현재 페이지 번호를 전역 변수에 저장 (매우 중요)
-    currentPage = index; 
-    
-    wrapper.style.transform = `translateX(-${index * 25}%)`;
-    if (dots) Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
-};
+        const wrapper = document.getElementById('sticker-wrapper');
+        const dots = document.getElementById('pagination-dots');
+        if (!wrapper || index < 0 || index > 3) return;
+        currentPage = index; 
+        wrapper.style.transform = `translateX(-${index * 25}%)`;
+        if (dots) Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+    };
 
     function renderCalendar() {
         dateContainer.innerHTML = ""; monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
@@ -748,91 +744,73 @@
     }
 
     window.setupOriginalDiary = function(dateKey) {
-    const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
-    selectedSticker = data.sticker || "";
-    comments = data.comments || [];
-    const diaryModal = document.getElementById('diary-modal');
-    
-    // 1. UI 구조 생성 (기존과 동일하되 스타일 확실히 지정)
-    diaryModal.innerHTML = `
-        <button class="close-modal-btn" id="close-modal" onclick="closeModal()">✕</button>
-        <div class="modal-header"><h3 class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div>
+        const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
+        selectedSticker = data.sticker || "";
+        comments = data.comments || [];
+        const diaryModal = document.getElementById('diary-modal');
         
-        <div class="sticker-slider-container" id="sticker-slider" style="width:100%; overflow:hidden; position:relative; background:var(--bg-pink); border-radius:15px; margin-bottom:10px; padding:10px 0; touch-action:pan-x;">
-            <div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:400%;"></div>
-        </div>
-        
-        <div class="pagination-dots" id="pagination-dots">
-            <div class="dot active" onclick="window.goToStickerPage(0)"></div>
-            <div class="dot" onclick="window.goToStickerPage(1)"></div>
-            <div class="dot" onclick="window.goToStickerPage(2)"></div>
-            <div class="dot" onclick="window.goToStickerPage(3)"></div>
-        </div>
-
-        <div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div>
-        
-        <div class="input-area">
-            <div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;">
-                <img id="img-preview" src="" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:2px solid var(--main-pink);">
-                <div class="remove-img-btn" id="remove-img">✕</div>
+        diaryModal.innerHTML = `
+            <button class="close-modal-btn" id="close-modal" onclick="closeModal()">✕</button>
+            <div class="modal-header"><h3 class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div>
+            <div class="sticker-slider-container" id="sticker-slider" style="width:100%; overflow:hidden; position:relative; background:var(--bg-pink); border-radius:15px; margin-bottom:10px; padding:10px 0; touch-action:pan-x;">
+                <div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:400%;"></div>
             </div>
-            <div class="input-controls">
-                <label for="img-upload" style="cursor:pointer; font-size:1.2rem; margin-right:10px;">📷</label>
-                <input type="file" id="img-upload" accept="image/*" style="display:none;">
-                <input type="text" id="diary-input" placeholder="추억을 남겨요!">
-                <button class="add-btn" id="add-comment-btn">등록</button>
+            <div class="pagination-dots" id="pagination-dots">
+                <div class="dot active" onclick="window.goToStickerPage(0)"></div>
+                <div class="dot" onclick="window.goToStickerPage(1)"></div>
+                <div class="dot" onclick="window.goToStickerPage(2)"></div>
+                <div class="dot" onclick="window.goToStickerPage(3)"></div>
             </div>
-        </div>
-    `;
+            <div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div>
+            <div class="input-area">
+                <div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;">
+                    <img id="img-preview" src="" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:2px solid var(--main-pink);">
+                    <div class="remove-img-btn" id="remove-img">✕</div>
+                </div>
+                <div class="input-controls">
+                    <label for="img-upload" style="cursor:pointer; font-size:1.2rem; margin-right:10px;">📷</label>
+                    <input type="file" id="img-upload" accept="image/*" style="display:none;">
+                    <input type="text" id="diary-input" placeholder="추억을 남겨요!">
+                    <button class="add-btn" id="add-comment-btn">등록</button>
+                </div>
+            </div>
+        `;
 
-    // 2. 내용 채우기 및 기능 연결
-    initStickers(); 
-    updateStickerUI(); 
-    renderComments(true);
-    currentPage = 0; // 페이지 초기화
-    window.goToStickerPage(0); // 첫 페이지로 이동
+        initStickers(); 
+        updateStickerUI(); 
+        renderComments(true);
+        currentPage = 0; 
+        window.goToStickerPage(0); 
 
-    // 3. 📍 모바일 터치 스와이프 기능 (연속 작동 보장)
-    const slider = document.getElementById('sticker-slider');
-    let touchStartX = 0;
-
-    slider.addEventListener('touchstart', e => { 
-        touchStartX = e.touches[0].clientX; 
-    }, { passive: true });
-
-    slider.addEventListener('touchend', e => {
-        const touchEndX = e.changedTouches[0].clientX;
-        const diff = touchStartX - touchEndX;
-
-        if (Math.abs(diff) > 50) { 
-            if (diff > 0 && currentPage < 3) {
-                // 왼쪽으로 밀기 (다음 페이지)
-                window.goToStickerPage(currentPage + 1);
-            } else if (diff < 0 && currentPage > 0) {
-                // 오른쪽으로 밀기 (이전 페이지)
-                window.goToStickerPage(currentPage - 1);
+        const slider = document.getElementById('sticker-slider');
+        let touchStartX = 0;
+        slider.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+        slider.addEventListener('touchend', e => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) { 
+                if (diff > 0 && currentPage < 3) window.goToStickerPage(currentPage + 1);
+                else if (diff < 0 && currentPage > 0) window.goToStickerPage(currentPage - 1);
             }
-        }
-    }, { passive: true });
+        }, { passive: true });
 
-    // 4. 이미지 및 등록 버튼 이벤트 (기존과 동일)
-    const imgInput = document.getElementById('img-upload'), diaryInput = document.getElementById('diary-input');
-    imgInput.onchange = (e) => {
-        const file = e.target.files[0]; if (!file) return;
-        const reader = new FileReader(); reader.onload = (ev) => {
-            selectedImgBase64 = ev.target.result;
-            document.getElementById('img-preview').src = selectedImgBase64;
-            document.getElementById('preview-box').style.display = 'block';
-        }; reader.readAsDataURL(file);
+        const imgInput = document.getElementById('img-upload'), diaryInput = document.getElementById('diary-input');
+        imgInput.onchange = (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader(); reader.onload = (ev) => {
+                selectedImgBase64 = ev.target.result;
+                document.getElementById('img-preview').src = selectedImgBase64;
+                document.getElementById('preview-box').style.display = 'block';
+            }; reader.readAsDataURL(file);
+        };
+        document.getElementById('remove-img').onclick = () => { selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none'; imgInput.value = ""; };
+        document.getElementById('add-comment-btn').onclick = async () => {
+            if (!diaryInput.value.trim() && !selectedImgBase64) return;
+            comments.push({ text: diaryInput.value.trim() || "사진 기록", img: selectedImgBase64 });
+            diaryInput.value = ""; selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none';
+            renderComments(true); await saveData();
+        };
     };
-    document.getElementById('remove-img').onclick = () => { selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none'; imgInput.value = ""; };
-    document.getElementById('add-comment-btn').onclick = async () => {
-        if (!diaryInput.value.trim() && !selectedImgBase64) return;
-        comments.push({ text: diaryInput.value.trim() || "사진 기록", img: selectedImgBase64 });
-        diaryInput.value = ""; selectedImgBase64 = ""; document.getElementById('preview-box').style.display = 'none';
-        renderComments(true); await saveData();
-    };
-};
 
     function renderComments(scrollToBottom = false) {
         const listContainer = document.getElementById('comment-list');
@@ -916,45 +894,25 @@
 
     getDaejeonWeather(); renderCalendar(); updateDday();
 
-    // 1. 메뉴 토글 함수: 상태값과 상관없이 메뉴 전용으로 동작하게 수정
     window.toggleMenu = function() {
         const menu = document.getElementById('side-menu');
         const overlay = document.getElementById('overlay');
-        
-        // 메뉴 열기
         if (menu.style.display === 'none' || menu.style.display === '') {
-            menu.style.display = 'flex';
-            overlay.style.display = 'block';
-            menu.style.zIndex = "1001"; 
-            overlay.style.zIndex = "1000";
-        } 
-        // 메뉴 닫기: 접속 직후라도 무조건 블러를 함께 제거함
-        else {
+            menu.style.display = 'flex'; overlay.style.display = 'block'; menu.style.zIndex = "1001"; overlay.style.zIndex = "1000";
+        } else {
             menu.style.display = 'none';
-            // 메뉴 전용 닫기이므로, 다이어리 모달이 확실히 꺼져있다면 블러도 무조건 제거
             const diaryModal = document.getElementById('diary-modal');
-            if (!diaryModal || diaryModal.style.display === 'none' || diaryModal.style.display === '') {
-                overlay.style.display = 'none';
-            }
+            if (!diaryModal || diaryModal.style.display === 'none' || diaryModal.style.display === '') overlay.style.display = 'none';
         }
     };
 
-    // 2. 오버레이 클릭 시: 메뉴가 켜져있을 땐 무시하도록 설정
     document.getElementById('overlay').onclick = function() {
         const menu = document.getElementById('side-menu');
-        // 메뉴가 보이고 있다면 배경 클릭으로 안 닫히게 함
-        if (menu && menu.style.display === 'flex') {
-            return; 
-        }
-        // 그 외(다이어리 등) 상황에서는 closeModal 실행
+        if (menu && menu.style.display === 'flex') return; 
         if (typeof closeModal === 'function') closeModal();
     };
 
-    /* 지도 관련 변수 선언 */
-    let diaryMap;
-    let pathLine;
-    let markers = [];
-
+    let diaryMap, pathLine, markers = [];
     const feb14Path = [
         { name: "1. 저스트슬립 호텔", lat: 36.3537, lng: 127.3415, memo: "우리의 아늑한 숙소 🏨" },
         { name: "2. NC백화점 유성점", lat: 36.3540, lng: 127.3400, memo: "즐거운 쇼핑 데이트! 🛍️" },
@@ -965,34 +923,23 @@
     window.openMap = function() {
         const mapContainer = document.getElementById('map-container');
         const mapElement = document.getElementById('map');
-        
         if (!mapContainer || !mapElement) return;
-
         mapContainer.style.display = 'flex';
         document.getElementById('side-menu').style.display = 'none';
-
         if (!diaryMap) {
-            if (typeof L === 'undefined') {
-                alert("지도 로딩 중...");
-                return;
-            }
+            if (typeof L === 'undefined') { alert("지도 로딩 중..."); return; }
             diaryMap = L.map('map').setView([36.3537, 127.3415], 16);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(diaryMap);
         }
-
         if (pathLine) diaryMap.removeLayer(pathLine);
         markers.forEach(m => diaryMap.removeLayer(m));
         markers = [];
-
         feb14Path.forEach((p) => {
-            const marker = L.marker([p.lat, p.lng]).addTo(diaryMap)
-                .bindPopup(`<b>${p.name}</b><br>${p.memo}`);
+            const marker = L.marker([p.lat, p.lng]).addTo(diaryMap).bindPopup(`<b>${p.name}</b><br>${p.memo}`);
             markers.push(marker);
         });
-
         const latlngs = feb14Path.map(p => [p.lat, p.lng]);
         pathLine = L.polyline(latlngs, { color: '#ffafcc', weight: 4, dashArray: '10, 10' }).addTo(diaryMap);
-
         setTimeout(() => { 
             diaryMap.invalidateSize();
             const group = new L.featureGroup(markers);
@@ -1004,159 +951,109 @@
         document.getElementById('map-container').style.display = 'none';
         document.getElementById('overlay').style.display = 'none';
     };
-    /* 💌 랜덤 질문 보여주기 함수 */
-let currentWriter = ""; 
 
-// 질문 리스트 (dailyQuestions 배열이 없다면 여기에 정의하세요)
-const dailyQuestions = [
-    "우리 처음 만났을 때, 나의 첫인상은 어땠어? 😊",
-    "나랑 가장 먹고싶은 음식 어떤거야? 🥘",
-    "내가 가장 귀여워 보일 때는 언제야? 💛",
-    "지구 마지막 날이라면, 나랑 가장 먼저 하고 싶은 일은 뭐야? 🌎",
-    "'이 사람 만나길 잘했다'라고 확신이 들었던 순간은? 💍",
-    "나랑 연애하며 새롭게 발견한 너의 모습은? ✨",
-    "우리가 함께한 날 중 가장 기억에 남는 날은? 🌸",
-    "나랑 꼭 같이 해보고 싶은 버킷리스트가 있어? ✨",
-    "한 달 동안 연락 안 되기 📞 VS 한 달 동안 못 만나기 🏠",
-    "우리 관계에서 가장 고마웠던 순간은 언제야? 💝",
-    "매일 말로만 애정표하기 👄 VS 말은 없지만 행동으로 다 보여주기 💪",
-    "서운할 때 내가 어떻게 다가와 주면 마음이 풀려? 🧸",
-    "10년 뒤 우리 모습은 어떨 것 같아? ⏳",
-    "나를 세 단어로 표현한다면? 🏷️"
-];
+    const dailyQuestions = [
+        "우리 처음 만났을 때, 나의 첫인상은 어땠어? 😊",
+        "나랑 가장 먹고싶은 음식 어떤거야? 🥘",
+        "내가 가장 귀여워 보일 때는 언제야? 💛",
+        "지구 마지막 날이라면, 나랑 가장 먼저 하고 싶은 일은 뭐야? 🌎",
+        "'이 사람 만나길 잘했다'라고 확신이 들었던 순간은? 💍",
+        "나랑 연애하며 새롭게 발견한 너의 모습은? ✨",
+        "우리가 함께한 날 중 가장 기억에 남는 날은? 🌸",
+        "나랑 꼭 같이 해보고 싶은 버킷리스트가 있어? ✨",
+        "한 달 동안 연락 안 되기 📞 VS 한 달 동안 못 만나기 🏠",
+        "우리 관계에서 가장 고마웠던 순간은 언제야? 💝",
+        "매일 말로만 애정표하기 👄 VS 말은 없지만 행동으로 다 보여주기 💪",
+        "서운할 때 내가 어떻게 다가와 주면 마음이 풀려? 🧸",
+        "10년 뒤 우리 모습은 어떨 것 같아? ⏳",
+        "나를 세 단어로 표현한다면? 🏷️"
+    ];
 
-/* 1. 질문 불러오기 (중복 제거 로직 추가) */
-/* 1. 질문 창 열기 (메뉴에서 클릭 시) */
-window.showRandomQuestion = function() {
-    const today = new Date();
-    const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-    const questionIdx = dateSeed % dailyQuestions.length;
-    const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+    window.showRandomQuestion = function() {
+        const today = new Date();
+        const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+        const questionIdx = dateSeed % dailyQuestions.length;
+        const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
 
-    document.getElementById('question-content').innerText = dailyQuestions[questionIdx];
+        document.getElementById('question-content').innerText = dailyQuestions[questionIdx];
 
-    const qDocRef = doc(db, "daily_answers", dateKey);
-    onSnapshot(qDocRef, (docSnap) => {
-        const dailyData = docSnap.exists() ? docSnap.data() : {};
-        const yBox = document.getElementById('yumi-answer');
-        if (dailyData.유미) {
-            yBox.style.display = 'block';
-            yBox.querySelector('.text').innerText = dailyData.유미;
-        } else { yBox.style.display = 'none'; }
+        const qDocRef = doc(db, "daily_answers", dateKey);
+        onSnapshot(qDocRef, (docSnap) => {
+            const dailyData = docSnap.exists() ? docSnap.data() : {};
+            const yBox = document.getElementById('yumi-answer');
+            if (dailyData.유미) {
+                yBox.style.display = 'block';
+                yBox.querySelector('.text').innerText = dailyData.유미;
+            } else { yBox.style.display = 'none'; }
 
-        const gBox = document.getElementById('goni-answer');
-        if (dailyData.거니) {
-            gBox.style.display = 'block';
-            gBox.querySelector('.text').innerText = dailyData.거니;
-        } else { gBox.style.display = 'none'; }
-    });
+            const gBox = document.getElementById('goni-answer');
+            if (dailyData.거니) {
+                gBox.style.display = 'block';
+                gBox.querySelector('.text').innerText = dailyData.거니;
+            } else { gBox.style.display = 'none'; }
+        });
 
-    document.getElementById('q-input-area').style.display = 'none';
-    document.getElementById('writer-selector').style.display = 'flex';
-    document.getElementById('question-overlay').style.display = 'flex';
-};
+        document.getElementById('q-input-area').style.display = 'none';
+        document.getElementById('writer-selector').style.display = 'flex';
+        document.getElementById('question-overlay').style.display = 'flex';
+    };
 
-/* 2. [에러 지점] 작성자 선택 버튼 (유미가 쓰기 / 거니가 쓰기) */
-window.openInput = function(name) {
-    currentWriter = name;
-    document.getElementById('writer-selector').style.display = 'none';
-    document.getElementById('q-input-area').style.display = 'flex';
-    // 📍 HTML의 textarea ID는 q-answer-input 입니다.
-    const inputField = document.getElementById('q-answer-input'); 
-    inputField.placeholder = name + "의 고민시간...";
-    inputField.focus();
-};
-
-/* 3. 기록 완료 버튼 */
-window.submitDailyAnswer = async function() {
-    const answerInput = document.getElementById('q-answer-input'); 
-    const answerText = answerInput.value;
-    
-    if (!answerText || !answerText.trim()) {
-        alert("내용을 입력해주세요! 🌸");
-        return;
-    }
-
-    const today = new Date();
-    const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
-    const qDocRef = doc(db, "daily_answers", dateKey);
-
-    try {
-        await setDoc(qDocRef, {
-            [currentWriter]: answerText,
-            timestamp: serverTimestamp()
-        }, { merge: true });
-
-        const inputArea = document.getElementById('q-input-area');
-        inputArea.style.opacity = '0'; 
-        
-        setTimeout(() => {
-            inputArea.style.display = 'none'; 
-            inputArea.style.opacity = '1';    
-            document.getElementById('writer-selector').style.display = 'flex'; 
-            answerInput.value = "";           
-            window.showRandomQuestion(); 
-        }, 400);
-
-    } catch (e) {
-        console.error("저장 오류:", e);
-        alert("저장에 실패했어요. 다시 시도해줘! ✨");
-    }
-};
-
-/* 4. 닫기 버튼 */
-window.closeQuestion = function() {
-    document.getElementById('question-overlay').style.display = 'none';
-    if (document.getElementById('diary-modal').style.display === 'none') {
-        document.getElementById('overlay').style.display = 'none';
-    }
-};
+    window.openInput = function(name) {
+        currentWriter = name;
+        document.getElementById('writer-selector').style.display = 'none';
+        document.getElementById('q-input-area').style.display = 'flex';
+        const inputField = document.getElementById('q-answer-input'); 
+        inputField.placeholder = name + "의 고민시간...";
+        inputField.focus();
+    };
 
     window.submitDailyAnswer = async function() {
-    const answerInput = document.getElementById('q-answer-input'); 
-    const answerText = answerInput.value;
-    
-    if (!answerText || !answerText.trim()) {
-        alert("내용을 입력해주세요! 🌸");
-        return;
-    }
-
-    const today = new Date();
-    const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
-    const qDocRef = doc(db, "daily_answers", dateKey);
-
-    try {
-        // 1) Firebase 서버에 실시간 저장
-        await setDoc(qDocRef, {
-            [currentWriter]: answerText,
-            timestamp: serverTimestamp() // 상단에서 import한 것을 사용
-        }, { merge: true });
-
-        // 2) 부드러운 화면 전환 (스르륵 사라지기)
-        const inputArea = document.getElementById('q-input-area');
-        const writerSelector = document.getElementById('writer-selector');
+        const answerInput = document.getElementById('q-answer-input'); 
+        const answerText = answerInput.value;
         
-        inputArea.style.opacity = '0'; 
-        
-        setTimeout(() => {
-            inputArea.style.display = 'none'; 
-            inputArea.style.opacity = '1';    
-            writerSelector.style.display = 'flex'; 
-            answerInput.value = "";           
+        if (!answerText || !answerText.trim()) {
+            alert("내용을 입력해주세요! 🌸");
+            return;
+        }
+
+        const today = new Date();
+        const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+        const qDocRef = doc(db, "daily_answers", dateKey);
+
+        try {
+            await setDoc(qDocRef, {
+                [currentWriter]: answerText,
+                timestamp: serverTimestamp()
+            }, { merge: true });
+
+            const inputArea = document.getElementById('q-input-area');
+            const writerSelector = document.getElementById('writer-selector');
+            inputArea.style.opacity = '0'; 
             
-            // 3) 데이터 갱신
-            showRandomQuestion(); 
-        }, 400);
+            setTimeout(() => {
+                inputArea.style.display = 'none'; 
+                inputArea.style.opacity = '1';    
+                writerSelector.style.display = 'flex'; 
+                answerInput.value = "";           
+                window.showRandomQuestion(); 
+            }, 400);
 
-    } catch (e) {
-        console.error("저장 오류 발생:", e);
-        alert("저장에 실패했어요. 인터넷 연결이나 설정을 확인해줘! ✨");
-    }
-};
+        } catch (e) {
+            console.error("저장 오류:", e);
+            alert("저장에 실패했어요. 인터넷 연결이나 서버 권한을 확인해줘! ✨");
+        }
+    };
 
+    window.closeQuestion = function() {
+        document.getElementById('question-overlay').style.display = 'none';
+        if (document.getElementById('diary-modal').style.display === 'none') {
+            document.getElementById('overlay').style.display = 'none';
+        }
+    };
 </script>
 </body>
 </html>
+
 
 
 
