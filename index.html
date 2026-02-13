@@ -1059,101 +1059,53 @@ window.showRandomQuestion = function() {
     document.getElementById('question-overlay').style.display = 'flex';
 };
 
-    window.saveDailyAnswer = async function(writer) {
-    const answerInput = document.getElementById('q-diary-input');
+    window.submitDailyAnswer = async function() {
+    const answerInput = document.getElementById('q-answer-input'); // HTML의 실제 ID
     const answerText = answerInput.value;
     
-    if (!answerText.trim()) return; // 빈 내용이면 중단
+    if (!answerText.trim()) {
+        alert("내용을 입력해주세요! 🌸");
+        return;
+    }
 
     const today = new Date();
     const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
     const qDocRef = doc(db, "daily_answers", dateKey);
 
     try {
-        // 1) Firebase 저장
+        // 1) Firebase 서버에 실시간 저장 (거니/유미 구분 저장)
+        const { serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         await setDoc(qDocRef, {
-            [writer]: answerText,
+            [currentWriter]: answerText,
             timestamp: serverTimestamp()
         }, { merge: true });
 
-        // 2) 부드러운 화면 전환 효과
+        // 2) 부드러운 화면 전환 효과 (스르륵 사라지기)
         const inputArea = document.getElementById('q-input-area');
-        inputArea.style.opacity = '0'; // 서서히 투명하게
+        const writerSelector = document.getElementById('writer-selector');
+        
+        inputArea.style.opacity = '0'; // 투명하게 만들기
         
         setTimeout(() => {
-            inputArea.style.display = 'none'; // 완전히 숨김
-            inputArea.style.opacity = '1';    // 다음 사용을 위해 투명도 복구
+            inputArea.style.display = 'none'; // 입력창 숨기기
+            inputArea.style.opacity = '1';    // 투명도 복구
+            writerSelector.style.display = 'flex'; // 다시 버튼 선택창 보이게 (원할 시)
             answerInput.value = "";           // 입력창 비우기
             
-            // 3) 최신 데이터로 화면 갱신 (onSnapshot이 없다면 수동 호출)
+            // 3) 최신 데이터로 화면 즉시 갱신
             showRandomQuestion(); 
-        }, 300);
+        }, 400);
 
     } catch (e) {
         console.error("저장 오류:", e);
-        alert("저장에 실패했어요. 다시 시도해 주세요! ✨");
+        alert("서버 저장에 실패했어요. 인터넷 연결을 확인해줘! ✨");
     }
-};
-    
-/* 2. 입력창 열기 */
-window.openInput = function(name) {
-    currentWriter = name;
-    document.getElementById('writer-selector').style.display = 'none';
-    document.getElementById('q-input-area').style.display = 'flex';
-    document.getElementById('q-answer-input').placeholder = name + "의 고민시간...";
-    document.getElementById('q-answer-input').focus();
 };
 
-/* 3. 답변 저장 */
-window.submitDailyAnswer = function() {
-    const text = document.getElementById('q-answer-input').value;
-    if (!text.trim()) return alert("내용을 입력해주세요! 🌸");
-
-    const today = new Date();
-    const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
-    
-    const savedData = JSON.parse(localStorage.getItem('daily_q_' + dateKey) || "{}");
-    savedData[currentWriter] = text;
-    
-    localStorage.setItem('daily_q_' + dateKey, JSON.stringify(savedData));
-    
-    document.getElementById('q-answer-input').value = "";
-    alert(currentWriter + "님의 답변이 기록되었습니다! 💛");
-    showRandomQuestion(); 
-};
-    /* 📍 질문 팝업 닫기 함수: 닫을 때 입력창을 초기화합니다. */
-window.closeQuestion = function() {
-    const qOverlay = document.getElementById('question-overlay');
-    const diaryModal = document.getElementById('diary-modal');
-    const answerInput = document.getElementById('q-answer-input'); // 입력창 가져오기
-    
-    // 1. 입력창 내용 초기화 (작성 중이던 내용 삭제)
-    if (answerInput) {
-        answerInput.value = ""; 
-    }
-
-    // 2. 질문 팝업 숨기기
-    if (qOverlay) {
-        qOverlay.style.display = 'none';
-    }
-    
-    // 3. 배경(블러) 제어: 다이어리 모달이 꺼져있을 때만 오버레이 제거
-    if (diaryModal && (diaryModal.style.display === 'none' || diaryModal.style.display === '')) {
-        const overlay = document.getElementById('overlay');
-        if (overlay) overlay.style.display = 'none';
-    }
-    
-    // 4. 입력창이 열려있었다면 다시 버튼 선택 화면으로 UI 리셋
-    const inputArea = document.getElementById('q-input-area');
-    const writerSelector = document.getElementById('writer-selector');
-    if (inputArea && writerSelector) {
-        inputArea.style.display = 'none';
-        writerSelector.style.display = 'flex';
-    }
-};
 </script>
 </body>
 </html>
+
 
 
 
