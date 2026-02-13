@@ -760,8 +760,17 @@
         pathLine = L.polyline(path.map(p => [p.lat, p.lng]), { color: '#ffafcc', weight: 4, dashArray: '10, 10' }).addTo(diaryMap);
         setTimeout(() => { diaryMap.invalidateSize(); diaryMap.fitBounds(new L.featureGroup(markers).getBounds().pad(0.3)); }, 300);
     };
-    window.closeMap = () => { document.getElementById('map-container').style.display = 'none'; if (document.getElementById('diary-modal').style.display === 'none') document.getElementById('overlay').style.display = 'none'; };
-
+        window.closeMap = () => {
+            document.getElementById('map-container').style.display = 'none';
+            const o = document.getElementById('overlay');
+            const isDiaryOpen = document.getElementById('diary-modal').style.display === 'flex';
+            const isQuestionOpen = document.getElementById('question-overlay').style.display === 'flex';
+            
+            if (!isDiaryOpen && !isQuestionOpen) {
+                o.style.display = 'none';
+                o.style.zIndex = "100";
+            }
+        };
     // [7] 오늘의 랜덤 질문 기능
     window.showRandomQuestion = function() {
         const today = new Date(); const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
@@ -782,8 +791,17 @@
         await setDoc(doc(db, "daily_answers", dateKey), { [currentWriter]: input.value, timestamp: serverTimestamp() }, { merge: true });
         input.value = ""; document.getElementById('q-input-area').style.display = 'none'; document.getElementById('writer-selector').style.display = 'flex';
     };
-    window.closeQuestion = () => { document.getElementById('question-overlay').style.display = 'none'; if (document.getElementById('diary-modal').style.display === 'none') document.getElementById('overlay').style.display = 'none'; };
-
+        window.closeQuestion = () => {
+            document.getElementById('question-overlay').style.display = 'none';
+            const o = document.getElementById('overlay');
+            const isDiaryOpen = document.getElementById('diary-modal').style.display === 'flex';
+            const isMenuOpen = document.getElementById('side-menu').style.display === 'flex';
+            
+            if (!isDiaryOpen && !isMenuOpen) {
+                o.style.display = 'none';
+                o.style.zIndex = "100";
+            }
+        };
     // [8] 기념일 축하 (confetti)
     function makeHearts() {
         const heartEmojis = ['💛', '💖', '💗'];
@@ -801,11 +819,22 @@
     }
 
     // [9] 시스템 공통 함수 및 초기화
-    window.toggleMenu = () => {
-        const m = document.getElementById('side-menu'), o = document.getElementById('overlay');
-        if (m.style.display === 'none' || m.style.display === '') { m.style.display = 'flex'; o.style.display = 'block'; m.style.zIndex = "1001"; o.style.zIndex = "1000"; }
-        else { m.style.display = 'none'; if (document.getElementById('diary-modal').style.display === 'none' && document.getElementById('question-overlay').style.display === 'none') o.style.display = 'none'; }
-    };
+            window.toggleMenu = () => {
+            const m = document.getElementById('side-menu'), o = document.getElementById('overlay');
+            if (m.style.display === 'none' || m.style.display === '') {
+                m.style.display = 'flex'; o.style.display = 'block';
+                m.style.zIndex = "1001"; o.style.zIndex = "1000";
+            } else {
+                m.style.display = 'none';
+                // 📍 핵심: 기록창(diary-modal)과 질문창(question-overlay)이 둘 다 닫혀있을 때만 블러 제거
+                const isDiaryOpen = document.getElementById('diary-modal').style.display === 'flex';
+                const isQuestionOpen = document.getElementById('question-overlay').style.display === 'flex';
+                if (!isDiaryOpen && !isQuestionOpen) {
+                    o.style.display = 'none';
+                    o.style.zIndex = "100"; // 레이어 순서 복구
+                }
+            }
+        };
     window.closeModal = () => { document.getElementById('diary-modal').style.display = 'none'; if (document.getElementById('side-menu').style.display === 'none' && document.getElementById('question-overlay').style.display === 'none') document.getElementById('overlay').style.display = 'none'; };
     window.closeSurprise = () => document.getElementById('surprise-overlay').style.display = 'none';
     window.requestDel = (i) => { commentToDeleteIndex = i; document.getElementById('confirm-overlay').style.display = 'flex'; };
@@ -840,6 +869,7 @@
 </script>
 </body>
 </html>
+
 
 
 
