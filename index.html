@@ -382,6 +382,21 @@
             flex-direction: column;
             animation: simpleFade 0.3s ease-out; /* 새로운 애니메이션 적용 */
         }
+        /* 답변 상자가 나타날 때의 애니메이션 */
+        #yumi-answer, #goni-answer {
+            transition: all 0.5s ease;
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 입력 영역 페이드 아웃 효과 */
+        #q-input-area {
+            transition: opacity 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -1120,6 +1135,7 @@ window.closeQuestion = function() {
 </script>
 </body>
 </html>
+
 
 
 
