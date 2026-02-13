@@ -616,31 +616,31 @@
         if (weatherClickCount === 5) {
             let msg = "";
             switch(currentWeatherStatus) {
-                case 'Clear': msg = "유미야, 오늘 날씨 진짜 맑다! 이런날은 데이트하고싶은데... ☀️💛"; break;
-                case 'Clouds': msg = "하늘에 구름이 많네? 별 못봐도 방에서 거니만의 별보러가자! ☁️✨"; break;
-                case 'Rain': msg = "비가 오네? 유미랑 비맞으면서 뛰어노는 장면도 상상해볼까? ☔️❣️"; break;
-                case 'Snow': msg = "와 눈이다! 눈오면 항상 여보가 뛰어 다니던 모습만 생각나 ❄️💗"; break;
-                default: msg = "유미야, 날씨가 어떻든 너가 항상 생각나. 오늘도 많이 사랑해! 🌈❤️";
+                case 'Clear': msg = "유미야, 오늘 날씨 진짜 맑다!<br>이런날은 데이트하고싶은데... ☀️💛"; break;
+                case 'Clouds': msg = "하늘에 구름이 많네?<br>별 못봐도 방에서 거니만의 별보러가자! ☁️✨"; break;
+                case 'Rain': msg = "비오면 추울텐데<br> 꼬오옥 안고있을까까? ☔️❣️"; break;
+                case 'Snow': msg = "눈오는 날이면 이제<br>여보가 뛰어 다니던 모습만 생각나 ❄️💗"; break;
+                default: msg = "유미야, 날씨가 어떻든 너가 항상 생각나<br>오늘도 많이 사랑해! 🌈❤️";
             }
 
             const surpriseOverlay = document.getElementById('surprise-overlay');
             const surpriseContent = document.getElementById('surprise-msg-content');
             
-            // 1. 메시지 넣기
-            surpriseContent.innerHTML = `<div style="text-align:center; font-size:1.1rem; font-weight:900; padding:10px 0;">${msg}</div>`;
+            // 📍 글씨는 흰색(#ffffff)으로, 배경은 포인트 핑크로 변경
+            surpriseContent.innerHTML = `<div style="text-align:center; font-size:1.1rem; font-weight:900; padding:10px 0; color: #ffffff;">${msg}</div>`;
+            surpriseContent.parentElement.style.backgroundColor = "var(--point-pink)"; 
             
-            // 📍 2. 하단 버튼(❣️) 숨기기 (이 코드가 핵심!)
             const closeBtn = surpriseOverlay.querySelector('.btn-delete');
             if (closeBtn) closeBtn.style.display = 'none';
 
-            // 3. 팝업 표시
             surpriseOverlay.style.display = 'flex';
             
-            // 4. 2초 뒤 자동 닫기 및 버튼 원상복구
             setTimeout(() => {
                 surpriseOverlay.style.display = 'none';
-                if (closeBtn) closeBtn.style.display = 'block'; // 하트 연타 때는 버튼이 보여야 하니까요!
-            }, 2000);
+                if (closeBtn) closeBtn.style.display = 'block';
+                // 닫힐 때 배경색 원래대로 복구 (하트 편지용)
+                surpriseContent.parentElement.style.backgroundColor = "var(--bg-pink)";
+            }, 2500);
             
             weatherClickCount = 0;
         }
@@ -975,6 +975,7 @@
 </script>
 </body>
 </html>
+
 
 
 
