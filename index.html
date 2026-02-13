@@ -1037,9 +1037,27 @@ window.changeMapPath = function(dateKey) {
 
 /* 4. 지도 닫기 함수 (유지!) */
 window.closeMap = function() {
-    document.getElementById('map-container').style.display = 'none';
-    // 지도 닫을 때 배경 블러도 같이 꺼지게 설정
-    document.getElementById('overlay').style.display = 'none';
+    const mapContainer = document.getElementById('map-container');
+    const overlay = document.getElementById('overlay');
+    const diaryModal = document.getElementById('diary-modal');
+    const qOverlay = document.getElementById('question-overlay');
+
+    // 1. 지도 컨테이너 숨기기
+    if (mapContainer) mapContainer.style.display = 'none';
+
+    // 2. 📍 핵심: 다른 모달(기록창, 질문창)이 열려있지 않을 때만 블러를 완전히 제거
+    const isDiaryOpen = diaryModal && diaryModal.style.display === 'flex';
+    const isQuestionOpen = qOverlay && qOverlay.style.display === 'flex';
+
+    if (!isDiaryOpen && !isQuestionOpen) {
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.style.zIndex = "100"; // 레이어 순서를 기본값으로 초기화
+        }
+    } else {
+        // 만약 기록창 등이 열려있다면 블러 레이어를 기록창 수준으로 낮춤
+        if (overlay) overlay.style.zIndex = "1000";
+    }
 };
 
     const dailyQuestions = [
@@ -1158,6 +1176,7 @@ window.closeMap = function() {
 </script>
 </body>
 </html>
+
 
 
 
