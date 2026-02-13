@@ -593,7 +593,21 @@
         <button class="confirm-btn" onclick="closeMenuSecret()" style="background: #ffde59; color: #856404; border: none; padding: 12px; border-radius: 12px; font-weight: 900; cursor: pointer;">❣️ 거니의 비밀</button>
     </div>
 </div>
+    
+<div id="time-travel-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6000; align-items: center; justify-content: center; backdrop-filter: blur(15px);">
+    <div style="position: relative; width: 85%; max-width: 400px; text-align: center;">
+        
+        <div style="width: 100%; border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255, 222, 89, 0.7); border: 4px solid #ffde59;">
+            <img src="https://raw.githubusercontent.com/govhxj1/archive/refs/heads/main/%EA%B1%B0%EB%8B%88%EC%95%A0%EA%B8%B0.jpg" id="time-travel-img" style="width: 100%; display: block; object-fit: cover;" alt="특별한 기록">
+        </div>
 
+        <button onclick="closeTimeTravel()" style="margin-top: 25px; background: transparent; color: #ffde59; border: 1px solid #ffde59; padding: 8px 20px; border-radius: 30px; font-size: 0.8rem; cursor: pointer; letter-spacing: 1px; font-weight: bold;">
+            ✕ CLOSE
+        </button>
+        
+    </div>
+</div>
+    
 <div class="overlay" id="overlay"></div> <div id="diary-modal"></div>
     
 <div class="overlay" id="overlay"></div>
@@ -796,9 +810,26 @@ window.closeMenuSecret = () => {
 
     // [5] 모달 및 작성 기능 (이미지 업로드 복구)
     function openModal(day) {
+        // 1. 날짜 문자열 만들기
+        const mStr = String(viewMonth + 1).padStart(2, '0');
+        const dStr = String(day).padStart(2, '0');
+        
+        // 📍 2. [타임머신 체크] 1994년 4월 12일 전용 로직
+        if (viewYear === 1994 && viewMonth === 3 && day === 12) {
+            const timeOverlay = document.getElementById('time-travel-overlay');
+            if (timeOverlay) {
+                timeOverlay.style.display = 'flex';
+                return; // 여기서 멈추니까 아래 코드는 실행 안 됨!
+            }
+        }
+
+        // 3. 일반 날짜 로직 (여기서부터 기존 코드)
         currentDay = day;
-        const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const diaryModal = document.getElementById('diary-modal'), overlay = document.getElementById('overlay');
+        const dateKey = `${viewYear}-${mStr}-${dStr}`; // 위에서 만든 mStr 사용
+        const diaryModal = document.getElementById('diary-modal');
+        const overlay = document.getElementById('overlay');
+
+        // ... 나머지 기존 로직 (폭죽, specialDates 체크 등) ...
         
         // 📍 1. 기념일 폭죽 효과 로직 추가
         const startDate = new Date(2026, 0, 10); // 1월 10일
@@ -1065,6 +1096,7 @@ window.closeMenuSecret = () => {
 </script>
 </body>
 </html>
+
 
 
 
