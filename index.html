@@ -622,12 +622,17 @@
                 case 'Snow': msg = "와 눈이다! 눈오면 항상 여보가 뛰어 다니던 모습만 생각나 ❄️💗"; break;
                 default: msg = "유미야, 날씨가 어떻든 너가 항상 생각나. 오늘도 많이 사랑해! 🌈❤️";
             }
-            const box = document.getElementById('surprise-overlay');
             document.getElementById('surprise-msg-content').innerHTML = `<div style="text-align:center; font-size:1.1rem; font-weight:900;">${msg}</div>`;
-            box.style.display = 'flex'; setTimeout(() => box.style.display = 'none', 2000);
+            document.getElementById('surprise-overlay').style.display = 'flex';
+            
+            // 📍 2초 뒤 무조건 자동 닫기
+            setTimeout(() => {
+                document.getElementById('surprise-overlay').style.display = 'none';
+            }, 2000);
+            
             weatherClickCount = 0;
         }
-        clearTimeout(window.weatherTimer); window.weatherTimer = setTimeout(() => weatherClickCount = 0, 2000);
+        setTimeout(() => { weatherClickCount = 0; }, 2000);
     };
 
     document.getElementById('secret-heart-trigger').onclick = () => {
@@ -901,6 +906,7 @@
 </script>
 </body>
 </html>
+
 
 
 
