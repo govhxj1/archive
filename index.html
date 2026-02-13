@@ -480,6 +480,11 @@
         <h3 style="margin:0; font-weight: 900;">📍 우리들의 추억 지도</h3>
         <button onclick="closeMap()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">✕</button>
     </div>
+    <div id="map-tabs" style="display: flex; background: #fff0f3; padding: 10px; gap: 8px; justify-content: center;">
+        <button onclick="changeMapPath('2026-02-14')" class="map-tab-btn" id="btn-2026-02-14" style="flex:1; padding: 8px; border: none; border-radius: 10px; background: var(--point-pink); color: white; font-weight: 900; font-size: 0.8rem;">2/14 (토)</button>
+        <button onclick="changeMapPath('2026-02-15')" class="map-tab-btn" id="btn-2026-02-15" style="flex:1; padding: 8px; border: none; border-radius: 10px; background: white; color: #888; font-weight: 900; font-size: 0.8rem;">2/15 (일)</button>
+        <button onclick="changeMapPath('2026-02-16')" class="map-tab-btn" id="btn-2026-02-16" style="flex:1; padding: 8px; border: none; border-radius: 10px; background: white; color: #888; font-weight: 900; font-size: 0.8rem;">2/16 (월)</button>
+    </div>
     <div id="map" style="flex: 1; width: 100%;"></div>
 </div>
     
@@ -950,45 +955,91 @@
         if (typeof closeModal === 'function') closeModal();
     };
 
-    let diaryMap, pathLine, markers = [];
-    const feb14Path = [
+    /* 1. 지도 데이터 및 변수 설정 */
+const allPaths = {
+    "2026-02-14": [
         { name: "1. 저스트슬립 호텔", lat: 36.3537, lng: 127.3415, memo: "우리의 아늑한 숙소 🏨" },
         { name: "2. NC백화점 유성점", lat: 36.3540, lng: 127.3400, memo: "즐거운 쇼핑 데이트! 🛍️" },
         { name: "3. 어묵사랑애", lat: 36.3515, lng: 127.3420, memo: "따끈한 오뎅바에서 한잔 🍢" },
         { name: "4. 숙소 앞 산책", lat: 36.3530, lng: 127.3410, memo: "밤공기 마시며 걷기 🌙" }
-    ];
+    ],
+    "2026-02-15": [
+        { name: "1. 오월드 사파리", lat: 36.2895, lng: 127.3978, memo: "사자랑 호랑이 보러 가기 🦁" },
+        { name: "2. 아리네 닭볶음탕", lat: 36.3250, lng: 127.4050, memo: "맛있는 저녁 냠냠 🥘" }
+    ],
+    "2026-02-16": [
+        { name: "1. 농민뜨끈이", lat: 36.3315, lng: 127.4330, memo: "옥천 뼈구이 맛집! 🍖" },
+        { name: "2. 홈즈앤루팡", lat: 36.3520, lng: 127.3405, memo: "보드게임 한판 대결 🎲" }
+    ]
+};
 
-    window.openMap = function() {
-        const mapContainer = document.getElementById('map-container');
-        const mapElement = document.getElementById('map');
-        if (!mapContainer || !mapElement) return;
-        mapContainer.style.display = 'flex';
-        document.getElementById('side-menu').style.display = 'none';
-        if (!diaryMap) {
-            if (typeof L === 'undefined') { alert("지도 로딩 중..."); return; }
-            diaryMap = L.map('map').setView([36.3537, 127.3415], 16);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(diaryMap);
-        }
-        if (pathLine) diaryMap.removeLayer(pathLine);
-        markers.forEach(m => diaryMap.removeLayer(m));
-        markers = [];
-        feb14Path.forEach((p) => {
-            const marker = L.marker([p.lat, p.lng]).addTo(diaryMap).bindPopup(`<b>${p.name}</b><br>${p.memo}`);
-            markers.push(marker);
-        });
-        const latlngs = feb14Path.map(p => [p.lat, p.lng]);
-        pathLine = L.polyline(latlngs, { color: '#ffafcc', weight: 4, dashArray: '10, 10' }).addTo(diaryMap);
-        setTimeout(() => { 
-            diaryMap.invalidateSize();
-            const group = new L.featureGroup(markers);
+let diaryMap;
+let pathLine;
+let markers = [];
+
+/* 2. 지도 열기 함수 */
+window.openMap = function() {
+    document.getElementById('map-container').style.display = 'flex';
+    document.getElementById('side-menu').style.display = 'none';
+    
+    // 지도가 처음 생성될 때만 초기화
+    if (!diaryMap) {
+        diaryMap = L.map('map').setView([36.3537, 127.3415], 14);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(diaryMap);
+    }
+    
+    // 열 때 항상 첫째 날(14일) 데이터를 먼저 보여줌
+    window.changeMapPath('2026-02-14');
+};
+
+/* 3. 요일 전환 함수 (핵심!) */
+window.changeMapPath = function(dateKey) {
+    const selectedPath = allPaths[dateKey];
+    if (!selectedPath || !diaryMap) return;
+
+    // 버튼 스타일 업데이트
+    document.querySelectorAll('.map-tab-btn').forEach(btn => {
+        btn.style.background = 'white';
+        btn.style.color = '#888';
+    });
+    const activeBtn = document.getElementById('btn-' + dateKey);
+    if (activeBtn) {
+        activeBtn.style.background = 'var(--point-pink)';
+        activeBtn.style.color = 'white';
+    }
+
+    // 기존 마커 및 선 지우기
+    if (pathLine) diaryMap.removeLayer(pathLine);
+    markers.forEach(m => diaryMap.removeLayer(m));
+    markers = [];
+
+    // 새 마커 추가
+    selectedPath.forEach(p => {
+        const marker = L.marker([p.lat, p.lng]).addTo(diaryMap)
+            .bindPopup(`<b>${p.name}</b><br>${p.memo}`);
+        markers.push(marker);
+    });
+
+    // 새 선 그리기
+    const latlngs = selectedPath.map(p => [p.lat, p.lng]);
+    pathLine = L.polyline(latlngs, { color: '#ffafcc', weight: 4, dashArray: '10, 10' }).addTo(diaryMap);
+
+    // 화면 크기에 맞춰 지도 조정
+    setTimeout(() => {
+        diaryMap.invalidateSize();
+        const group = new L.featureGroup(markers);
+        if (markers.length > 0) {
             diaryMap.fitBounds(group.getBounds().pad(0.3));
-        }, 300);
-    };
+        }
+    }, 300);
+};
 
-    window.closeMap = function() {
-        document.getElementById('map-container').style.display = 'none';
-        document.getElementById('overlay').style.display = 'none';
-    };
+/* 4. 지도 닫기 함수 (유지!) */
+window.closeMap = function() {
+    document.getElementById('map-container').style.display = 'none';
+    // 지도 닫을 때 배경 블러도 같이 꺼지게 설정
+    document.getElementById('overlay').style.display = 'none';
+};
 
     const dailyQuestions = [
         "우리 처음 만났을 때, 나의 첫인상은 어땠어? 😊",
@@ -1106,6 +1157,7 @@
 </script>
 </body>
 </html>
+
 
 
 
