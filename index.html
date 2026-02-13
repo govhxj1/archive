@@ -641,8 +641,24 @@
         } else { signInAnonymously(auth); }
     });
 
-    const allStickers = ['💛', '💖', '💓', '🧡', '💚', '💙', '💜', '❣️', '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇', '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️', '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️', '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕', '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤', '🐱', '🐶', '🧸', '🦄', '🐰', '🐥', '🐼', '🦁', '🎧', '🎬', '🎮', '⚽', '📚', '💻', '🎸', '📷', '🎈', '🎁', '💎', '💌', '🌻', '🌳', '🐚', '🏔️', '💒', '💍', '💐', '🥂', '🌃', '🎇', '🌠', '🎠', '🎡', '🧶', '👗', '💄', '👠', '👒', '🧤', '🧣', '🧥', '🧦', '🌂', '👜', '💼', '👓', '👟', '👞'];
-
+        const allStickers = [
+            '💛', '💖', '💓', '🧡', '💚', '💙', '💜', '❣️',
+            '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇',
+            '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️',
+            '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️',
+            '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕',
+            '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤',
+            '🐱', '🐶', '🧸', '🦄', '🐰', '🐥', '🐼', '🦁',
+            '🎧', '🎬', '🎮', '⚽', '📚', '💻', '🎸', '📷',
+            '🎈', '🎁', '💎', '💌', '🌻', '🌳', '🐚', '🏔️',
+            '💒', '💍', '💐', '🥂', '🌃', '🎇', '🌠', '🎠',
+            '🎡', '🧶', '👗', '💄', '👠', '👒', '🧤', '🧣',
+            '🧥', '🧦', '🌂', '👜', '💼', '👓', '👟', '👞',
+            '🎨', '🎤', '🧗', '🚵', '🚣', '🏊', '🏄', '🌋',
+            '⛺', '🎢', '🏰', '🗼', '🗽', '🗺️', '🗾', '🏢',
+            '🏤', '🏥', '뱅', '🏪', '🏫', '🏬', '🏩', '🎡'
+        ];
+    
     function initStickers() {
         const wrapper = document.getElementById('sticker-wrapper');
         if (!wrapper) return;
@@ -673,13 +689,20 @@
     }
 
     window.goToStickerPage = (index) => {
-        const wrapper = document.getElementById('sticker-wrapper');
-        const dots = document.getElementById('pagination-dots');
-        if (!wrapper || index < 0 || index > 3) return;
-        currentPage = index; 
-        wrapper.style.transform = `translateX(-${index * 25}%)`;
-        if (dots) Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
-    };
+            const wrapper = document.getElementById('sticker-wrapper');
+            const dots = document.getElementById('pagination-dots');
+            if (!wrapper || index < 0 || index > 4) return; // 📍 최대 인덱스 4로 변경
+            currentPage = index; 
+            // 📍 이동 단위를 25%에서 20%로 변경 (100 / 5페이지)
+            wrapper.style.transform = `translateX(-${index * 20}%)`;
+            if (dots) Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+        };
+        
+        // 스와이프 체크 로직 수정 (setupOriginalDiary 함수 하단)
+        if (Math.abs(diff) > 50) { 
+            if (diff > 0 && currentPage < 4) window.goToStickerPage(currentPage + 1); // 📍 최대 4까지
+            else if (diff < 0 && currentPage > 0) window.goToStickerPage(currentPage - 1);
+        }
 
     function renderCalendar() {
         dateContainer.innerHTML = ""; monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
@@ -1176,6 +1199,7 @@ window.closeMap = function() {
 </script>
 </body>
 </html>
+
 
 
 
