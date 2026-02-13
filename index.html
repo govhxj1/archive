@@ -622,23 +622,30 @@
                 case 'Snow': msg = "와 눈이다! 눈오면 항상 여보가 뛰어 다니던 모습만 생각나 ❄️💗"; break;
                 default: msg = "유미야, 날씨가 어떻든 너가 항상 생각나. 오늘도 많이 사랑해! 🌈❤️";
             }
-            document.getElementById('surprise-msg-content').innerHTML = `<div style="text-align:center; font-size:1.1rem; font-weight:900;">${msg}</div>`;
-            document.getElementById('surprise-overlay').style.display = 'flex';
+
+            const surpriseOverlay = document.getElementById('surprise-overlay');
+            const surpriseContent = document.getElementById('surprise-msg-content');
             
-            // 📍 2초 뒤 무조건 자동 닫기
+            // 1. 메시지 넣기
+            surpriseContent.innerHTML = `<div style="text-align:center; font-size:1.1rem; font-weight:900; padding:10px 0;">${msg}</div>`;
+            
+            // 📍 2. 하단 버튼(❣️) 숨기기 (이 코드가 핵심!)
+            const closeBtn = surpriseOverlay.querySelector('.btn-delete');
+            if (closeBtn) closeBtn.style.display = 'none';
+
+            // 3. 팝업 표시
+            surpriseOverlay.style.display = 'flex';
+            
+            // 4. 2초 뒤 자동 닫기 및 버튼 원상복구
             setTimeout(() => {
-                document.getElementById('surprise-overlay').style.display = 'none';
+                surpriseOverlay.style.display = 'none';
+                if (closeBtn) closeBtn.style.display = 'block'; // 하트 연타 때는 버튼이 보여야 하니까요!
             }, 2000);
             
             weatherClickCount = 0;
         }
-        setTimeout(() => { weatherClickCount = 0; }, 2000);
-    };
-
-    document.getElementById('secret-heart-trigger').onclick = () => {
-        secretClickCount++;
-        if (secretClickCount === 5) { document.getElementById('surprise-overlay').style.display = 'flex'; secretClickCount = 0; }
-        clearTimeout(window.secretTimer); window.secretTimer = setTimeout(() => secretClickCount = 0, 2000);
+        clearTimeout(window.weatherTimer);
+        window.weatherTimer = setTimeout(() => { weatherClickCount = 0; }, 2000);
     };
 
     // [4] 스티커 및 달력 로직 (5페이지 120종)
@@ -968,6 +975,7 @@
 </script>
 </body>
 </html>
+
 
 
 
