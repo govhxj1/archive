@@ -500,9 +500,14 @@
 <div class="calendar-container" id="calendar-swipe-area">
     <div class="header">
         <button class="nav-btn" id="prev-month">❮</button>
-        <h2 id="month-title">2026년 2월</h2>
+        
+        <h2 id="month-title" onclick="showYearPicker()" style="cursor: pointer; position: relative;">
+            2026년 2월
+        </h2>
+        
         <button class="nav-btn" id="next-month">❯</button>
     </div>
+    <p style="text-align: center; font-size: 0.6rem; color: #bbb; margin-top: -10px; margin-bottom: 10px;">(연도를 누르면 바로 이동해요!)</p>
     <div class="days">
         <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
     </div>
@@ -1101,9 +1106,30 @@ window.closeTimeTravel = () => {
         let diffX = calTouchStartX - e.changedTouches[0].clientX;
         if (Math.abs(diffX) > 50) { viewMonth += (diffX > 0 ? 1 : -1); if(viewMonth<0){viewMonth=11;viewYear--;} else if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); }
     }, { passive: true });
+    // 연도 클릭 시 바로 이동하는 마법의 함수
+window.showYearPicker = () => {
+    const targetYear = prompt("이동하고 싶은 연도를 입력해줘! (예: 1994)", viewYear);
+    
+    if (targetYear && !isNaN(targetYear)) {
+        viewYear = parseInt(targetYear);
+        
+        // 1994년을 입력하면 자동으로 4월(인덱스 3)로 세팅
+        if (viewYear === 1994) {
+            viewMonth = 3; 
+        }
+        
+        // 달력을 다시 그려주는 함수 호출 (이름이 다를 수 있으니 체크!)
+        if (typeof renderCalendar === 'function') {
+            renderCalendar();
+        } else if (typeof updateCalendar === 'function') {
+            updateCalendar();
+        }
+    }
+};
 </script>
 </body>
 </html>
+
 
 
 
