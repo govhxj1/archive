@@ -840,37 +840,32 @@ window.closeMenuSecret = () => {
     }
             async function checkYumiDiary() {
     const today = new Date();
-    const tYear = today.getFullYear();
-    const tMonth = String(today.getMonth() + 1).padStart(2, '0');
-    const tDay = String(today.getDate()).padStart(2, '0');
-    const todayKey = `${tYear}-${tMonth}-${tDay}`;
+    // 파이어베이스 문서 ID 형식에 맞춰 날짜 키 생성 (예: 2026-2-23)
+    const todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
 
-    // 1. 메인 하트 요소 가져오기
+    // 1. 하트 아이콘 가져오기
     const heartIcon = document.getElementById('secret-heart-trigger');
     if (!heartIcon) return;
 
-    // 2. 이미 불러온 cloudRecords에서 오늘 날짜 데이터 확인
-    const todayData = cloudRecords[todayKey];
+    // 2. 이미 불러온 데이터(cloudRecords 등)나 직접 파이어베이스에서 오늘 데이터 확인
+    // 여기서는 보여주신 'daily_answers' 컬렉션을 기준으로 체크합니다.
+    const todayData = cloudRecords[todayKey]; 
 
-    // 3. 유미 님이 일기를 썼는지 확인 (거니 님 DB 구조에 맞춰 yumi_content 확인)
-    // 만약 필드명이 다르면 실제 사용하는 이름(예: yumiContent 등)으로 바꿔주세요!
-    if (todayData && todayData.yumi_content && todayData.yumi_content.trim() !== "") {
-        
-        // 하트에 두근두근 애니메이션 클래스 추가
+    // 3. 필드명이 '유미'인 데이터가 있는지 확인
+    if (todayData && todayData['유미'] && todayData['유미'].trim() !== "") {
+        // 하트 두근두근 활성화
         heartIcon.classList.add('heart-active');
         
-        // NEW! 배지가 없으면 새로 만들기
+        // NEW! 배지 생성
         if (!document.querySelector('.new-badge')) {
             const badge = document.createElement('span');
             badge.className = 'new-badge';
             badge.innerText = 'NEW!';
-            
-            // 하트 부모 요소에 배지 붙이기
             heartIcon.parentElement.style.position = 'relative';
             heartIcon.parentElement.appendChild(badge);
         }
     } else {
-        // 일기가 없으면 효과 제거 (지웠을 때를 대비)
+        // 답변이 없으면 하트 평범하게
         heartIcon.classList.remove('heart-active');
         const oldBadge = document.querySelector('.new-badge');
         if (oldBadge) oldBadge.remove();
@@ -1193,6 +1188,7 @@ window.showYearPicker = () => {
 </script>
 </body>
 </html>
+
 
 
 
