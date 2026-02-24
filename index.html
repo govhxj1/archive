@@ -836,39 +836,77 @@ window.closeMenuSecret = () => {
             cell.onclick = () => openModal(i);
             dateContainer.appendChild(cell);
         }
-        checkYumiDiary();
-    }
-            async function checkYumiDiary() {
+// 1. 하트 상태를 실시간으로 감시하는 함수 (완전히 새로 작성)
+function setupHeartNotification() {
     const today = new Date();
-    // 파이어베이스 문서 ID 형식에 맞춰 날짜 키 생성 (예: 2026-2-23)
+    // 파이어베이스 문서 ID 형식 (0 없이 연-월-일, 예: 2026-2-24)
     const todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-
-    // 1. 하트 아이콘 가져오기
     const heartIcon = document.getElementById('secret-heart-trigger');
+    
     if (!heartIcon) return;
 
-    // 2. 이미 불러온 데이터(cloudRecords 등)나 직접 파이어베이스에서 오늘 데이터 확인
-    // 여기서는 보여주신 'daily_answers' 컬렉션을 기준으로 체크합니다.
-    const todayData = cloudRecords[todayKey]; 
-
-    // 3. 필드명이 '유미'인 데이터가 있는지 확인
-    if (todayData && todayData['유미'] && todayData['유미'].trim() !== "") {
-        // 하트 두근두근 활성화
-        heartIcon.classList.add('heart-active');
-        
-        // NEW! 배지 생성
-        if (!document.querySelector('.new-badge')) {
-            const badge = document.createElement('span');
-            badge.className = 'new-badge';
-            badge.innerText = 'NEW!';
-            heartIcon.parentElement.style.position = 'relative';
-            heartIcon.parentElement.appendChild(badge);
+    // 📍 daily_answers 컬렉션의 오늘 문서를 실시간으로 감시합니다.
+    const todayDocRef = doc(db, "daily_answers", todayKey);
+    
+    onSnapshot(todayDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            // '유미' 필드에 내용이 있는지 확인
+            if (data['유미'] && data['유미'].trim() !== "") {
+                // 유미가 답변을 썼다면 -> 하트 두근두근 + 배지 생성
+                heartIcon.classList.add('heart-active');
+                
+                if (!document.querySelector('.new-badge')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'new-badge';
+                    badge.innerText = 'NEW!';
+                    heartIcon.parentElement.style.position = 'relative';
+                    heartIcon.parentElement.appendChild(badge);
+                }
+            } else {
+                // 답변이 없다면 (혹은 지웠다면) -> 초기화
+                resetHeart(heartIcon);
+            }
+        } else {
+            // 문서 자체가 없다면 (오늘 아무도 안 썼다면) -> 초기화
+            resetHeart(heartIcon);
         }
+    }, (error) => {
+        console.error("하트 알림 감시 중 오류 발생:", error);
+    });
+}
+
+// 하트 상태 초기화 함수
+function resetHeart(heartIcon) {
+    heartIcon.classList.remove('heart-active');
+    const oldBadge = document.querySelector('.new-badge');
+    if (oldBadge) oldBadge.remove();
+}
+
+// 2. 인증 완료 후 알림 감시 시작 (onAuthStateChanged 부분 수정)
+onAuthStateChanged(auth, async (u) => {
+    user = u;
+    if (user) {
+        // [기존 코드] 달력 기록 감시
+        onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords'), (snapshot) => {
+            cloudRecords = {}; 
+            snapshot.forEach(doc => cloudRecords[doc.id] = doc.data());
+            renderCalendar(); 
+            updateDday();
+            if (loadingOverlay) { 
+                loadingOverlay.style.opacity = '0'; 
+                setTimeout(() => loadingOverlay.style.display = 'none', 500); 
+            }
+        });
+
+        // 📍 [새로 추가] 하트 알림 실시간 감시 시작!
+        setupHeartNotification();
+        
     } else {
-        // 답변이 없으면 하트 평범하게
-        heartIcon.classList.remove('heart-active');
-        const oldBadge = document.querySelector('.new-badge');
-        if (oldBadge) oldBadge.remove();
+        signInAnonymously(auth);
+    }
+});
+        
     }
 }
 
@@ -1188,6 +1226,7 @@ window.showYearPicker = () => {
 </script>
 </body>
 </html>
+
 
 
 
