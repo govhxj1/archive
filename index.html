@@ -514,11 +514,14 @@
         <h3 style="margin:0; font-weight: 900;">📍 우리들의 추억 지도</h3>
         <button onclick="closeMap()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">✕</button>
     </div>
-    <div id="map-tabs" style="display: flex; background: #fff0f3; padding: 10px; gap: 8px; justify-content: center;">
-        <button onclick="changeMapPath('2026-02-14')" class="map-tab-btn" id="btn-2026-02-14" style="flex:1; padding: 8px; border: none; border-radius: 10px; background: var(--point-pink); color: white; font-weight: 900; font-size: 0.8rem;">2/14 (토)</button>
-        <button onclick="changeMapPath('2026-02-15')" class="map-tab-btn" id="btn-2026-02-15" style="flex:1; padding: 8px; border: none; border-radius: 10px; background: white; color: #888; font-weight: 900; font-size: 0.8rem;">2/15 (일)</button>
-        <button onclick="changeMapPath('2026-02-16')" class="map-tab-btn" id="btn-2026-02-16" style="flex:1; padding: 8px; border: none; border-radius: 10px; background: white; color: #888; font-weight: 900; font-size: 0.8rem;">2/16 (월)</button>
-    </div>
+    <div id="map-tabs" style="display: flex; background: #fff0f3; padding: 10px; gap: 8px; justify-content: center; align-items: center;">
+    <input type="date" id="date-selector" 
+        style="flex: 2; padding: 8px; border: 1px solid #ffafcc; border-radius: 10px; font-family: inherit; font-size: 0.9rem; color: #555; outline: none;">
+    <button onclick="loadMemoriesByDate()" 
+        style="flex: 1; padding: 8px; border: none; border-radius: 10px; background: var(--point-pink); color: white; font-weight: 900; font-size: 0.8rem; cursor: pointer;">
+        보기 ✨
+    </button>
+</div>
     <div id="map" style="flex: 1; width: 100%;"></div>
 </div>
     
@@ -1024,34 +1027,68 @@ function renderCalendar() {
         if(scrollToBottom) { const s = document.getElementById('comment-scroll-area'); if(s) s.scrollTop = s.scrollHeight; }
     }
 
-    // [6] 지도 기능 (요일 전환 포함)
-    let diaryMap, pathLine, markers = [];
-    window.openMap = function() {
-        document.getElementById('map-container').style.display = 'flex'; document.getElementById('side-menu').style.display = 'none';
-        if (!diaryMap) { diaryMap = L.map('map').setView([36.3537, 127.3415], 14); L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(diaryMap); }
-        window.changeMapPath('2026-02-14');
-    };
-    window.changeMapPath = function(dateKey) {
-        if (!diaryMap) return; 
-        document.querySelectorAll('.map-tab-btn').forEach(btn => { btn.style.background = 'white'; btn.style.color = '#888'; });
-        const active = document.getElementById('btn-' + dateKey); if (active) { active.style.background = 'var(--point-pink)'; active.style.color = 'white'; }
-        if (pathLine) diaryMap.removeLayer(pathLine); markers.forEach(m => diaryMap.removeLayer(m)); markers = [];
-        const path = allPaths[dateKey];
-        path.forEach(p => { const m = L.marker([p.lat, p.lng]).addTo(diaryMap).bindPopup(`<b>${p.name}</b><br>${p.memo}`); markers.push(m); });
-        pathLine = L.polyline(path.map(p => [p.lat, p.lng]), { color: '#ffafcc', weight: 4, dashArray: '10, 10' }).addTo(diaryMap);
-        setTimeout(() => { diaryMap.invalidateSize(); diaryMap.fitBounds(new L.featureGroup(markers).getBounds().pad(0.3)); }, 300);
-    };
-        window.closeMap = () => {
-            document.getElementById('map-container').style.display = 'none';
-            const o = document.getElementById('overlay');
-            const isDiaryOpen = document.getElementById('diary-modal').style.display === 'flex';
-            const isQuestionOpen = document.getElementById('question-overlay').style.display === 'flex';
-            
-            if (!isDiaryOpen && !isQuestionOpen) {
-                o.style.display = 'none';
-                o.style.zIndex = "100";
-            }
-        };
+   // [6] 지도 기능 수정
+let diaryMap, pathLine, markers = [];
+
+window.openMap = function() {
+    document.getElementById('map-container').style.display = 'flex'; 
+    document.getElementById('side-menu').style.display = 'none';
+    
+    if (!diaryMap) { 
+        diaryMap = L.map('map').setView([36.3537, 127.3415], 14); 
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(diaryMap); 
+    }
+    
+    // 📍 열릴 때 오늘 날짜를 기본값으로 세팅
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date-selector').value = today;
+    
+    // 오늘 날짜 데이터 불러오기 시도
+    window.loadMemoriesByDate();
+};
+
+// 📍 날짜를 선택해서 데이터를 불러오는 새로운 핵심 함수
+window.loadMemoriesByDate = function() {
+    const selectedDate = document.getElementById('date-selector').value;
+    if (!selectedDate) return;
+
+    // 파이어베이스 경로에 맞게 변환 (2026-02-24 -> 2026-2-24)
+    const [y, m, d] = selectedDate.split('-');
+    const dateKey = `${y}-${parseInt(m)}-${parseInt(d)}`;
+
+    // 1. 기존 데이터(기존에 하드코딩된 14,15,16일 데이터)가 있는지 먼저 확인
+    if (allPaths[dateKey]) {
+        renderMapPath(allPaths[dateKey]);
+    } else {
+        // 2. 하드코딩된 데이터가 없으면 파이어베이스(cloudRecords 등)에서 찾기
+        // 현재 일기 기록에 저장된 장소 정보가 있다면 여기서 불러오도록 확장 가능합니다.
+        alert(dateKey + "일에는 등록된 장소가 없어요! 🌸");
+        if (pathLine) diaryMap.removeLayer(pathLine);
+        markers.forEach(m => diaryMap.removeLayer(m));
+        markers = [];
+    }
+};
+
+// 지도를 실제로 그려주는 공통 로직
+function renderMapPath(path) {
+    if (pathLine) diaryMap.removeLayer(pathLine);
+    markers.forEach(m => diaryMap.removeLayer(m));
+    markers = [];
+
+    path.forEach(p => { 
+        const m = L.marker([p.lat, p.lng]).addTo(diaryMap).bindPopup(`<b>${p.name}</b><br>${p.memo}`); 
+        markers.push(m); 
+    });
+
+    pathLine = L.polyline(path.map(p => [p.lat, p.lng]), { color: '#ffafcc', weight: 4, dashArray: '10, 10' }).addTo(diaryMap);
+    
+    setTimeout(() => { 
+        diaryMap.invalidateSize(); 
+        if (markers.length > 0) {
+            diaryMap.fitBounds(new L.featureGroup(markers).getBounds().pad(0.3)); 
+        }
+    }, 300);
+}
     // [7] 오늘의 랜덤 질문 기능
     window.showRandomQuestion = function() {
         const today = new Date(); const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
@@ -1291,6 +1328,7 @@ onAuthStateChanged(auth, async (u) => {
 </script>
 </body>
 </html>
+
 
 
 
