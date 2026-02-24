@@ -836,75 +836,75 @@ window.closeMenuSecret = () => {
             cell.onclick = () => openModal(i);
             dateContainer.appendChild(cell);
         }
-// 1. 하트 상태를 실시간으로 감시하는 함수 (완전히 새로 작성)
+// [1] 하트 알림 실시간 감시 함수
 function setupHeartNotification() {
     const today = new Date();
-    // 파이어베이스 문서 ID 형식 (0 없이 연-월-일, 예: 2026-2-24)
-    const todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    // 파이어베이스 데이터 형식과 일치 (0 없이 2026-2-24 형식)
+    const tKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     const heartIcon = document.getElementById('secret-heart-trigger');
-    
     if (!heartIcon) return;
 
-    // 📍 daily_answers 컬렉션의 오늘 문서를 실시간으로 감시합니다.
-    const todayDocRef = doc(db, "daily_answers", todayKey);
-    
-    onSnapshot(todayDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            // '유미' 필드에 내용이 있는지 확인
-            if (data['유미'] && data['유미'].trim() !== "") {
-                // 유미가 답변을 썼다면 -> 하트 두근두근 + 배지 생성
-                heartIcon.classList.add('heart-active');
-                
-                if (!document.querySelector('.new-badge')) {
-                    const badge = document.createElement('span');
-                    badge.className = 'new-badge';
-                    badge.innerText = 'NEW!';
-                    heartIcon.parentElement.style.position = 'relative';
-                    heartIcon.parentElement.appendChild(badge);
-                }
-            } else {
-                // 답변이 없다면 (혹은 지웠다면) -> 초기화
-                resetHeart(heartIcon);
+    // 📍 RULE 1 준수: artifacts 경로 사용
+    const todayDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'daily_answers', tKey);
+
+    onSnapshot(todayDocRef, (snap) => {
+        const data = snap.exists() ? snap.data() : {};
+        // 유미 님이 답변을 남겼는지 확인
+        if (data['유미'] && data['유미'].trim() !== "") {
+            heartIcon.classList.add('heart-active');
+            if (!document.querySelector('.new-badge')) {
+                const b = document.createElement('span');
+                b.className = 'new-badge';
+                b.innerText = 'NEW!';
+                heartIcon.parentElement.style.position = 'relative';
+                heartIcon.parentElement.appendChild(b);
             }
         } else {
-            // 문서 자체가 없다면 (오늘 아무도 안 썼다면) -> 초기화
-            resetHeart(heartIcon);
+            // 답변이 없으면 하트 초기화
+            heartIcon.classList.remove('heart-active');
+            const b = document.querySelector('.new-badge');
+            if (b) b.remove();
         }
-    }, (error) => {
-        console.error("하트 알림 감시 중 오류 발생:", error);
-    });
+    }, (err) => console.log("Heart notification error:", err));
 }
 
-// 하트 상태 초기화 함수
-function resetHeart(heartIcon) {
-    heartIcon.classList.remove('heart-active');
-    const oldBadge = document.querySelector('.new-badge');
-    if (oldBadge) oldBadge.remove();
-}
-
-// 2. 인증 완료 후 알림 감시 시작 (onAuthStateChanged 부분 수정)
+// [2] 앱 시작 및 데이터 로드 (무한 로딩 방지)
 onAuthStateChanged(auth, async (u) => {
-    user = u;
-    if (user) {
-        // [기존 코드] 달력 기록 감시
-        onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords'), (snapshot) => {
-            cloudRecords = {}; 
-            snapshot.forEach(doc => cloudRecords[doc.id] = doc.data());
-            renderCalendar(); 
-            updateDday();
-            if (loadingOverlay) { 
-                loadingOverlay.style.opacity = '0'; 
-                setTimeout(() => loadingOverlay.style.display = 'none', 500); 
-            }
+    // 1. 인증이 안 되어 있으면 익명 로그인 실행
+    if (!u) {
+        await signInAnonymously(auth);
+        return; 
+    }
+
+    user = u; // 전역 user 변수에 저장
+
+    // 2. 메인 데이터(일기 기록) 실시간 감시 시작
+    const diaryCol = collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords');
+    
+    onSnapshot(diaryCol, (snapshot) => {
+        cloudRecords = {};
+        snapshot.forEach(doc => {
+            cloudRecords[doc.id] = doc.data();
         });
 
-        // 📍 [새로 추가] 하트 알림 실시간 감시 시작!
-        setupHeartNotification();
-        
-    } else {
-        signInAnonymously(auth);
-    }
+        // 데이터 로드 후 달력 그리기 및 D-day 업데이트
+        renderCalendar();
+        updateDday();
+
+        // 📍 핵심: 데이터가 한 번이라도 로드되면 로딩 화면을 확실히 끕니다.
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.opacity = '0';
+            setTimeout(() => loadingOverlay.style.display = 'none', 500);
+        }
+    }, (err) => {
+        console.error("Data load error:", err);
+        // 에러가 나더라도 사용자가 화면은 볼 수 있게 로딩창을 끕니다.
+        document.getElementById('loading-overlay').style.display = 'none';
+    });
+
+    // 3. 하트 알림 실시간 감시 시작
+    setupHeartNotification();
 });
         
     }
@@ -1226,6 +1226,7 @@ window.showYearPicker = () => {
 </script>
 </body>
 </html>
+
 
 
 
