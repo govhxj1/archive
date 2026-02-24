@@ -1067,11 +1067,24 @@ function renderCalendar() {
     };
     window.openInput = (name) => { currentWriter = name; document.getElementById('writer-selector').style.display = 'none'; document.getElementById('q-input-area').style.display = 'flex'; document.getElementById('q-answer-input').placeholder = name + "의 고민시간..."; document.getElementById('q-answer-input').focus(); };
     window.submitDailyAnswer = async () => {
-        const input = document.getElementById('q-answer-input'); if (!input.value.trim()) return alert("내용을 입력해주세요! 🌸");
-        const dateKey = new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + new Date().getDate();
-        await setDoc(doc(db, "daily_answers", dateKey), { [currentWriter]: input.value, timestamp: serverTimestamp() }, { merge: true });
-        input.value = ""; document.getElementById('q-input-area').style.display = 'none'; document.getElementById('writer-selector').style.display = 'flex';
-    };
+    const input = document.getElementById('q-answer-input'); 
+    if (!input.value.trim()) return alert("내용을 입력해주세요! 🌸");
+    
+    const today = new Date();
+    const dateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    
+    // 📍 저장 경로도 최상위 daily_answers로 통일
+    const docRef = doc(db, 'daily_answers', dateKey);
+
+    await setDoc(docRef, { 
+        [currentWriter]: input.value, 
+        timestamp: serverTimestamp() 
+    }, { merge: true });
+
+    input.value = ""; 
+    document.getElementById('q-input-area').style.display = 'none'; 
+    document.getElementById('writer-selector').style.display = 'flex';
+};
         window.closeQuestion = () => {
             document.getElementById('question-overlay').style.display = 'none';
             const o = document.getElementById('overlay');
@@ -1194,28 +1207,31 @@ window.showYearPicker = () => {
     // [1] 하트 알림 실시간 감시 함수 (한 명만 답변했을 때 두근거림)
 function setupHeartNotification() {
     const today = new Date();
-    // 파이어베이스 날짜 형식: 2026-2-24 (0 없음)
+    // 이미지와 동일한 포맷: 2026-2-24 (월, 일 앞에 0 없음)
     const tKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     const heartIcon = document.getElementById('secret-heart-trigger');
     
     if (!heartIcon) return;
 
-    // 📍 RULE 1: 정확한 경로 (daily_answers 컬렉션 감시)
-    const todayDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'daily_answers', tKey);
+    // 📍 이미지 구조에 맞게 수정: artifacts를 거치지 않고 바로 daily_answers로 접근
+    const todayDocRef = doc(db, 'daily_answers', tKey);
 
     onSnapshot(todayDocRef, (snap) => {
-        const data = snap.exists() ? snap.data() : {};
-        
-        // 📍 필드 이름이 한글인 '유미', '거니'가 있는지 체크 (공백 제외)
+        if (!snap.exists()) {
+            stopHeart();
+            return;
+        }
+
+        const data = snap.data();
+        // 이미지 속 필드명인 '유미', '거니'가 있는지 확인
         const yumiWrote = !!(data['유미'] && data['유미'].trim() !== "");
         const goniWrote = !!(data['거니'] && data['거니'].trim() !== "");
 
-        // 로직: 둘 중 한 명만 썼을 때만 하트가 뜁니다 (둘 다 쓰거나 안 쓰면 멈춤)
+        // 한 명만 썼을 때만 하트 알림 (둘 다 쓰면 완료 상태이므로 멈춤)
         const shouldPulse = (yumiWrote || goniWrote) && !(yumiWrote && goniWrote);
 
         if (shouldPulse) {
             heartIcon.classList.add('heart-active');
-            // NEW! 배지 표시
             if (!document.querySelector('.new-badge')) {
                 const b = document.createElement('span');
                 b.className = 'new-badge';
@@ -1224,14 +1240,15 @@ function setupHeartNotification() {
                 heartIcon.parentElement.appendChild(b);
             }
         } else {
-            // 하트 정지 및 배지 제거
-            heartIcon.classList.remove('heart-active');
-            const b = document.querySelector('.new-badge');
-            if (b) b.remove();
+            stopHeart();
         }
-    }, (err) => {
-        console.error("하트 알림 리스너 에러:", err);
     });
+
+    function stopHeart() {
+        heartIcon.classList.remove('heart-active');
+        const b = document.querySelector('.new-badge');
+        if (b) b.remove();
+    }
 }
 
 // [2] 앱 인증 및 데이터 로드 (무한 로딩 방지)
@@ -1274,6 +1291,7 @@ onAuthStateChanged(auth, async (u) => {
 </script>
 </body>
 </html>
+
 
 
 
