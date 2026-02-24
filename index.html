@@ -1191,31 +1191,31 @@ window.showYearPicker = () => {
     }
 };
 
-    // [1] 하트 알림 실시간 감시 함수 (한 명만 썼을 때 알림 발동)
+    // [1] 하트 알림 실시간 감시 함수 (한 명만 답변했을 때 두근거림)
 function setupHeartNotification() {
     const today = new Date();
-    // 파이어베이스 날짜 키 형식 (예: 2026-2-24)
+    // 파이어베이스 날짜 형식: 2026-2-24 (0 없음)
     const tKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     const heartIcon = document.getElementById('secret-heart-trigger');
     
     if (!heartIcon) return;
 
-    // RULE 1: 정확한 경로 지정
+    // 📍 RULE 1: 정확한 경로 (daily_answers 컬렉션 감시)
     const todayDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'daily_answers', tKey);
 
     onSnapshot(todayDocRef, (snap) => {
         const data = snap.exists() ? snap.data() : {};
         
-        // 유미와 거니가 답변을 썼는지 확인 (공백 제외)
-        const yumiWrote = !!(data['유미'] && data['유미'].trim());
-        const goniWrote = !!(data['거니'] && data['거니'].trim());
+        // 📍 필드 이름이 한글인 '유미', '거니'가 있는지 체크 (공백 제외)
+        const yumiWrote = !!(data['유미'] && data['유미'].trim() !== "");
+        const goniWrote = !!(data['거니'] && data['거니'].trim() !== "");
 
-        // 📍 로직: 둘 중 한 명만 썼을 때 하트가 두근거림 (NEW 배지 포함)
-        // (누군가 썼음) 이면서 (둘 다 쓴 건 아님) 일 때 발동
+        // 로직: 둘 중 한 명만 썼을 때만 하트가 뜁니다 (둘 다 쓰거나 안 쓰면 멈춤)
         const shouldPulse = (yumiWrote || goniWrote) && !(yumiWrote && goniWrote);
 
         if (shouldPulse) {
             heartIcon.classList.add('heart-active');
+            // NEW! 배지 표시
             if (!document.querySelector('.new-badge')) {
                 const b = document.createElement('span');
                 b.className = 'new-badge';
@@ -1224,59 +1224,57 @@ function setupHeartNotification() {
                 heartIcon.parentElement.appendChild(b);
             }
         } else {
-            // 둘 다 안 썼거나, 둘 다 썼을 경우에는 하트 초기화
+            // 하트 정지 및 배지 제거
             heartIcon.classList.remove('heart-active');
             const b = document.querySelector('.new-badge');
             if (b) b.remove();
         }
     }, (err) => {
-        console.error("Heart notification error:", err);
+        console.error("하트 알림 리스너 에러:", err);
     });
 }
 
-// [2] 앱 인증 및 데이터 로드 (무한 로딩 방지 구조)
+// [2] 앱 인증 및 데이터 로드 (무한 로딩 방지)
 onAuthStateChanged(auth, async (u) => {
-    // 1. 인증 안되어 있으면 로그인 먼저
+    // 1. 로그인 안 되어 있으면 로그인부터
     if (!u) {
         await signInAnonymously(auth);
         return; 
     }
 
-    user = u; // 전역 변수 할당
+    user = u;
 
-    // 2. 일기 기록 데이터 감시 (달력 스티커 등)
+    // 2. 일기 기록(달력 스티커 등) 감시
     const diaryCol = collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords');
-    
     onSnapshot(diaryCol, (snapshot) => {
-        // 데이터가 변경될 때만 cloudRecords 업데이트
         cloudRecords = {};
         snapshot.forEach(doc => {
             cloudRecords[doc.id] = doc.data();
         });
 
-        // 📍 중요: 데이터가 오면 로딩 화면을 즉시 끕니다.
+        // 📍 데이터가 한 번이라도 오면 로딩 오버레이 부드럽게 제거
         const overlay = document.getElementById('loading-overlay');
         if (overlay) {
             overlay.style.opacity = '0';
             setTimeout(() => overlay.style.display = 'none', 500);
         }
 
-        // 달력 및 D-day 그리기
-        renderCalendar();
-        if (typeof updateDday === 'function') updateDday();
+        renderCalendar(); // 달력 그리기
+        if (typeof updateDday === 'function') updateDday(); // D-day 업데이트
     }, (err) => {
-        console.error("Diary load error:", err);
-        // 에러 나도 사용자가 화면은 볼 수 있게 로딩창은 제거
+        console.error("데이터 로딩 에러:", err);
+        // 에러 시에도 사용자가 볼 수 있게 로딩창 제거
         document.getElementById('loading-overlay').style.display = 'none';
     });
 
-    // 3. 하트 알림 감시 별도로 시작
+    // 3. 하트 알림 실시간 감시 별도 시작
     setupHeartNotification();
 });
 
 </script>
 </body>
 </html>
+
 
 
 
