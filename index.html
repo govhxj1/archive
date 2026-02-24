@@ -782,61 +782,85 @@ window.closeMenuSecret = () => {
     }
 };
     
-    // [4] 스티커 및 달력 로직 (5페이지 120종)
-    function initStickers() {
-        const wrapper = document.getElementById('sticker-wrapper');
-        if (!wrapper) return;
-        wrapper.innerHTML = "";
-        for (let p = 0; p < 5; p++) {
-            const pageDiv = document.createElement('div');
-            pageDiv.className = 'sticker-page';
-            pageDiv.style.width = '20%';
-            allStickers.slice(p * 24, (p + 1) * 24).forEach(s => {
-                const span = document.createElement('span');
-                span.className = 'sticker-option';
-                span.innerText = s;
-                if (s === selectedSticker) span.classList.add('selected');
-                span.onclick = () => { selectedSticker = (selectedSticker === s) ? "" : s; updateStickerUI(); saveData(); };
-                pageDiv.appendChild(span);
-            });
-            wrapper.appendChild(pageDiv);
-        }
+// [4] 스티커 및 달력 로직
+function initStickers() {
+    const wrapper = document.getElementById('sticker-wrapper');
+    if (!wrapper) return;
+    wrapper.innerHTML = "";
+    for (let p = 0; p < 5; p++) {
+        const pageDiv = document.createElement('div');
+        pageDiv.className = 'sticker-page';
+        pageDiv.style.width = '20%';
+        allStickers.slice(p * 24, (p + 1) * 24).forEach(s => {
+            const span = document.createElement('span');
+            span.className = 'sticker-option';
+            span.innerText = s;
+            if (s === selectedSticker) span.classList.add('selected');
+            span.onclick = () => { selectedSticker = (selectedSticker === s) ? "" : s; updateStickerUI(); saveData(); };
+            pageDiv.appendChild(span);
+        });
+        wrapper.appendChild(pageDiv);
+    }
+}
+
+function updateStickerUI() { 
+    document.querySelectorAll('.sticker-option').forEach(opt => opt.classList.toggle('selected', opt.innerText === selectedSticker)); 
+}
+
+window.goToStickerPage = (index) => {
+    const wrapper = document.getElementById('sticker-wrapper');
+    const dots = document.getElementById('pagination-dots');
+    if (!wrapper || index < 0 || index > 4) return;
+    currentPage = index;
+    wrapper.style.transform = `translateX(-${index * 20}%)`;
+    if (dots) Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+};
+
+// 📍 수정된 렌더링 함수
+function renderCalendar() {
+    if (!dateContainer) return;
+    dateContainer.innerHTML = ""; 
+    monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
+    
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const today = new Date();
+
+    for (let i = 0; i < firstDay; i++) { 
+        dateContainer.appendChild(Object.assign(document.createElement('div'), {className: 'date-cell empty'})); 
     }
 
-    function updateStickerUI() { document.querySelectorAll('.sticker-option').forEach(opt => opt.classList.toggle('selected', opt.innerText === selectedSticker)); }
+    for (let i = 1; i <= daysInMonth; i++) {
+        const mStr = String(viewMonth + 1).padStart(2, '0');
+        const dStr = String(i).padStart(2, '0');
+        const dateKey = `${viewYear}-${mStr}-${dStr}`;
+        const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
+        
+        const cell = document.createElement('div'); 
+        cell.className = 'date-cell';
+        
+        const dow = (i + firstDay - 1) % 7;
+        if (dow === 0) cell.classList.add('sunday');
+        if (dow === 6) cell.classList.add('saturday');
+        if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) cell.classList.add('holiday');
+        if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
+        
+        const diff = Math.floor((new Date(viewYear, viewMonth, i) - new Date(2026, 0, 10)) / 86400000) + 1;
+        let anniv = (diff === 100 || diff === 200 || diff === 300) ? `${diff}일` : "";
+        if (viewMonth === 0 && i === 10 && viewYear > 2026) anniv = `${viewYear-2026}주년`;
 
-    window.goToStickerPage = (index) => {
-        const wrapper = document.getElementById('sticker-wrapper');
-        const dots = document.getElementById('pagination-dots');
-        if (!wrapper || index < 0 || index > 4) return;
-        currentPage = index;
-        wrapper.style.transform = `translateX(-${index * 20}%)`;
-        if (dots) Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
-    };
-
-    function renderCalendar() {
-        dateContainer.innerHTML = ""; monthTitle.innerText = `${viewYear}년 ${viewMonth + 1}월`;
-        const firstDay = new Date(viewYear, viewMonth, 1).getDay(), daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate(), today = new Date();
-        for (let i = 0; i < firstDay; i++) { dateContainer.appendChild(Object.assign(document.createElement('div'), {className: 'date-cell empty'})); }
-        for (let i = 1; i <= daysInMonth; i++) {
-            const mStr = String(viewMonth + 1).padStart(2, '0'), dStr = String(i).padStart(2, '0'), dateKey = `${viewYear}-${mStr}-${dStr}`;
-            const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
-            const cell = document.createElement('div'); cell.className = 'date-cell';
-            const dow = (i + firstDay - 1) % 7;
-            if (dow === 0) cell.classList.add('sunday');
-            if (dow === 6) cell.classList.add('saturday');
-            if (viewYear === 2026 && holidays2026[`${mStr}-${dStr}`]) cell.classList.add('holiday');
-            if (viewYear === today.getFullYear() && viewMonth === today.getMonth() && i === today.getDate()) cell.classList.add('today');
-            
-            const diff = Math.floor((new Date(viewYear, viewMonth, i) - new Date(2026, 0, 10)) / 86400000) + 1;
-            let anniv = (diff === 100 || diff === 200 || diff === 300) ? `${diff}일` : "";
-            if (viewMonth === 0 && i === 10 && viewYear > 2026) anniv = `${viewYear-2026}주년`;
-
-            cell.innerHTML = `<div class="date-header"><span class="date-num">${i}</span>${data.comments?.length ? '<span class="record-heart">💛</span>' : ''}</div><span class="sticker-display">${data.sticker || ""}</span>${anniv ? `<span class="anniv-label">${anniv}</span>` : ''}`;
-            cell.onclick = () => openModal(i);
-            dateContainer.appendChild(cell);
-        }
-
+        cell.innerHTML = `
+            <div class="date-header">
+                <span class="date-num">${i}</span>
+                ${(data.comments && data.comments.length > 0) ? '<span class="record-heart">💛</span>' : ''}
+            </div>
+            <span class="sticker-display">${data.sticker || ""}</span>
+            ${anniv ? `<span class="anniv-label">${anniv}</span>` : ''}
+        `;
+        cell.onclick = () => openModal(i);
+        dateContainer.appendChild(cell);
+    }
+}
         
     }
 }
@@ -1114,16 +1138,31 @@ window.closeTimeTravel = () => {
     }
 };
     
-    onAuthStateChanged(auth, async (u) => {
-        user = u;
-        if (user) {
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords'), (snapshot) => {
-                cloudRecords = {}; snapshot.forEach(doc => cloudRecords[doc.id] = doc.data());
-                renderCalendar(); updateDday();
-                if (loadingOverlay) { loadingOverlay.style.opacity = '0'; setTimeout(() => loadingOverlay.style.display = 'none', 500); }
-            });
-        } else signInAnonymously(auth);
-    });
+    // 📍 수정된 인증 및 로딩 제거 로직
+onAuthStateChanged(auth, async (u) => {
+    user = u;
+    if (user) {
+        onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords'), (snapshot) => {
+            try {
+                cloudRecords = {}; 
+                snapshot.forEach(doc => cloudRecords[doc.id] = doc.data());
+                renderCalendar(); 
+                updateDday();
+                
+                // 데이터 로드 완료 후 확실히 제거
+                if (loadingOverlay) { 
+                    loadingOverlay.style.opacity = '0'; 
+                    setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500); 
+                }
+            } catch (err) {
+                console.error("데이터 렌더링 에러:", err);
+                loadingOverlay.style.display = 'none'; // 에러 나더라도 화면은 보여줌
+            }
+        });
+    } else {
+        signInAnonymously(auth);
+    }
+});
 
     getDaejeonWeather();
 
@@ -1157,6 +1196,7 @@ window.showYearPicker = () => {
 </script>
 </body>
 </html>
+
 
 
 
