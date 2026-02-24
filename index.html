@@ -836,76 +836,7 @@ window.closeMenuSecret = () => {
             cell.onclick = () => openModal(i);
             dateContainer.appendChild(cell);
         }
-// [1] 하트 알림 실시간 감시 함수
-function setupHeartNotification() {
-    const today = new Date();
-    // 파이어베이스 데이터 형식과 일치 (0 없이 2026-2-24 형식)
-    const tKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-    const heartIcon = document.getElementById('secret-heart-trigger');
-    if (!heartIcon) return;
 
-    // 📍 RULE 1 준수: artifacts 경로 사용
-    const todayDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'daily_answers', tKey);
-
-    onSnapshot(todayDocRef, (snap) => {
-        const data = snap.exists() ? snap.data() : {};
-        // 유미 님이 답변을 남겼는지 확인
-        if (data['유미'] && data['유미'].trim() !== "") {
-            heartIcon.classList.add('heart-active');
-            if (!document.querySelector('.new-badge')) {
-                const b = document.createElement('span');
-                b.className = 'new-badge';
-                b.innerText = 'NEW!';
-                heartIcon.parentElement.style.position = 'relative';
-                heartIcon.parentElement.appendChild(b);
-            }
-        } else {
-            // 답변이 없으면 하트 초기화
-            heartIcon.classList.remove('heart-active');
-            const b = document.querySelector('.new-badge');
-            if (b) b.remove();
-        }
-    }, (err) => console.log("Heart notification error:", err));
-}
-
-// [2] 앱 시작 및 데이터 로드 (무한 로딩 방지)
-onAuthStateChanged(auth, async (u) => {
-    // 1. 인증이 안 되어 있으면 익명 로그인 실행
-    if (!u) {
-        await signInAnonymously(auth);
-        return; 
-    }
-
-    user = u; // 전역 user 변수에 저장
-
-    // 2. 메인 데이터(일기 기록) 실시간 감시 시작
-    const diaryCol = collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords');
-    
-    onSnapshot(diaryCol, (snapshot) => {
-        cloudRecords = {};
-        snapshot.forEach(doc => {
-            cloudRecords[doc.id] = doc.data();
-        });
-
-        // 데이터 로드 후 달력 그리기 및 D-day 업데이트
-        renderCalendar();
-        updateDday();
-
-        // 📍 핵심: 데이터가 한 번이라도 로드되면 로딩 화면을 확실히 끕니다.
-        const loadingOverlay = document.getElementById('loading-overlay');
-        if (loadingOverlay) {
-            loadingOverlay.style.opacity = '0';
-            setTimeout(() => loadingOverlay.style.display = 'none', 500);
-        }
-    }, (err) => {
-        console.error("Data load error:", err);
-        // 에러가 나더라도 사용자가 화면은 볼 수 있게 로딩창을 끕니다.
-        document.getElementById('loading-overlay').style.display = 'none';
-    });
-
-    // 3. 하트 알림 실시간 감시 시작
-    setupHeartNotification();
-});
         
     }
 }
@@ -1226,6 +1157,7 @@ window.showYearPicker = () => {
 </script>
 </body>
 </html>
+
 
 
 
