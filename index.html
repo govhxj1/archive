@@ -1039,6 +1039,27 @@ window.openMap = function() {
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(diaryMap); 
     }
     
+            // [6-2] 지도 닫기 함수 (새로 추가)
+        window.closeMap = () => {
+            // 1. 지도 화면 숨기기
+            const mapCont = document.getElementById('map-container');
+            if (mapCont) mapCont.style.display = 'none';
+        
+            // 2. 배경 블러(overlay) 처리
+            const o = document.getElementById('overlay');
+            // 다이어리 기록창이나 랜덤 질문창이 열려있는지 확인
+            const isDiaryOpen = document.getElementById('diary-modal').style.display === 'flex';
+            const isQuestionOpen = document.getElementById('question-overlay').style.display === 'flex';
+            
+            // 다른 창이 하나도 안 열려 있을 때만 배경 어두운 효과를 제거
+            if (!isDiaryOpen && !isQuestionOpen) {
+                if (o) {
+                    o.style.display = 'none';
+                    o.style.zIndex = "100";
+                }
+            }
+        };
+    
     // 📍 열릴 때 오늘 날짜를 기본값으로 세팅
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('date-selector').value = today;
@@ -1049,23 +1070,30 @@ window.openMap = function() {
 
 // 📍 날짜를 선택해서 데이터를 불러오는 새로운 핵심 함수
 window.loadMemoriesByDate = function() {
-    const selectedDate = document.getElementById('date-selector').value;
+    const selectedDate = document.getElementById('date-selector').value; // "2026-02-14" 형태
     if (!selectedDate) return;
 
-    // 파이어베이스 경로에 맞게 변환 (2026-02-24 -> 2026-2-24)
+    // 📍 핵심: "2026-02-14"를 "2026-02-14" 그대로 쓰거나, 
+    // 기존 데이터 형식에 맞게 문자열을 맞춰야 합니다.
+    // 기존 allPaths가 "2026-02-14" 형식을 쓰고 있으므로 변환 없이 그대로 사용해보고, 
+    // 안될 경우를 대비해 두 가지 형식을 모두 체크합니다.
+    
     const [y, m, d] = selectedDate.split('-');
-    const dateKey = `${y}-${parseInt(m)}-${parseInt(d)}`;
+    const dateKeyWithZero = `${y}-${m}-${d}`; // "2026-02-14"
+    const dateKeyNoZero = `${y}-${parseInt(m)}-${parseInt(d)}`; // "2026-2-14"
 
-    // 1. 기존 데이터(기존에 하드코딩된 14,15,16일 데이터)가 있는지 먼저 확인
-    if (allPaths[dateKey]) {
-        renderMapPath(allPaths[dateKey]);
+    // 기존 데이터(allPaths)에서 찾기
+    const pathData = allPaths[dateKeyWithZero] || allPaths[dateKeyNoZero];
+
+    if (pathData) {
+        renderMapPath(pathData);
     } else {
-        // 2. 하드코딩된 데이터가 없으면 파이어베이스(cloudRecords 등)에서 찾기
-        // 현재 일기 기록에 저장된 장소 정보가 있다면 여기서 불러오도록 확장 가능합니다.
-        alert(dateKey + "일에는 등록된 장소가 없어요! 🌸");
+        // 데이터가 없을 때
         if (pathLine) diaryMap.removeLayer(pathLine);
         markers.forEach(m => diaryMap.removeLayer(m));
         markers = [];
+        // 너무 자주 뜨면 불편하니 알림은 선택사항입니다.
+        console.log(dateKeyWithZero + " 데이터가 없습니다.");
     }
 };
 
@@ -1328,6 +1356,7 @@ onAuthStateChanged(auth, async (u) => {
 </script>
 </body>
 </html>
+
 
 
 
