@@ -866,119 +866,86 @@ function renderCalendar() {
     }
 }
         
-    // [5] 모달 및 작성 기능 업그레이드 (장소 + 일기 통합)
-window.openModal = function(day) {
-    const mStr = String(viewMonth + 1).padStart(2, '0');
-    const dStr = String(day).padStart(2, '0');
-    const dateKey = `${viewYear}-${mStr}-${dStr}`;
-    
-    // 타임머신 로직 (1994년)
-    if (viewYear === 1994 && viewMonth === 3 && day === 12) {
-        const timeOverlay = document.getElementById('time-travel-overlay');
-        if (timeOverlay) { timeOverlay.style.display = 'flex'; return; }
-    }
-
-    currentDay = day;
-    const diaryModal = document.getElementById('diary-modal');
-    const overlay = document.getElementById('overlay');
-
-    // 기념일 폭죽 효과
-    const startDate = new Date(2026, 0, 10);
-    const selectedDate = new Date(viewYear, viewMonth, day);
-    const diff = Math.floor((selectedDate - startDate) / 86400000) + 1;
-    if ((diff > 0 && diff % 100 === 0) || (viewMonth === 0 && day === 10 && viewYear > 2026)) {
-        makeHearts();
-    }
-
-    // 📍 핵심: 데이트 정보가 있는지 확인
-    const plan = specialDates[dateKey];
-    
-    // 모달 내용 초기화
-    diaryModal.innerHTML = `<button class="close-modal-btn" onclick="closeModal()">✕</button><div id="modal-content-area" style="height:100%; display:flex; flex-direction:column;"></div>`;
-    const contentArea = document.getElementById('modal-content-area');
-
-    if (plan) {
-        // 장소 리스트를 먼저 보여줌 (거니님이 보낸 사진 스타일)
-        contentArea.innerHTML = `
-            <div id="plan-view" style="padding:10px 5px; display:flex; flex-direction:column; height:100%;">
-                <h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px;">❤️ ${plan.title}</h3>
-                <div style="background:#fff0f3; border-radius:25px; padding:15px; overflow-y:auto; flex:1; margin-bottom:15px;">
-                    ${plan.plans.map(pl => `
-                        <div style="margin-bottom:12px; text-align:left; padding:12px; background:white; border-radius:15px; border:1px solid #ffe5ec;">
-                            <div style="font-weight:900; color:#444;">${pl.icon} ${pl.name}</div>
-                            ${pl.link ? `<a href="${pl.link}" target="_blank" style="font-size:0.8rem; color:#ff8fab; text-decoration:none;">📍 지도 보기</a>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-                <p style="margin-bottom:15px; font-size:0.85rem; color:#ff8fab; font-weight:900;">${plan.footer}</p>
-                <button id="switch-to-diary" style="width:100%; padding:15px; background:#ff8fab; border:none; border-radius:20px; color:white; font-weight:900; cursor:pointer; flex-shrink:0;">
-                    우리 추억 기록하기 ✏️
-                </button>
-            </div>
-        `;
-        document.getElementById('switch-to-diary').onclick = () => window.setupOriginalDiary(dateKey);
-    } else {
-        // 데이트 정보가 없으면 바로 일기 쓰기
-        window.setupOriginalDiary(dateKey);
-    }
-
-    diaryModal.style.display = 'flex';
-    overlay.style.display = 'block';
-}
-
-    window.setupOriginalDiary = function(dateKey) {
-        const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
-        selectedSticker = data.sticker || ""; 
-        comments = data.comments || [];
+            // [5] 모달 및 작성 기능 업그레이드 (장소 + 일기 통합)
+        window.openModal = function(day) {
+            const mStr = String(viewMonth + 1).padStart(2, '0');
+            const dStr = String(day).padStart(2, '0');
+            const dateKey = `${viewYear}-${mStr}-${dStr}`;
+            
+            if (viewYear === 1994 && viewMonth === 3 && day === 12) {
+                const timeOverlay = document.getElementById('time-travel-overlay');
+                if (timeOverlay) { timeOverlay.style.display = 'flex'; return; }
+            }
         
-
-        const contentArea = document.getElementById('modal-content-area');
-    
-    // 만약 contentArea가 없다면(일반 날짜에서 바로 열린 경우)를 위해 안전장치 추가
-    if (!contentArea) {
-        const diaryModal = document.getElementById('diary-modal');
-        diaryModal.innerHTML = `<button class="close-modal-btn" onclick="closeModal()">✕</button><div id="modal-content-area" style="height:100%; display:flex; flex-direction:column;"></div>`;
-    }
-    
-    const targetArea = document.getElementById('modal-content-area');
-
-    targetArea.innerHTML = `
-        <div class="modal-header"><h3 class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div>
-        <div class="sticker-slider-container" id="sticker-slider">
-            <div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:500%;"></div>
-        </div>
-        <div class="pagination-dots" id="pagination-dots">
-            <div class="dot active" onclick="window.goToStickerPage(0)"></div>
-            <div class="dot" onclick="window.goToStickerPage(1)"></div>
-            <div class="dot" onclick="window.goToStickerPage(2)"></div>
-            <div class="dot" onclick="window.goToStickerPage(3)"></div>
-            <div class="dot" onclick="window.goToStickerPage(4)"></div>
-        </div>
-        <div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div>
-        <div class="input-area">
-            <div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;">
-                <img id="img-preview" src="" style="width:60px; height:60px; object-fit:cover; border-radius:10px; border:2px solid #ffafcc;">
-                <div id="remove-img" style="position:absolute; top:-8px; right:50%; margin-right:-40px; background:rgba(0,0,0,0.6); color:white; border-radius:50%; width:20px; height:20px; font-size:12px; line-height:20px; cursor:pointer; font-weight:bold;">✕</div>
-            </div>
-            <div class="input-area">
-        <div id="selected-locations-area" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;"></div>
-
-        <div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;">
-            <img id="img-preview" src="" style="width:60px; height:60px; object-fit:cover; border-radius:10px; border:2px solid #ffafcc;">
-            <div id="remove-img" style="position:absolute; top:-8px; right:50%; margin-right:-40px; background:rgba(0,0,0,0.6); color:white; border-radius:50%; width:20px; height:20px; font-size:12px; line-height:20px; cursor:pointer; font-weight:bold;">✕</div>
-        </div>
-
-        <div class="input-controls" style="display:flex; align-items:center; gap:8px;">
-            <label for="img-upload" style="cursor:pointer; font-size:1.2rem;">📷</label>
-            <input type="file" id="img-upload" accept="image/*" style="display:none;">
+            currentDay = day;
+            const diaryModal = document.getElementById('diary-modal');
+            const overlay = document.getElementById('overlay');
+        
+            const startDate = new Date(2026, 0, 10);
+            const selectedDate = new Date(viewYear, viewMonth, day);
+            const diff = Math.floor((selectedDate - startDate) / 86400000) + 1;
+            if ((diff > 0 && diff % 100 === 0) || (viewMonth === 0 && day === 10 && viewYear > 2026)) {
+                makeHearts();
+            }
+        
+            const plan = specialDates[dateKey];
+            diaryModal.innerHTML = `<button class="close-modal-btn" onclick="closeModal()">✕</button><div id="modal-content-area" style="height:100%; display:flex; flex-direction:column;"></div>`;
+            const contentArea = document.getElementById('modal-content-area');
+        
+            if (plan) {
+                contentArea.innerHTML = `
+                    <div id="plan-view" style="padding:10px 5px; display:flex; flex-direction:column; height:100%;">
+                        <h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px;">❤️ ${plan.title}</h3>
+                        <div style="background:#fff0f3; border-radius:25px; padding:15px; overflow-y:auto; flex:1; margin-bottom:15px;">
+                            ${plan.plans.map(pl => `
+                                <div style="margin-bottom:12px; text-align:left; padding:12px; background:white; border-radius:15px; border:1px solid #ffe5ec;">
+                                    <div style="font-weight:900; color:#444;">${pl.icon} ${pl.name}</div>
+                                    ${pl.link ? `<a href="${pl.link}" target="_blank" style="font-size:0.8rem; color:#ff8fab; text-decoration:none;">📍 지도 보기</a>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <p style="margin-bottom:15px; font-size:0.85rem; color:#ff8fab; font-weight:900;">${plan.footer}</p>
+                        <button id="switch-to-diary" style="width:100%; padding:15px; background:#ff8fab; border:none; border-radius:20px; color:white; font-weight:900; cursor:pointer; flex-shrink:0;">우리 추억 기록하기 ✏️</button>
+                    </div>`;
+                document.getElementById('switch-to-diary').onclick = () => window.setupOriginalDiary(dateKey);
+            } else {
+                window.setupOriginalDiary(dateKey);
+            }
+            diaryModal.style.display = 'flex';
+            overlay.style.display = 'block';
+        };
+        
+        window.setupOriginalDiary = function(dateKey) {
+            const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
+            selectedSticker = data.sticker || ""; 
+            comments = data.comments || [];
             
-            <button onclick="window.addNewLocation()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; padding:0;">📍</button>
-            
-            <input type="text" id="diary-input" placeholder="오늘의 추억을 남겨요!" style="flex:1; padding:8px; border-radius:15px; border:1px solid #ddd;">
-            <button class="add-btn" id="add-comment-btn">등록</button>
-        </div>
-    </div>
-`;
+            const contentArea = document.getElementById('modal-content-area');
+            if (!contentArea) {
+                document.getElementById('diary-modal').innerHTML = `<button class="close-modal-btn" onclick="closeModal()">✕</button><div id="modal-content-area" style="height:100%; display:flex; flex-direction:column;"></div>`;
+            }
+            const targetArea = document.getElementById('modal-content-area');
+        
+            targetArea.innerHTML = `
+                <div class="modal-header"><h3 class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div>
+                <div class="sticker-slider-container" id="sticker-slider"><div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:500%;"></div></div>
+                <div class="pagination-dots" id="pagination-dots"><div class="dot active" onclick="window.goToStickerPage(0)"></div><div class="dot" onclick="window.goToStickerPage(1)"></div><div class="dot" onclick="window.goToStickerPage(2)"></div><div class="dot" onclick="window.goToStickerPage(3)"></div><div class="dot" onclick="window.goToStickerPage(4)"></div></div>
+                <div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div>
+                <div class="input-area" style="flex-direction:column;">
+                    <div id="selected-locations-area" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;"></div>
+                    <div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;"><img id="img-preview" src="" style="width:60px; height:60px; object-fit:cover; border-radius:10px; border:2px solid #ffafcc;"><div id="remove-img" style="position:absolute; top:-8px; right:50%; margin-right:-40px; background:rgba(0,0,0,0.6); color:white; border-radius:50%; width:20px; height:20px; font-size:12px; line-height:20px; cursor:pointer; font-weight:bold;">✕</div></div>
+                    <div class="input-controls">
+                        <label for="img-upload" style="cursor:pointer; font-size:1.2rem; margin-right:5px;">📷</label>
+                        <input type="file" id="img-upload" accept="image/*" style="display:none;">
+                        <button onclick="window.addNewLocation()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; padding:0; margin-right:5px;">📍</button>
+                        <input type="text" id="diary-input" placeholder="추억을 남겨요!">
+                        <button class="add-btn" id="add-comment-btn">등록</button>
+                    </div>
+                </div>`;
+            initStickers();
+            renderComments(true);
+            setupDiaryEvents(); // 이벤트 리스너들을 별도 함수로 묶어 호출
+        };
 
                 // 장소 데이터를 임시로 저장할 배열
         let tempLocations = [];
@@ -1428,44 +1395,77 @@ onAuthStateChanged(auth, async (u) => {
     setupHeartNotification();
 });
 
+    // [보조 함수들]
+function setupDiaryEvents() {
+    const slider = document.getElementById('sticker-slider');
+    let touchStartX = 0;
+    slider.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    slider.addEventListener('touchend', e => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) {
+            if (diff > 0 && currentPage < 4) window.goToStickerPage(currentPage + 1);
+            else if (diff < 0 && currentPage > 0) window.goToStickerPage(currentPage - 1);
+        }
+    }, { passive: true });
+
+    document.getElementById('img-upload').onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            selectedImgBase64 = ev.target.result;
+            document.getElementById('img-preview').src = selectedImgBase64;
+            document.getElementById('preview-box').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    };
+
+    document.getElementById('remove-img').onclick = () => {
+        selectedImgBase64 = "";
+        document.getElementById('preview-box').style.display = 'none';
+        document.getElementById('img-upload').value = "";
+    };
+
+    document.getElementById('add-comment-btn').onclick = async () => {
+        const diaryInput = document.getElementById('diary-input');
+        if (!diaryInput.value.trim() && !selectedImgBase64 && tempLocations.length === 0) return;
+        comments.push({ 
+            text: diaryInput.value.trim() || (tempLocations.length > 0 ? "장소 기록 ✨" : "사진 기록"), 
+            img: selectedImgBase64,
+            locations: [...tempLocations] 
+        });
+        diaryInput.value = "";
+        selectedImgBase64 = "";
+        tempLocations = []; 
+        document.getElementById('preview-box').style.display = 'none';
+        document.getElementById('selected-locations-area').innerHTML = ""; 
+        renderComments(true);
+        await saveData(); 
+    };
+}
+
+        window.addNewLocation = () => {
+            const locName = prompt("어디에 다녀오셨나요? 🗺️");
+            if (!locName) return;
+            tempLocations.push({ name: locName, lat: 36.35, lng: 127.34 }); 
+            renderTempLocations();
+        };
+        
+        function renderTempLocations() {
+            const area = document.getElementById('selected-locations-area');
+            if (area) {
+                area.innerHTML = tempLocations.map((loc, idx) => `
+                    <span style="background:#ffafcc; color:white; padding:4px 8px; border-radius:10px; font-size:0.75rem; display:inline-flex; align-items:center; gap:5px;">
+                        📍 ${loc.name} <b style="cursor:pointer" onclick="window.removeTempLoc(${idx})">✕</b>
+                    </span>`).join('');
+            }
+        }
+        
+        window.removeTempLoc = (idx) => {
+            tempLocations.splice(idx, 1);
+            renderTempLocations();
+        };
+    
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
