@@ -669,6 +669,7 @@
 
     let user = null, cloudRecords = {}, viewYear = 2026, viewMonth = 1, currentDay = 0, selectedSticker = "", comments = [], selectedImgBase64 = "", isDateMode = false, currentPage = 0, commentToDeleteIndex = -1, secretClickCount = 0;
     let currentWriter = "", weatherClickCount = 0, currentWeatherStatus = "";
+    let tempLocations = []; // 📍 여기에 있어야 어디서든 에러 없이 접근 가능해요!
 
     const dateContainer = document.getElementById('calendar-dates'), monthTitle = document.getElementById('month-title'), loadingOverlay = document.getElementById('loading-overlay');
     
@@ -1070,7 +1071,30 @@ window.openModal = function(day) {
     renderComments(true);
     await saveData(); // 파이어베이스에 최종 저장
 };
-
+        
+        window.addNewLocation = () => {
+            const locName = prompt("어디에 다녀오셨나요? 🗺️");
+            if (!locName) return;
+            tempLocations.push({ name: locName, lat: 36.35, lng: 127.34 }); 
+            renderTempLocations();
+        };
+        
+        function renderTempLocations() {
+            const area = document.getElementById('selected-locations-area');
+            if (area) {
+                area.innerHTML = tempLocations.map((loc, idx) => `
+                    <span style="background:#ffafcc; color:white; padding:4px 8px; border-radius:10px; font-size:0.75rem; display:inline-flex; align-items:center; gap:5px;">
+                        📍 ${loc.name} <b style="cursor:pointer" onclick="window.removeTempLoc(${idx})">✕</b>
+                    </span>
+                `).join('');
+            }
+        }
+        
+        window.removeTempLoc = (idx) => {
+            tempLocations.splice(idx, 1);
+            renderTempLocations();
+        };
+        
     function renderComments(scrollToBottom = false) {
         const list = document.getElementById('comment-list'); if (!list) return;
         list.innerHTML = comments.length ? "" : '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">유미랑 거니의 추억🌸</p>';
@@ -1407,6 +1431,7 @@ onAuthStateChanged(auth, async (u) => {
 </script>
 </body>
 </html>
+
 
 
 
