@@ -865,102 +865,108 @@ function renderCalendar() {
     }
 }
         
-    // [5] 모달 및 작성 기능 (이미지 업로드 복구)
-    function openModal(day) {
-        // 1. 날짜 문자열 만들기
-        const mStr = String(viewMonth + 1).padStart(2, '0');
-        const dStr = String(day).padStart(2, '0');
-        
-        // 📍 2. [타임머신 체크] 1994년 4월 12일 전용 로직
-        if (viewYear === 1994 && viewMonth === 3 && day === 12) {
-            const timeOverlay = document.getElementById('time-travel-overlay');
-            if (timeOverlay) {
-                timeOverlay.style.display = 'flex';
-                return; // 여기서 멈추니까 아래 코드는 실행 안 됨!
-            }
-        }
-
-        // 3. 일반 날짜 로직 (여기서부터 기존 코드)
-        currentDay = day;
-        const dateKey = `${viewYear}-${mStr}-${dStr}`; // 위에서 만든 mStr 사용
-        const diaryModal = document.getElementById('diary-modal');
-        const overlay = document.getElementById('overlay');
-
-        // ... 나머지 기존 로직 (폭죽, specialDates 체크 등) ...
-        
-        // 📍 1. 기념일 폭죽 효과 로직 추가
-        const startDate = new Date(2026, 0, 10); // 1월 10일
-        const selectedDate = new Date(viewYear, viewMonth, day);
-        const diff = Math.floor((selectedDate - startDate) / 86400000) + 1;
-        
-        // 100일 단위거나 매년 1월 10일(주년)일 때 폭죽 발사!
-        if ((diff > 0 && diff % 100 === 0) || (viewMonth === 0 && day === 10 && viewYear > 2026)) {
-            makeHearts(); // 이 함수 내부에 confetti()가 포함되어 있습니다.
-        }
-
-        // 2. 특별 데이트 장소 여부 확인 및 모달 표시
-        if (specialDates[dateKey]) {
-            const p = specialDates[dateKey];
-            diaryModal.innerHTML = `
-                <button class="close-modal-btn" onclick="closeModal()">✕</button>
-                <div style="padding:10px 5px; height:100%; display:flex; flex-direction:column;">
-                    <h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px;">${p.title}</h3>
-                    <div style="background:#fff0f3; border-radius:25px; padding:15px; overflow-y:auto; flex:1;">
-                        ${p.plans.map(pl => `
-                            <div style="margin-bottom:12px; text-align:left; padding:12px; background:white; border-radius:15px; border:1px solid #ffe5ec;">
-                                <div style="font-weight:900; color:#444;">${pl.icon} ${pl.name}</div>
-                                ${pl.link ? `<a href="${pl.link}" target="_blank" style="font-size:0.8rem; color:#ff8fab; text-decoration:none;">📍 지도 보기</a>` : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-                    <p style="margin:15px 0; font-size:0.85rem; color:#ff8fab; font-weight:900;">${p.footer}</p>
-                    <button id="go-to-diary" style="width:100%; padding:15px; background:#ff8fab; border:none; border-radius:20px; color:white; font-weight:900; cursor:pointer;">
-                        우리 추억 기록하기 ✏️
-                    </button>
-                </div>`;
-            document.getElementById('go-to-diary').onclick = () => setupOriginalDiary(dateKey);
-        } else { 
-            setupOriginalDiary(dateKey); 
-        }
-        
-        diaryModal.style.display = 'flex'; 
-        overlay.style.display = 'block';
+    // [5] 모달 및 작성 기능 업그레이드 (장소 + 일기 통합)
+window.openModal = function(day) {
+    const mStr = String(viewMonth + 1).padStart(2, '0');
+    const dStr = String(day).padStart(2, '0');
+    const dateKey = `${viewYear}-${mStr}-${dStr}`;
+    
+    // 타임머신 로직 (1994년)
+    if (viewYear === 1994 && viewMonth === 3 && day === 12) {
+        const timeOverlay = document.getElementById('time-travel-overlay');
+        if (timeOverlay) { timeOverlay.style.display = 'flex'; return; }
     }
+
+    currentDay = day;
+    const diaryModal = document.getElementById('diary-modal');
+    const overlay = document.getElementById('overlay');
+
+    // 기념일 폭죽 효과
+    const startDate = new Date(2026, 0, 10);
+    const selectedDate = new Date(viewYear, viewMonth, day);
+    const diff = Math.floor((selectedDate - startDate) / 86400000) + 1;
+    if ((diff > 0 && diff % 100 === 0) || (viewMonth === 0 && day === 10 && viewYear > 2026)) {
+        makeHearts();
+    }
+
+    // 📍 핵심: 데이트 정보가 있는지 확인
+    const plan = specialDates[dateKey];
+    
+    // 모달 내용 초기화
+    diaryModal.innerHTML = `<button class="close-modal-btn" onclick="closeModal()">✕</button><div id="modal-content-area" style="height:100%; display:flex; flex-direction:column;"></div>`;
+    const contentArea = document.getElementById('modal-content-area');
+
+    if (plan) {
+        // 장소 리스트를 먼저 보여줌 (거니님이 보낸 사진 스타일)
+        contentArea.innerHTML = `
+            <div id="plan-view" style="padding:10px 5px; display:flex; flex-direction:column; height:100%;">
+                <h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px;">❤️ ${plan.title}</h3>
+                <div style="background:#fff0f3; border-radius:25px; padding:15px; overflow-y:auto; flex:1; margin-bottom:15px;">
+                    ${plan.plans.map(pl => `
+                        <div style="margin-bottom:12px; text-align:left; padding:12px; background:white; border-radius:15px; border:1px solid #ffe5ec;">
+                            <div style="font-weight:900; color:#444;">${pl.icon} ${pl.name}</div>
+                            ${pl.link ? `<a href="${pl.link}" target="_blank" style="font-size:0.8rem; color:#ff8fab; text-decoration:none;">📍 지도 보기</a>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                <p style="margin-bottom:15px; font-size:0.85rem; color:#ff8fab; font-weight:900;">${plan.footer}</p>
+                <button id="switch-to-diary" style="width:100%; padding:15px; background:#ff8fab; border:none; border-radius:20px; color:white; font-weight:900; cursor:pointer; flex-shrink:0;">
+                    우리 추억 기록하기 ✏️
+                </button>
+            </div>
+        `;
+        document.getElementById('switch-to-diary').onclick = () => window.setupOriginalDiary(dateKey);
+    } else {
+        // 데이트 정보가 없으면 바로 일기 쓰기
+        window.setupOriginalDiary(dateKey);
+    }
+
+    diaryModal.style.display = 'flex';
+    overlay.style.display = 'block';
+}
 
     window.setupOriginalDiary = function(dateKey) {
         const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
         selectedSticker = data.sticker || ""; 
         comments = data.comments || [];
-        const diaryModal = document.getElementById('diary-modal');
+        
 
-        // [1] 모달 내부 HTML 생성
-        diaryModal.innerHTML = `
-            <button class="close-modal-btn" onclick="closeModal()">✕</button>
-            <div class="modal-header"><h3 class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div>
-            <div class="sticker-slider-container" id="sticker-slider" style="width:100%; overflow:hidden; position:relative; background:var(--bg-pink); border-radius:15px; margin-bottom:10px; padding:10px 0; touch-action:pan-x;">
-                <div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:500%;"></div>
+        const contentArea = document.getElementById('modal-content-area');
+    
+    // 만약 contentArea가 없다면(일반 날짜에서 바로 열린 경우)를 위해 안전장치 추가
+    if (!contentArea) {
+        const diaryModal = document.getElementById('diary-modal');
+        diaryModal.innerHTML = `<button class="close-modal-btn" onclick="closeModal()">✕</button><div id="modal-content-area" style="height:100%; display:flex; flex-direction:column;"></div>`;
+    }
+    
+    const targetArea = document.getElementById('modal-content-area');
+
+    targetArea.innerHTML = `
+        <div class="modal-header"><h3 class="modal-title">${viewMonth + 1}월 ${currentDay}일 기록</h3></div>
+        <div class="sticker-slider-container" id="sticker-slider">
+            <div class="sticker-wrapper" id="sticker-wrapper" style="display:flex; transition:transform 0.3s ease-out; width:500%;"></div>
+        </div>
+        <div class="pagination-dots" id="pagination-dots">
+            <div class="dot active" onclick="window.goToStickerPage(0)"></div>
+            <div class="dot" onclick="window.goToStickerPage(1)"></div>
+            <div class="dot" onclick="window.goToStickerPage(2)"></div>
+            <div class="dot" onclick="window.goToStickerPage(3)"></div>
+            <div class="dot" onclick="window.goToStickerPage(4)"></div>
+        </div>
+        <div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div>
+        <div class="input-area">
+            <div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;">
+                <img id="img-preview" src="" style="width:60px; height:60px; object-fit:cover; border-radius:10px; border:2px solid #ffafcc;">
+                <div id="remove-img" style="position:absolute; top:-8px; right:50%; margin-right:-40px; background:rgba(0,0,0,0.6); color:white; border-radius:50%; width:20px; height:20px; font-size:12px; line-height:20px; cursor:pointer; font-weight:bold;">✕</div>
             </div>
-            <div class="pagination-dots" id="pagination-dots">
-                <div class="dot active" onclick="window.goToStickerPage(0)"></div>
-                <div class="dot" onclick="window.goToStickerPage(1)"></div>
-                <div class="dot" onclick="window.goToStickerPage(2)"></div>
-                <div class="dot" onclick="window.goToStickerPage(3)"></div>
-                <div class="dot" onclick="window.goToStickerPage(4)"></div>
+            <div class="input-controls">
+                <label for="img-upload" style="cursor:pointer; font-size:1.3rem; margin-right:10px;">📷</label>
+                <input type="file" id="img-upload" accept="image/*" style="display:none;">
+                <input type="text" id="diary-input" placeholder="추억을 남겨요!">
+                <button class="add-btn" id="add-comment-btn">등록</button>
             </div>
-            <div class="comment-section" id="comment-scroll-area"><div id="comment-list"></div></div>
-            <div class="input-area">
-                <div id="preview-box" style="display:none; position:relative; margin-bottom:10px; text-align:center;">
-                    <img id="img-preview" src="" style="width:60px; height:60px; object-fit:cover; border-radius:10px; border:2px solid #ffafcc;">
-                    <div id="remove-img" style="position:absolute; top:-8px; right:50%; margin-right:-40px; background:rgba(0,0,0,0.6); color:white; border-radius:50%; width:20px; height:20px; font-size:12px; line-height:20px; cursor:pointer; font-weight:bold;">✕</div>
-                </div>
-                <div class="input-controls">
-                    <label for="img-upload" style="cursor:pointer; font-size:1.3rem; margin-right:10px;">📷</label>
-                    <input type="file" id="img-upload" accept="image/*" style="display:none;">
-                    <input type="text" id="diary-input" placeholder="추억을 남겨요!">
-                    <button class="add-btn" id="add-comment-btn">등록</button>
-                </div>
-            </div>
-        `;
+        </div>
+    `;
 
         // [2] 스티커 및 초기 렌더링
         initStickers();
@@ -1356,6 +1362,7 @@ onAuthStateChanged(auth, async (u) => {
 </script>
 </body>
 </html>
+
 
 
 
