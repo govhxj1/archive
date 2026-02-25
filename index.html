@@ -1377,53 +1377,54 @@ onAuthStateChanged(auth, async (u) => {
 });
 
     // [보조 함수들]
-function setupDiaryEvents() {
-    const slider = document.getElementById('sticker-slider');
-    let touchStartX = 0;
-    slider.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-    slider.addEventListener('touchend', e => {
-        const diff = touchStartX - e.changedTouches[0].clientX;
-        if (Math.abs(diff) > 50) {
-            if (diff > 0 && currentPage < 4) window.goToStickerPage(currentPage + 1);
-            else if (diff < 0 && currentPage > 0) window.goToStickerPage(currentPage - 1);
+        function setupDiaryEvents() {
+            // 1. 이미지 업로드 버튼 안전장치
+            const imgInput = document.getElementById('img-upload');
+            if (imgInput) {
+                imgInput.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        selectedImgBase64 = ev.target.result;
+                        document.getElementById('img-preview').src = selectedImgBase64;
+                        document.getElementById('preview-box').style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                };
+            }
+        
+            // 2. 이미지 삭제 버튼 안전장치
+            const removeBtn = document.getElementById('remove-img');
+            if (removeBtn) {
+                removeBtn.onclick = () => {
+                    selectedImgBase64 = "";
+                    document.getElementById('preview-box').style.display = 'none';
+                    document.getElementById('img-upload').value = "";
+                };
+            }
+        
+            // 3. 등록 버튼 안전장치
+            const addBtn = document.getElementById('add-comment-btn');
+            if (addBtn) {
+                addBtn.onclick = async () => {
+                    const diaryInput = document.getElementById('diary-input');
+                    if (!diaryInput.value.trim() && !selectedImgBase64 && tempLocations.length === 0) return;
+                    comments.push({ 
+                        text: diaryInput.value.trim() || (tempLocations.length > 0 ? "장소 기록 ✨" : "사진 기록"), 
+                        img: selectedImgBase64,
+                        locations: [...tempLocations] 
+                    });
+                    diaryInput.value = "";
+                    selectedImgBase64 = "";
+                    tempLocations = []; 
+                    if(document.getElementById('preview-box')) document.getElementById('preview-box').style.display = 'none';
+                    if(document.getElementById('selected-locations-area')) document.getElementById('selected-locations-area').innerHTML = ""; 
+                    renderComments(true);
+                    await saveData(); 
+                };
+            }
         }
-    }, { passive: true });
-
-    document.getElementById('img-upload').onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            selectedImgBase64 = ev.target.result;
-            document.getElementById('img-preview').src = selectedImgBase64;
-            document.getElementById('preview-box').style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    };
-
-    document.getElementById('remove-img').onclick = () => {
-        selectedImgBase64 = "";
-        document.getElementById('preview-box').style.display = 'none';
-        document.getElementById('img-upload').value = "";
-    };
-
-    document.getElementById('add-comment-btn').onclick = async () => {
-        const diaryInput = document.getElementById('diary-input');
-        if (!diaryInput.value.trim() && !selectedImgBase64 && tempLocations.length === 0) return;
-        comments.push({ 
-            text: diaryInput.value.trim() || (tempLocations.length > 0 ? "장소 기록 ✨" : "사진 기록"), 
-            img: selectedImgBase64,
-            locations: [...tempLocations] 
-        });
-        diaryInput.value = "";
-        selectedImgBase64 = "";
-        tempLocations = []; 
-        document.getElementById('preview-box').style.display = 'none';
-        document.getElementById('selected-locations-area').innerHTML = ""; 
-        renderComments(true);
-        await saveData(); 
-    };
-}
 
         window.addNewLocation = () => {
             const locName = prompt("어디에 다녀오셨나요? 🗺️");
@@ -1450,6 +1451,7 @@ function setupDiaryEvents() {
 </script>
 </body>
 </html>
+
 
 
 
