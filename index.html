@@ -969,17 +969,24 @@ function renderCalendar() {
         initStickers();
         renderComments(true);
 
-        // [3] 스티커 슬라이더 터치 로직
+               // [3] 스티커 슬라이더 터치 로직 (안전 버전)
         const slider = document.getElementById('sticker-slider');
-        let touchStartX = 0;
-        slider.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-        slider.addEventListener('touchend', e => {
-            const diff = touchStartX - e.changedTouches[0].clientX;
-            if (Math.abs(diff) > 50) {
-                if (diff > 0 && currentPage < 4) window.goToStickerPage(currentPage + 1);
-                else if (diff < 0 && currentPage > 0) window.goToStickerPage(currentPage - 1);
-            }
-        }, { passive: true });
+        
+        // 📍 만약 slider가 화면에 있을 때만 기능을 실행하도록 'if'로 감싸줍니다!
+        if (slider) {
+            let touchStartX = 0;
+            slider.addEventListener('touchstart', e => { 
+                touchStartX = e.touches[0].clientX; 
+            }, { passive: true });
+        
+            slider.addEventListener('touchend', e => {
+                const diff = touchStartX - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0 && currentPage < 4) window.goToStickerPage(currentPage + 1);
+                    else if (diff < 0 && currentPage > 0) window.goToStickerPage(currentPage - 1);
+                }
+            }, { passive: true });
+        }
 
         // [4] 이미지 업로드 로직
         const imgInput = document.getElementById('img-upload');
@@ -1443,6 +1450,7 @@ function setupDiaryEvents() {
 </script>
 </body>
 </html>
+
 
 
 
