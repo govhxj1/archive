@@ -1035,23 +1035,7 @@ function renderCalendar() {
             tempLocations.push({ name: locName, lat: 36.35, lng: 127.34 }); 
             renderTempLocations();
         };
-        
-        function renderTempLocations() {
-            const area = document.getElementById('selected-locations-area');
-            if (area) {
-                area.innerHTML = tempLocations.map((loc, idx) => `
-                    <span style="background:#ffafcc; color:white; padding:4px 8px; border-radius:10px; font-size:0.75rem; display:inline-flex; align-items:center; gap:5px;">
-                        📍 ${loc.name} <b style="cursor:pointer" onclick="window.removeTempLoc(${idx})">✕</b>
-                    </span>
-                `).join('');
-            }
-        }
-        
-        window.removeTempLoc = (idx) => {
-            tempLocations.splice(idx, 1);
-            renderTempLocations();
-        };
-        
+           
     function renderComments(scrollToBottom = false) {
         const list = document.getElementById('comment-list'); if (!list) return;
         list.innerHTML = comments.length ? "" : '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">유미랑 거니의 추억🌸</p>';
@@ -1459,5 +1443,6 @@ function setupDiaryEvents() {
 </script>
 </body>
 </html>
+
 
 
