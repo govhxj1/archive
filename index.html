@@ -1012,25 +1012,111 @@ function renderCalendar() {
             }, 100); 
         };
 
-                // 장소 데이터를 임시로 저장할 배열
-        
-        // 장소 추가 함수
-        window.addNewLocation = () => {
-            const locName = prompt("어디에 다녀오셨나요? 🗺️");
-            if (!locName) return;
-            
-            // 지금은 수동으로 좌표를 찍기 어려우니, 우선 이름만 저장합니다.
-            // (나중에 구글 맵 API 등을 연결하면 자동으로 좌표를 가져올 수 있어요!)
-            tempLocations.push({ name: locName, lat: 36.35, lng: 127.34 }); // 임시 좌표
-            renderTempLocations();
+                // [1] 실제 좌표 + 랜덤 하트 기능이 들어간 장소 추가 함수
+        window.addNewLocation = async () => {
+            const userInput = prompt("네이버 지도 링크나 장소 이름을 알려주세요! 🗺️");
+            if (!userInput) return;
+
+            let locName = userInput;
+            let icon = ""; 
+
+            // 링크인 경우 이름 추출 시도
+            if (userInput.includes("naver.me") || userInput.includes("map.naver")) {
+                locName = prompt("이 장소의 이름은 무엇인가요? (예: 아리네 닭볶음탕)");
+                if (!locName) locName = "새로운 데이트 장소";
+            }
+
+            // 업종별 아이콘 매칭
+            const keywords = {
+                "식당": "🥘", "맛집": "🍴", "닭볶음탕": "🥘", "고기": "🍖", "카페": "☕", 
+                "커피": "☕", "볼링": "🎳", "영화": "🎬", "숙소": "🏨", "호텔": "🏨", 
+                "산책": "🌳", "쇼핑": "🛍️", "사파리": "🦁", "동물원": "🦒", "게임": "🎮",
+                "호프": "🍺", "술": "🍺", "오뎅": "🍢", "백화점": "🛍️"
+            };
+
+            for (let key in keywords) {
+                if (locName.includes(key)) {
+                    icon = keywords[key];
+                    break;
+                }
+            }
+
+            // 아이콘이 없으면 하트 3종 랜덤 선택 ❤️
+            if (!icon) {
+                const hearts = ["💛", "💖", "💗"];
+                icon = hearts[Math.floor(Math.random() * hearts.length)];
+            }
+
+            // 실제 좌표 가져오기
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    tempLocations.push({ 
+                        name: locName, 
+                        icon: icon, 
+                        link: userInput.includes("http") ? userInput : "", 
+                        lat: pos.coords.latitude, 
+                        lng: pos.coords.longitude 
+                    });
+                    renderTempLocations();
+                }, () => {
+                    // 실패 시 기본 좌표
+                    tempLocations.push({ name: locName, icon: icon, lat: 36.35, lng: 127.34 });
+                    renderTempLocations();
+                });
+            }
         };
+
+        // [2] 화면에 장소 카드를 그려주는 함수 (새로 추가)
+        // ✅ 이 뭉치 하나만 스크립트 안에 남겨두세요!
+function renderTempLocations() {
+    const area = document.getElementById('selected-locations-area');
+    if (!area) return;
+
+    // 장소 리스트가 비어있으면 깨끗하게 비워줍니다.
+    if (tempLocations.length === 0) {
+        area.innerHTML = "";
+        return;
+    }
+
+    // 예쁜 카드 스타일로 그려줍니다.
+    area.innerHTML = tempLocations.map((loc, idx) => `
+        <div style="
+            background: #ffffff; 
+            border: 1px solid #ffe5ec; 
+            border-radius: 18px; 
+            padding: 12px 15px; 
+            margin-bottom: 8px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 4px 6px rgba(255, 143, 171, 0.1); 
+            width: 100%; 
+            box-sizing: border-box;
+            animation: fadeIn 0.3s ease-out;
+        ">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.3rem;">${loc.icon}</span> 
+                <div style="text-align: left;">
+                    <div style="color: #444; font-weight: 900; font-size: 0.95rem;">${loc.name}</div>
+                    ${loc.link ? `<div style="color: #ff8fab; font-size: 0.75rem; font-weight: bold; margin-top: 2px;">📍 지도 링크 연결됨</div>` : ''}
+                </div>
+            </div>
+            <div 
+                style="cursor: pointer; color: #ffafcc; font-size: 1.2rem; padding: 5px; font-weight: bold;" 
+                onclick="window.removeTempLoc(${idx})"
+            >
+                ✕
+            </div>
+        </div>
+    `).join('');
+}
                 
         window.removeTempLoc = (idx) => {
             tempLocations.splice(idx, 1);
             renderTempLocations();
         };
         
-        // [2] 스티커 및 초기 렌더링
+        // [3] 초기 실행
         initStickers();
         renderComments(true);
 
@@ -1108,14 +1194,7 @@ function renderCalendar() {
                 await saveData(); 
             };
         }
-        
-        window.addNewLocation = () => {
-            const locName = prompt("어디에 다녀오셨나요? 🗺️");
-            if (!locName) return;
-            tempLocations.push({ name: locName, lat: 36.35, lng: 127.34 }); 
-            renderTempLocations();
-        };
-           
+                   
     function renderComments(scrollToBottom = false) {
         const list = document.getElementById('comment-list'); if (!list) return;
         list.innerHTML = comments.length ? "" : '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">유미랑 거니의 추억🌸</p>';
@@ -1444,32 +1523,12 @@ function setupHeartNotification() {
 
     // 3. 하트 알림 실시간 감시 별도 시작
     setupHeartNotification();
-        
-        window.addNewLocation = () => {
-            const locName = prompt("어디에 다녀오셨나요? 🗺️");
-            if (!locName) return;
-            tempLocations.push({ name: locName, lat: 36.35, lng: 127.34 }); 
-            renderTempLocations();
-        };
-        
-        function renderTempLocations() {
-            const area = document.getElementById('selected-locations-area');
-            if (area) {
-                area.innerHTML = tempLocations.map((loc, idx) => `
-                    <span style="background:#ffafcc; color:white; padding:4px 8px; border-radius:10px; font-size:0.75rem; display:inline-flex; align-items:center; gap:5px;">
-                        📍 ${loc.name} <b style="cursor:pointer" onclick="window.removeTempLoc(${idx})">✕</b>
-                    </span>`).join('');
-            }
-        }
-        
-        window.removeTempLoc = (idx) => {
-            tempLocations.splice(idx, 1);
-            renderTempLocations();
-        };
+
     
 </script>
 </body>
 </html>
+
 
 
 
