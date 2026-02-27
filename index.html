@@ -1015,69 +1015,80 @@ function renderCalendar() {
             }, 100); 
         };
 
-                // [1] 실제 좌표 + 랜덤 하트 기능이 들어간 장소 추가 함수
-               window.addNewLocation = async () => {
-    const userInput = prompt("네이버 지도 링크나 장소 이름을 알려주세요! 🗺️");
-    if (!userInput) return;
+    // [1] 카카오 검색 도우미 함수 (먼저 정의)
+async function searchPlace(keyword) {
+    const REST_API_KEY = 'YOUR_KAKAO_REST_API_KEY'; // 발급받은 키 넣기
+    const url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(keyword)}&size=1`;
 
-    let locName = userInput;
-    let icon = "";
-
-    // [1] 링크인 경우 이름 추출 시도
-    if (userInput.includes("naver.me") || userInput.includes("map.naver")) {
-        locName = prompt("이 장소의 이름은 무엇인가요? (예: 아리네 닭볶음탕)");
-        if (!locName) locName = "새로운 데이트 장소";
-    }
-
-    // [2] 거니님이 말씀하신 아이콘 매칭 로직 (여기 다시 넣었어요!)
-    const keywords = {
-        "식당": "🥘", "맛집": "🍴", "닭볶음탕": "🥘", "고기": "🍖", "카페": "☕", 
-        "커피": "☕", "볼링": "🎳", "영화": "🎬", "숙소": "🏨", "호텔": "🏨", 
-        "산책": "🌳", "쇼핑": "🛍️", "사파리": "🦁", "동물원": "🦒", "게임": "🎮",
-        "호프": "🍺", "술": "🍺", "오뎅": "🍢", "백화점": "🛍️"
-    };
-
-    for (let key in keywords) {
-        if (locName.includes(key)) {
-            icon = keywords[key];
-            break;
-        }
-    }
-
-    // 아이콘이 없으면 하트 3종 랜덤 선택 ❤️
-    if (!icon) {
-        icon = ["💛", "💖", "💗"][Math.floor(Math.random() * 3)];
-    }
-
-    // [3] 좌표 가져오기 및 저장
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((pos) => {
-            // 새 장소 객체 생성
-            const newLoc = { 
-                name: locName, 
-                icon: icon, // 매칭된 아이콘 저장
-                link: userInput.includes("http") ? userInput : "", 
-                lat: pos.coords.latitude, 
-                lng: pos.coords.longitude 
-            };
-            
-            tempLocations.push(newLoc); // 배열에 추가
-            renderTempLocations(); // 카드 갱신
-            
-            // 지도에 즉시 반영 (전체 배열 전달)
-            if (typeof renderMapPath === 'function') {
-                renderMapPath(tempLocations);
-            }
-        }, () => {
-            // 위치 실패 시 기본 좌표
-            const fallbackLoc = { name: locName, icon: icon, lat: 36.35, lng: 127.34 };
-            tempLocations.push(fallbackLoc);
-            renderTempLocations();
-            if (typeof renderMapPath === 'function') {
-                renderMapPath(tempLocations);
-            }
+    try {
+        const response = await fetch(url, {
+            headers: { 'Authorization': `KakaoAK ${REST_API_KEY}` }
         });
+        const data = await response.json();
+        if (data.documents && data.documents.length > 0) {
+            const place = data.documents[0];
+            return {
+                name: place.place_name,
+                addr: place.road_address_name || place.address_name,
+                lat: parseFloat(place.y),
+                lng: parseFloat(place.x)
+            };
+        }
+    } catch (e) { console.error(e); }
+    return null;
+}
+
+        // [2] 실제 버튼을 눌렀을 때 실행되는 함수 (위의 함수를 불러서 사용)
+        window.addNewLocation = async () => {
+            const inputName = prompt("1. 장소의 이름 (예: 아리네 닭볶음탕)");
+            if (!inputName) return;
+        
+            const inputAddr = prompt("2. 주소나 위치 (예: 유성구 봉명동...)", inputName); 
+            if (!inputAddr) return;
+        
+            const locMemo = prompt("3. 이 장소에 대한 메모 📝");
+        
+            // 위에서 만든 searchPlace 함수를 여기서 호출합니다!
+            alert("위치를 찾는 중... 🔍");
+            const result = await searchPlace(inputAddr); 
+        
+            let lat, lng, finalAddr;
+            if (result) {
+                lat = result.lat; lng = result.lng; finalAddr = result.addr;
+                alert(`📍 확인됨: ${result.name}`);
+            } else {
+                lat = 36.3504; lng = 127.3845; finalAddr = inputAddr;
+            }
+        
+            // 아이콘 및 저장 로직 (이전과 동일)
+            // ... 중략 ...
+            
+            tempLocations.push({ name: inputName, addr: finalAddr, memo: locMemo, lat: lat, lng: lng, icon: icon });
+            renderTempLocations();
+            if (typeof renderMapPath === 'function') renderMapPath(tempLocations);
+        };
+                  
+
+    // [3] 아이콘 설정 (기존 하트 랜덤 로직)
+    let icon = "";
+    const keywords = { "식당": "🥘", "카페": "☕", "호텔": "🏨", "볼링": "🎳" };
+    for (let key in keywords) {
+        if (inputName.includes(key)) { icon = keywords[key]; break; }
     }
+    if (!icon) icon = ["💛", "💖", "💗"][Math.floor(Math.random() * 3)];
+
+    // [4] 데이터 저장 및 지도 갱신
+    tempLocations.push({ 
+        name: inputName, 
+        addr: finalAddr, 
+        memo: locMemo, 
+        icon: icon, 
+        lat: lat, 
+        lng: lng 
+    });
+
+    renderTempLocations(); // 리스트 갱신
+    if (typeof renderMapPath === 'function') renderMapPath(tempLocations); // 지도 갱신
 };
 
         // [2] 화면에 장소 카드를 그려주는 함수 (새로 추가)
@@ -1572,6 +1583,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
