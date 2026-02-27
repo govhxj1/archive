@@ -1033,19 +1033,19 @@ async function searchPlace(keyword) {
 
     try {
         const response = await fetch(url, {
-            headers: { 'Authorization': `KakaoAK ${REST_API_KEY}` }
+            headers: { 'Authorization': `KakaoAK ${REST_API_KEY}` } // KakaoAK 한 칸 띄우고 키 입력
         });
-        const data = await response.json();
-        if (data.documents && data.documents.length > 0) {
-            const place = data.documents[0];
-            return {
-                name: place.place_name,
-                addr: place.road_address_name || place.address_name,
-                lat: parseFloat(place.y),
-                lng: parseFloat(place.x)
-            };
+        
+        // 403 에러가 나는 경우 여기서 원인을 알려줍니다.
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("카카오 로컬 API 에러:", errorData);
+            return null;
         }
-    } catch (e) { console.error(e); }
+
+        const data = await response.json();
+        //
+    catch (e) { console.error(e); }
     return null;
 }
 
@@ -1646,6 +1646,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
