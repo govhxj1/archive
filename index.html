@@ -1284,25 +1284,41 @@ function renderTempLocations() {
                    
             // [1] 댓글창 그리기 (장소 카드 제거 버전)
             function renderComments(scrollToBottom = false) {
-                const list = document.getElementById('comment-list'); 
-                if (!list) return;
-            
-                list.innerHTML = comments.length ? "" : '<p style="text-align:center; color:#ccc;">추억을 기록해보세요! 🌸</p>';
-            
-                comments.forEach((c, i) => { 
-                    const div = document.createElement('div'); 
-                    div.className = 'comment-item'; 
-                    // 📍 여기서는 장소 카드 로직을 아예 삭제하고 일반 텍스트/이미지만 남깁니다.
-                    div.innerHTML = `
-                        <div class="comment-content">
-                            ${c.img ? `<img src="${c.img}" style="width:100%; border-radius:10px;">` : ''}
-                            <span class="comment-text">${c.text}</span>
-                        </div>
-                        <button class="delete-btn" onclick="window.requestDel(${i})">✕</button>
-                    `;
-                    list.appendChild(div); 
-                });
-            }
+    const list = document.getElementById('comment-list'); 
+    if (!list) return;
+
+    // 댓글이 하나도 없으면 초기화 메시지
+    if (!comments || comments.length === 0) {
+        list.innerHTML = '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">유미랑 거니의 추억🌸</p>';
+        return;
+    }
+
+    list.innerHTML = ""; // 목록 초기화
+
+    comments.forEach((c, i) => { 
+        const div = document.createElement('div'); 
+        div.className = 'comment-item'; 
+
+        // 📍 [중요] 장소 정보가 들어있는 댓글은 무시하고 넘어갑니다.
+        // 장소는 '요약 뷰'에서만 2/15 스타일로 보여줄 거니까요!
+        if (c.locations && c.locations.length > 0) return; 
+
+        // 📍 순수 텍스트나 이미지만 있는 댓글만 그립니다.
+        div.innerHTML = `
+            <div class="comment-content">
+                ${c.img ? `<img src="${c.img}" style="width:100%; border-radius:10px; margin-bottom:5px;">` : ''}
+                <span class="comment-text">${c.text}</span>
+            </div>
+            <button class="delete-btn" onclick="window.requestDel(${i})">✕</button>
+        `;
+        list.appendChild(div); 
+    });
+
+    if(scrollToBottom) { 
+        const s = document.getElementById('comment-scroll-area'); 
+        if(s) s.scrollTop = s.scrollHeight; 
+    }
+}
             
             
 
@@ -1809,6 +1825,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
