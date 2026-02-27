@@ -1253,62 +1253,7 @@ function renderTempLocations() {
 
    // [6] 지도 기능 수정
 
-window.openMap = function() {
-    // 1. 카카오 라이브러리가 로드되었는지 체크
-    if (typeof kakao === 'undefined') {
-        alert("지도 라이브러리를 불러오는 중입니다. 잠시 후 다시 눌러주세요! ✨");
-        return;
-    }
-
-    // 2. 화면 표시 설정
-    document.getElementById('map-container').style.display = 'flex'; 
-    document.getElementById('side-menu').style.display = 'none';
-    
-    // 3. 지도 초기화 및 레이아웃 조정
-    if (!kakaoMap) { 
-        const container = document.getElementById('map'); 
-        const options = {
-            center: new kakao.maps.LatLng(36.3537, 127.3415), // 유성온천역
-            level: 4 
-        };
-        kakaoMap = new kakao.maps.Map(container, options);
-    } else {
-        // [중요] 지도가 이미 있을 때, 숨겨져 있다가 나타나면 크기가 깨질 수 있어요.
-        // 이를 방지하기 위해 relayout()을 실행해줍니다.
-        setTimeout(() => {
-            kakaoMap.relayout();
-            kakaoMap.setCenter(new kakao.maps.LatLng(36.3537, 127.3415));
-        }, 100);
-    }
-    
-    // 4. 지도 열 때 현재 등록된 장소들을 바로 그려줍니다.
-    if (typeof renderMapPath === 'function') {
-        renderMapPath(tempLocations);
-    }
-};
-    
-            // [6-2] 지도 닫기 함수 (새로 추가)
-        window.closeMap = () => {
-            // 1. 지도 화면 숨기기
-            const mapCont = document.getElementById('map-container');
-            if (mapCont) mapCont.style.display = 'none';
-        
-            // 2. 배경 블러(overlay) 처리
-            const o = document.getElementById('overlay');
-            // 다이어리 기록창이나 랜덤 질문창이 열려있는지 확인
-            const isDiaryOpen = document.getElementById('diary-modal').style.display === 'flex';
-            const isQuestionOpen = document.getElementById('question-overlay').style.display === 'flex';
-            
-            // 다른 창이 하나도 안 열려 있을 때만 배경 어두운 효과를 제거
-            if (!isDiaryOpen && !isQuestionOpen) {
-                if (o) {
-                    o.style.display = 'none';
-                    o.style.zIndex = "100";
-                }
-            }
-        };
-    
-    // 1. [정의] 함수 내부에 모든 데이터 처리 로직을 포함시킵니다.
+// 1. [정의] 함수 내부에 모든 로직을 쏙 집어넣었습니다.
 window.loadMemoriesByDate = function() {
     const dateElement = document.getElementById('date-selector');
     if (!dateElement) return;
@@ -1318,15 +1263,14 @@ window.loadMemoriesByDate = function() {
     
     console.log(selectedDate + " 데이터를 불러오는 중... ✨");
 
-    // 📍 여기서부터 변수(selectedDate)를 사용하는 로직들이 시작됩니다.
     const [y, m, d] = selectedDate.split('-');
     const dateKeyWithZero = `${y}-${m}-${d}`; 
     const dateKeyNoZero = `${y}-${parseInt(m)}-${parseInt(d)}`; 
 
-    // 1. 하드코딩된 경로 (allPaths)
+    // 📍 pathData 배열 준비
     let pathData = (typeof allPaths !== 'undefined' && (allPaths[dateKeyWithZero] || allPaths[dateKeyNoZero])) || [];
 
-    // 2. 파이어베이스 데이터 추가 (cloudRecords)
+    // 파이어베이스 데이터 추가
     const savedData = cloudRecords[dateKeyWithZero] || cloudRecords[dateKeyNoZero];
     if (savedData && savedData.comments) {
         savedData.comments.forEach(comment => {
@@ -1337,37 +1281,39 @@ window.loadMemoriesByDate = function() {
                         lat: loc.lat,
                         lng: loc.lng,
                         memo: comment.text || "우리의 추억 장소 ✨",
-                        icon: loc.icon || "💖" // 아이콘도 챙겨주세요!
+                        icon: loc.icon || "💖"
                     });
                 });
             }
         });
     }
 
-    // 3. 📍 데이터를 다 모았으니 지도에 그려줍니다!
-    if (typeof renderMapPath === 'function') {
-        renderMapPath(pathData);
+    // 2. 📍 데이터 유무에 따른 지도 처리 (이 부분이 함수 안으로 들어왔어요!)
+    if (pathData.length > 0) {
+        // 데이터가 있으면 그려라!
+        if (typeof renderMapPath === 'function') {
+            renderMapPath(pathData);
+        }
+    } else {
+        // 데이터가 없으면 카카오 지도 위의 것들을 싹 지워라!
+        if (typeof kakaoPolyline !== 'undefined' && kakaoPolyline) kakaoPolyline.setMap(null);
+        if (typeof kakaoMarkers !== 'undefined') {
+            kakaoMarkers.forEach(m => m.setMap(null));
+            kakaoMarkers = [];
+        }
+        console.log(selectedDate + "에 표시할 장소가 없습니다. 💨");
     }
-};
+}; // ✅ 여기서 함수가 끝납니다!
 
-// 2. [실행] 오늘 날짜 세팅 후 함수 호출
+// 3. [실행] 오늘 날짜 세팅 후 함수 호출
 const today = new Date().toISOString().split('T')[0];
 const dateSelector = document.getElementById('date-selector');
 if (dateSelector) {
     dateSelector.value = today;
 }
 
-// 함수가 위에서 완벽하게 정의되었으므로 이제 실행해도 에러가 안 납니다!
+// 함수가 위에서 정의되었으므로 이제 에러 없이 호출됩니다!
 window.loadMemoriesByDate();
-
-    if (pathData.length > 0) {
-        renderMapPath(pathData);
-    } else {
-        if (pathLine) diaryMap.removeLayer(pathLine);
-        markers.forEach(m => diaryMap.removeLayer(m));
-        markers = [];
-        console.log(selectedDate + "에 표시할 장소가 없습니다.");
-    }
 
 function renderMapPath(pathData) {
     // kakaoMap이 생성되지 않았거나 데이터가 없으면 중단
@@ -1660,6 +1606,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
