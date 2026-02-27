@@ -944,7 +944,6 @@ function renderCalendar() {
                 </div>`;
             initStickers();
             renderComments(true);
-            setupDiaryEvents(); // 이벤트 리스너들을 별도 함수로 묶어 호출
         };
 
                 // 장소 데이터를 임시로 저장할 배열
@@ -1464,6 +1463,7 @@ onAuthStateChanged(auth, async (u) => {
 </script>
 </body>
 </html>
+
 
 
 
