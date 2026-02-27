@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=e12174f6753a399a28edc31022a362ef"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -671,9 +670,21 @@
     let currentWriter = "", weatherClickCount = 0, currentWeatherStatus = "";
     let tempLocations = []; // 📍 여기에 있어야 어디서든 에러 없이 접근 가능해요!
 
-    let diaryMap, pathLine;
-    let markers = []; // 👈 여기서 한 번만 선언하세요.
+    let kakaoMap; 
+    let kakaoMarkers = [];
+    let kakaoPolyline = null;
 
+    function initKakaoMap() {
+    const container = document.getElementById('map');
+    if (!container) return; // 지도를 그릴 공간이 없으면 실행 안 함
+    
+    const options = {
+        center: new kakao.maps.LatLng(36.3537, 127.3415), // 유성온천역 기준
+        level: 4
+    };
+    kakaoMap = new kakao.maps.Map(container, options);
+}
+    
     const dateContainer = document.getElementById('calendar-dates'), monthTitle = document.getElementById('month-title'), loadingOverlay = document.getElementById('loading-overlay');
     
     // 데이터 리스트 (스티커, 공휴일, 데이트 정보, 질문 등)
@@ -1246,9 +1257,16 @@ window.openMap = function() {
     document.getElementById('map-container').style.display = 'flex'; 
     document.getElementById('side-menu').style.display = 'none';
     
-    if (!diaryMap) { 
-        diaryMap = L.map('map').setView([36.3537, 127.3415], 14); 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(diaryMap); 
+    // [카카오 지도 초기화 버전]
+    if (!kakaoMap) { 
+        const container = document.getElementById('map'); // 지도를 담을 영역
+        const options = {
+            center: new kakao.maps.LatLng(36.3537, 127.3415), // 유성온천역 기준 좌표
+            level: 4 // 지도의 확대 레벨
+        };
+
+        // 실제 카카오 지도 생성!
+        kakaoMap = new kakao.maps.Map(container, options);
     }
     
             // [6-2] 지도 닫기 함수 (새로 추가)
@@ -1596,6 +1614,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
