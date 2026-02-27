@@ -1340,43 +1340,59 @@ window.loadMemoriesByDate = function() {
 
 
 function renderMapPath(pathData) {
-    if (!diaryMap || !pathData || pathData.length === 0) return;
+    // kakaoMap이 생성되지 않았거나 데이터가 없으면 중단
+    if (!kakaoMap || !pathData || pathData.length === 0) return;
 
-    // 1. 기존에 지도에 그려진 마커와 선을 싹 지웁니다.
-    markers.forEach(m => diaryMap.removeLayer(m));
-    markers = [];
-    if (pathLine) diaryMap.removeLayer(pathLine);
+    // 1. 기존 마커(커스텀 오버레이)와 선 지우기
+    kakaoMarkers.forEach(m => m.setMap(null));
+    kakaoMarkers = [];
+    if (kakaoPolyline) kakaoPolyline.setMap(null);
 
-    // 2. 모든 장소의 좌표를 모읍니다.
-    const latlngs = pathData.map(loc => [loc.lat, loc.lng]);
+    const linePath = []; // 선을 그릴 좌표 모음
 
-    // 3. 배열을 돌면서 마커를 하나씩 다 찍습니다.
+    // 2. 모든 장소를 돌며 마커와 이름표 생성
     pathData.forEach((loc) => {
-        const marker = L.marker([loc.lat, loc.lng], {
-            icon: L.divIcon({
-                html: `<div style="font-size:24px;">${loc.icon || '📍'}</div>`,
-                className: 'custom-div-icon',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            })
-        }).addTo(diaryMap).bindPopup(loc.name);
-        
-        markers.push(marker); // 나중에 지우기 위해 배열에 저장
+        const position = new kakao.maps.LatLng(loc.lat, loc.lng);
+        linePath.push(position);
+
+        // 하트 아이콘 + 장소 이름표 디자인 (메모가 있다면 메모도 살짝 추가 가능!)
+        const content = `
+            <div style="cursor: pointer; text-align: center; transform: translateY(-15px);">
+                <div style="font-size: 32px; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));">
+                    ${loc.icon || '💖'}
+                </div>
+                <div style="background: white; border: 1px solid #ff8fab; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 900; color: #444; margin-top: -5px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    ${loc.name}
+                    ${loc.memo ? `<div style="font-weight:normal; font-size:9px; color:#ff8fab; border-top:1px dashed #ffe5ec; margin-top:2px;">${loc.memo}</div>` : ''}
+                </div>
+            </div>`;
+
+        const customOverlay = new kakao.maps.CustomOverlay({
+            position: position,
+            content: content,
+            yAnchor: 1 
+        });
+
+        customOverlay.setMap(kakaoMap);
+        kakaoMarkers.push(customOverlay);
     });
 
-    // 4. 장소가 2개 이상이면 선으로 연결합니다.
-    if (latlngs.length > 1) {
-        pathLine = L.polyline(latlngs, {
-            color: '#ff8fab',
-            weight: 4,
-            opacity: 0.6,
-            dashArray: '10, 10' // 점선 효과
-        }).addTo(diaryMap);
+    // 3. 장소들을 핑크색 점선으로 연결 (L.polyline -> kakao.maps.Polyline)
+    if (linePath.length > 1) {
+        kakaoPolyline = new kakao.maps.Polyline({
+            path: linePath,
+            strokeWeight: 4,
+            strokeColor: '#ff8fab',
+            strokeOpacity: 0.8,
+            strokeStyle: 'dashed'
+        });
+        kakaoPolyline.setMap(kakaoMap);
     }
 
-    // 5. 모든 마커가 다 보이도록 지도 화면을 맞춥니다.
-    const group = new L.FeatureGroup(markers);
-    diaryMap.fitBounds(group.getBounds().pad(0.2));
+    // 4. 모든 마커가 화면에 다 들어오도록 지도 시야 자동 조절 (fitBounds 역할)
+    const bounds = new kakao.maps.LatLngBounds();
+    linePath.forEach(pos => bounds.extend(pos));
+    kakaoMap.setBounds(bounds);
 }
     // [7] 오늘의 랜덤 질문 기능
     window.showRandomQuestion = function() {
@@ -1614,6 +1630,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
