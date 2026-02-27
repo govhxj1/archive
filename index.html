@@ -1282,38 +1282,53 @@ function renderTempLocations() {
             };
         }
                    
+            // [1] 댓글창 그리기 (장소 카드 제거 버전)
             function renderComments(scrollToBottom = false) {
-            const list = document.getElementById('comment-list'); 
-            if (!list) return;
-        
-            // 댓글이 없을 때 메시지
-            if (comments.length === 0) {
-                list.innerHTML = '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">유미랑 거니의 추억🌸</p>';
-                return;
+                const list = document.getElementById('comment-list'); 
+                if (!list) return;
+            
+                list.innerHTML = comments.length ? "" : '<p style="text-align:center; color:#ccc;">추억을 기록해보세요! 🌸</p>';
+            
+                comments.forEach((c, i) => { 
+                    const div = document.createElement('div'); 
+                    div.className = 'comment-item'; 
+                    // 📍 여기서는 장소 카드 로직을 아예 삭제하고 일반 텍스트/이미지만 남깁니다.
+                    div.innerHTML = `
+                        <div class="comment-content">
+                            ${c.img ? `<img src="${c.img}" style="width:100%; border-radius:10px;">` : ''}
+                            <span class="comment-text">${c.text}</span>
+                        </div>
+                        <button class="delete-btn" onclick="window.requestDel(${i})">✕</button>
+                    `;
+                    list.appendChild(div); 
+                });
             }
-        
-            list.innerHTML = ""; // 목록 초기화
-        
-            comments.forEach((c, i) => { 
-                const div = document.createElement('div'); 
-                div.className = 'comment-item'; 
-        
-                // 📍 여기서는 장소 카드를 그리지 않고, 일반 댓글 디자인만 유지합니다.
-                div.innerHTML = `
-                    <div class="comment-content">
-                        ${c.img ? `<img src="${c.img}" style="width:100%; border-radius:10px; margin-bottom:5px;">` : ''}
-                        <span class="comment-text">${c.text}</span>
-                    </div>
-                    <button class="delete-btn" onclick="window.requestDel(${i})">✕</button>
-                `;
-                list.appendChild(div); 
-            });
-        
-            if(scrollToBottom) { 
-                const s = document.getElementById('comment-scroll-area'); 
-                if(s) s.scrollTop = s.scrollHeight; 
+            
+            // [2] 요약 뷰 그리기 (이미지 2/15 스타일 전용)
+            async function loadMemoriesByDate(date) {
+                // ... (타이틀 변경 로직) ...
+            
+                const summaryList = document.getElementById('summary-place-list');
+                if (summaryList) {
+                    summaryList.innerHTML = '';
+                    // 하드코딩 + 저장된 장소들만 모으기
+                    const combinedLocs = [...(allPaths[date] || []), ...cloudLocations];
+            
+                    combinedLocs.forEach(loc => {
+                        const card = document.createElement('div');
+                        card.className = 'place-summary-card'; // 요약 전용 클래스
+                        card.innerHTML = `
+                            <div class="place-icon">${loc.icon || '📍'}</div>
+                            <div class="place-info">
+                                <div class="place-name">${loc.name}</div>
+                                <div class="view-map" onclick="openMap(); focusMap(${loc.lat}, ${loc.lng});">📍 지도 보기</div>
+                            </div>
+                        `;
+                        summaryList.appendChild(card);
+                    });
+                }
+                showSummaryView(); // 요약 화면 먼저 보여주기
             }
-        }
 
 // 지도 이동 함수 (없으면 추가하세요!)
 window.focusMap = (lat, lng) => {
@@ -1818,6 +1833,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
