@@ -1084,28 +1084,30 @@ function renderCalendar() {
             }
 
         // [5] 등록 버튼 클릭 로직
-        document.getElementById('add-comment-btn').onclick = async () => {
-    const diaryInput = document.getElementById('diary-input');
-    if (!diaryInput.value.trim() && !selectedImgBase64 && tempLocations.length === 0) return;
-
-    // 📍 새로운 데이터 구조: 일기 텍스트 + 사진 + 선택한 장소들
-    comments.push({ 
-        text: diaryInput.value.trim() || (tempLocations.length > 0 ? "장소 기록 ✨" : "사진 기록"), 
-        img: selectedImgBase64,
-        locations: [...tempLocations] // 📍 현재 선택된 장소 배열을 복사해서 저장
-    });
-
-    // 입력창 및 장소 배열 초기화
-    diaryInput.value = "";
-    selectedImgBase64 = "";
-    tempLocations = []; // 📍 저장 후 장소 목록 비우기
-    
-    if (document.getElementById('preview-box')) document.getElementById('preview-box').style.display = 'none';
-    if (document.getElementById('selected-locations-area')) document.getElementById('selected-locations-area').innerHTML = ""; 
-    
-    renderComments(true);
-    await saveData(); // 파이어베이스에 최종 저장
-};
+                const addCommentBtn = document.getElementById('add-comment-btn');
+        
+        if (addCommentBtn) { // 📍 버튼이 실재할 때만 기능을 넣어라!
+            addCommentBtn.onclick = async () => {
+                const diaryInput = document.getElementById('diary-input');
+                if (!diaryInput || (!diaryInput.value.trim() && !selectedImgBase64 && tempLocations.length === 0)) return;
+        
+                comments.push({ 
+                    text: diaryInput.value.trim() || (tempLocations.length > 0 ? "장소 기록 ✨" : "사진 기록"), 
+                    img: selectedImgBase64,
+                    locations: [...tempLocations] 
+                });
+        
+                diaryInput.value = "";
+                selectedImgBase64 = "";
+                tempLocations = [];
+                
+                if (document.getElementById('preview-box')) document.getElementById('preview-box').style.display = 'none';
+                if (document.getElementById('selected-locations-area')) document.getElementById('selected-locations-area').innerHTML = ""; 
+                
+                renderComments(true);
+                await saveData(); 
+            };
+        }
         
         window.addNewLocation = () => {
             const locName = prompt("어디에 다녀오셨나요? 🗺️");
@@ -1468,6 +1470,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
