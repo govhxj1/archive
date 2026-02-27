@@ -1608,7 +1608,38 @@ function renderMapPath(pathData) {
     window.requestDel = (i) => { commentToDeleteIndex = i; document.getElementById('confirm-overlay').style.display = 'flex'; };
     document.getElementById('confirm-del').onclick = async () => { if (commentToDeleteIndex !== -1) { comments.splice(commentToDeleteIndex, 1); renderComments(); await saveData(); document.getElementById('confirm-overlay').style.display = 'none'; } };
     document.getElementById('cancel-del').onclick = () => document.getElementById('confirm-overlay').style.display = 'none';
-    async function saveData() { const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`; await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'diaryRecords', dateKey), { comments, sticker: selectedSticker }); }
+        async function saveData() {
+            // 1. 날짜 키 생성 (기존 로직 유지)
+            const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
+        
+            try {
+                // 2. [핵심] 파이어베이스가 싫어하는 undefined 값을 모두 제거합니다.
+                const cleanComments = comments.map(c => ({
+                    text: c.text || "", 
+                    img: c.img || "", 
+                    // locations 내부의 값들도 하나하나 검사해서 안전하게 만듭니다.
+                    locations: (c.locations || []).map(loc => ({
+                        name: loc.name || "알 수 없는 장소",
+                        lat: loc.lat || 36.3504,
+                        lng: loc.lng || 127.3845,
+                        addr: loc.addr || "",
+                        icon: loc.icon || "📍",
+                        memo: loc.memo || ""
+                    }))
+                }));
+        
+                // 3. 청소된 데이터를 파이어베이스에 저장
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'diaryRecords', dateKey), { 
+                    comments: cleanComments, // 깨끗해진 댓글 목록
+                    sticker: selectedSticker || "" // 스티커도 undefined 방지
+                });
+        
+                console.log(`✅ ${dateKey} 기록 저장 성공!`);
+            } catch (err) {
+                console.error("📍 saveData 내부 에러 발생:", err);
+                // 에러 내용을 화면에 알리고 싶다면 alert을 추가하세요.
+            }
+        }    
     function updateDday() { const diff = Math.floor((new Date() - new Date(2026, 0, 10)) / 86400000) + 1; document.getElementById('dday-text').innerText = isDateMode ? "2026.01.10" : `하고싶어? ${diff}일째 사랑하는중`; document.getElementById('dday-label').innerText = isDateMode ? "우리가 시작한 소중한 날짜" : "우리가 함께한 소중한 시간"; }
     document.getElementById('dday-container').onclick = () => { isDateMode = !isDateMode; updateDday(); };
     document.getElementById('prev-month').onclick = () => { viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderCalendar(); };
@@ -1762,6 +1793,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
