@@ -1472,6 +1472,61 @@ window.loadMemoriesByDate();
         sideMenu.style.display = 'flex';
     }
 };
+
+        async function loadMemoriesByDate(date) {
+        // [1] 날짜 및 요일 자동 계산 (💕 금요일 데이트 (2/27) 형태)
+        const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+        const d = new Date(date);
+        const dayName = days[d.getDay()]; 
+        const [year, month, day] = date.split('-');
+        const displayDate = `${parseInt(month)}/${parseInt(day)}`;
+    
+        // [2] 타이틀 업데이트
+        const titleElement = document.getElementById('summary-date-title');
+        if (titleElement) {
+            titleElement.innerText = `💕 ${dayName} 데이트 (${displayDate})`;
+        }
+    
+        // [3] 데이터 초기화 및 로딩 (파이어베이스 호출 부분은 기존 코드 유지)
+        comments = [];
+        const docRef = doc(db, "diaryRecords", date);
+        const docSnap = await getDoc(docRef);
+    
+        let cloudLocations = [];
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            comments = data.comments || [];
+            // 댓글 데이터 안에 있는 장소 정보만 쏙쏙 뽑아내기
+            comments.forEach(c => {
+                if (c.locations) cloudLocations.push(...c.locations);
+            });
+        }
+    
+        // [4] 하드코딩된 데이터(allPaths)와 파이어베이스 데이터 합치기
+        const combinedLocations = [...(allPaths[date] || []), ...cloudLocations];
+    
+        // [5] 요약 뷰(Summary List) 그리기
+        const summaryList = document.getElementById('summary-place-list');
+        if (summaryList) {
+            summaryList.innerHTML = '';
+            combinedLocations.forEach(loc => {
+                const card = document.createElement('div');
+                card.className = 'place-summary-card';
+                card.innerHTML = `
+                    <div class="place-icon">${loc.icon || '📍'}</div>
+                    <div class="place-info">
+                        <div class="place-name">${loc.name}</div>
+                        <div class="view-map" onclick="openMap(); focusMap(${loc.lat}, ${loc.lng});">📍 지도 보기</div>
+                    </div>
+                `;
+                summaryList.appendChild(card);
+            });
+        }
+    
+        // [6] 무조건 요약 뷰부터 보여주기!
+        showSummaryView(); 
+    }
+    
     
 function renderMapPath(pathData) {
     // kakaoMap이 생성되지 않았거나 데이터가 없으면 중단
@@ -1795,6 +1850,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
