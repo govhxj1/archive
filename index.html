@@ -1473,16 +1473,32 @@ window.loadMemoriesByDate();
             titleElement.innerText = `💕 ${dayName} 데이트 (${displayDate})`;
         }
     
-        // [3] 데이터 초기화 및 로딩 (파이어베이스 호출 부분은 기존 코드 유지)
-        const combinedLocations = [...(allPaths[date] || []), ...cloudLocations];
+        let cloudLocations = [];
+    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'diaryRecords', date);
+    const docSnap = await getDoc(docRef);
 
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        comments = data.comments || []; // 전역 변수 comments 업데이트
+        
+        // 입력했던 댓글들 중에서 '장소'만 골라냅니다.
+        comments.forEach(c => {
+            if (c.locations && Array.isArray(c.locations)) {
+                cloudLocations.push(...c.locations);
+            }
+        });
+    }
+
+    // 하드코딩(2/15용) + 파이어베이스(입력용) 합치기
+    const combinedLocations = [...(allPaths[date] || []), ...cloudLocations];
+
+    // [디자인 그리기] 2/15 이미지와 똑같은 디자인으로 요약 리스트 생성
     const summaryList = document.getElementById('summary-place-list');
     if (summaryList) {
-        summaryList.innerHTML = ''; // 초기화
-        
+        summaryList.innerHTML = '';
         combinedLocations.forEach(loc => {
             const card = document.createElement('div');
-            card.className = 'place-summary-card'; // 2/15 이미지와 같은 디자인 클래스
+            card.className = 'place-summary-card'; 
             card.innerHTML = `
                 <div class="place-icon-box">${loc.icon || '📍'}</div>
                 <div class="place-info-box">
@@ -1493,6 +1509,13 @@ window.loadMemoriesByDate();
             summaryList.appendChild(card);
         });
     }
+
+    // [4] 화면 전환 (기존 동일)
+    document.getElementById('summary-view').style.display = 'block';
+    document.getElementById('record-view').style.display = 'none';
+    
+    renderComments(); // 댓글창 갱신
+}
 
     // [4] 화면 전환: 요약 뷰만 보여주고 기록 뷰는 숨김
     document.getElementById('summary-view').style.display = 'block';
@@ -1825,6 +1848,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
