@@ -1354,6 +1354,30 @@ window.loadMemoriesByDate();
                 renderMapPath(tempLocations || []); 
             }
         };
+
+    window.closeMap = () => {
+    // 1. 지도 컨테이너 숨기기 (아이디가 'map-container'가 맞는지 확인!)
+    const mapCont = document.getElementById('map-container');
+    if (mapCont) {
+        mapCont.style.display = 'none';
+    }
+
+    // 2. 배경 어두운 효과(overlay) 제거
+    const o = document.getElementById('overlay');
+    if (o) {
+        // 다른 모달(다이어리 등)이 열려있지 않을 때만 배경을 끕니다.
+        const isDiaryOpen = document.getElementById('diary-modal')?.style.display === 'flex';
+        if (!isDiaryOpen) {
+            o.style.display = 'none';
+        }
+    }
+    
+    // 3. 사이드 메뉴 다시 보여주기 (필요하다면)
+    const sideMenu = document.getElementById('side-menu');
+    if (sideMenu) {
+        sideMenu.style.display = 'flex';
+    }
+};
     
 function renderMapPath(pathData) {
     // kakaoMap이 생성되지 않았거나 데이터가 없으면 중단
@@ -1646,6 +1670,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
