@@ -1059,17 +1059,6 @@ function renderCalendar() {
         const previewImg = document.getElementById('img-preview');
         const removeBtn = document.getElementById('remove-img');
 
-        imgInput.onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                selectedImgBase64 = ev.target.result;
-                previewImg.src = selectedImgBase64;
-                previewBox.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        };
 
         removeBtn.onclick = () => {
             selectedImgBase64 = "";
@@ -1468,6 +1457,7 @@ onAuthStateChanged(auth, async (u) => {
 </script>
 </body>
 </html>
+
 
 
 
