@@ -1272,12 +1272,68 @@ function renderTempLocations() {
             };
         }
                    
-    function renderComments(scrollToBottom = false) {
-        const list = document.getElementById('comment-list'); if (!list) return;
-        list.innerHTML = comments.length ? "" : '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">유미랑 거니의 추억🌸</p>';
-        comments.forEach((c, i) => { const div = document.createElement('div'); div.className = 'comment-item'; div.innerHTML = `<div class="comment-content">${c.img ? `<img src="${c.img}" style="width:100%; border-radius:10px; margin-bottom:5px;">` : ''}<span class="comment-text">${c.text}</span></div><button class="delete-btn" onclick="window.requestDel(${i})">✕</button>`; list.appendChild(div); });
-        if(scrollToBottom) { const s = document.getElementById('comment-scroll-area'); if(s) s.scrollTop = s.scrollHeight; }
+            function renderComments(scrollToBottom = false) 
+            {
+            const list = document.getElementById('comment-list'); 
+            if (!list) return;
+        
+            // 댓글이 없을 때 메시지
+            if (comments.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#ccc; font-size:0.8rem; margin-top:20px;">유미랑 거니의 추억🌸</p>';
+                return;
+            }
+        
+            list.innerHTML = ""; // 목록 초기화
+        
+            comments.forEach((c, i) => { 
+                const div = document.createElement('div'); 
+                div.className = 'comment-item'; 
+        
+                // 📍 [핵심] 장소 데이터(locations)가 있는 경우 카드 형태로 그리기
+                if (c.locations && c.locations.length > 0) {
+                    const loc = c.locations[0]; // 첫 번째 장소 기준
+                    div.classList.add('place-card-item'); // CSS용 클래스 추가
+                    
+                    div.innerHTML = `
+                        <div class="place-comment-content">
+                            <div class="place-comment-icon">${loc.icon || '📍'}</div>
+                            <div class="place-comment-info">
+                                <div class="place-comment-name">${loc.name}</div>
+                                <a href="#" class="view-map-link" onclick="focusMap(${loc.lat}, ${loc.lng}); return false;">📍 지도 보기</a>
+                            </div>
+                        </div>
+                        ${c.text ? `<div class="comment-memo">${c.text}</div>` : ''}
+                        ${c.img ? `<img src="${c.img}" style="width:100%; border-radius:10px; margin-top:10px;">` : ''}
+                        <button class="delete-btn" onclick="window.requestDel(${i})">✕</button>
+                    `;
+                } else {
+                    // 일반 텍스트 댓글 디자인 (기본 유지)
+                    div.innerHTML = `
+                        <div class="comment-content">
+                            ${c.img ? `<img src="${c.img}" style="width:100%; border-radius:10px; margin-bottom:5px;">` : ''}
+                            <span class="comment-text">${c.text}</span>
+                        </div>
+                        <button class="delete-btn" onclick="window.requestDel(${i})">✕</button>
+                    `;
+                }
+                
+                list.appendChild(div); 
+            });
+        
+            if(scrollToBottom) { 
+                const s = document.getElementById('comment-scroll-area'); 
+                if(s) s.scrollTop = s.scrollHeight; 
+            }
+        }
+
+// 지도 이동 함수 (없으면 추가하세요!)
+window.focusMap = (lat, lng) => {
+    if (typeof kakaoMap !== 'undefined' && kakaoMap) {
+        const moveLatLon = new kakao.maps.LatLng(lat, lng);
+        kakaoMap.panTo(moveLatLon);
+        kakaoMap.setLevel(3);
     }
+};
 
    // [6] 지도 기능 수정
 
@@ -1309,7 +1365,7 @@ window.loadMemoriesByDate = function() {
                         lat: loc.lat,
                         lng: loc.lng,
                         memo: comment.text || "우리의 추억 장소 ✨",
-                        icon: loc.icon || "💖"
+                        icon: loc.icon || "📍"
                     });
                 });
             }
@@ -1698,6 +1754,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
