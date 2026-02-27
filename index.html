@@ -1059,23 +1059,29 @@ function renderCalendar() {
         const previewImg = document.getElementById('img-preview');
         const removeBtn = document.getElementById('remove-img');
 
-       // 여기시작
-       imgInput.onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                selectedImgBase64 = ev.target.result;
-                previewImg.src = selectedImgBase64;
-                previewBox.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        };
-        removeBtn.onclick = () => {
-            selectedImgBase64 = "";
-            previewBox.style.display = 'none';
-            imgInput.value = "";
-        };
+           // 1. 이미지 업로드 로직 보호
+            if (imgInput) { 
+                imgInput.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        selectedImgBase64 = ev.target.result;
+                        if (previewImg) previewImg.src = selectedImgBase64;
+                        if (previewBox) previewBox.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                };
+            }
+            
+            // 2. 삭제 버튼 로직 보호
+            if (removeBtn) {
+                removeBtn.onclick = () => {
+                    selectedImgBase64 = "";
+                    if (previewBox) previewBox.style.display = 'none';
+                    if (imgInput) imgInput.value = "";
+                };
+            }
 
         // [5] 등록 버튼 클릭 로직
         document.getElementById('add-comment-btn').onclick = async () => {
@@ -1462,6 +1468,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
