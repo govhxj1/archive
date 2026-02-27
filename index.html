@@ -1281,25 +1281,36 @@ window.loadMemoriesByDate = function() {
     }
 };
 
-// 지도를 실제로 그려주는 공통 로직
-function renderMapPath(path) {
+// 지도에 경로를 그리는 함수 수정 버전
+function renderMapPath(pathData) {
+    if (!diaryMap) return;
+
+    // 기존 마커/라인 제거
     if (pathLine) diaryMap.removeLayer(pathLine);
     markers.forEach(m => diaryMap.removeLayer(m));
     markers = [];
 
-    path.forEach(p => { 
-        const m = L.marker([p.lat, p.lng]).addTo(diaryMap).bindPopup(`<b>${p.name}</b><br>${p.memo}`); 
-        markers.push(m); 
+    const latlngs = pathData.map(loc => [loc.lat, loc.lng]);
+
+    // 마커 찍기 (하트나 아이콘으로)
+    pathData.forEach(loc => {
+        const marker = L.marker([loc.lat, loc.lng], {
+            icon: L.divIcon({
+                html: `<div style="font-size:24px;">${loc.icon || '📍'}</div>`,
+                className: 'custom-div-icon',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            })
+        }).addTo(diaryMap).bindPopup(loc.name);
+        markers.push(marker);
     });
 
-    pathLine = L.polyline(path.map(p => [p.lat, p.lng]), { color: '#ffafcc', weight: 4, dashArray: '10, 10' }).addTo(diaryMap);
+    // 선 연결
+    pathLine = L.polyline(latlngs, { color: '#ff8fab', weight: 4, opacity: 0.6 }).addTo(diaryMap);
     
-    setTimeout(() => { 
-        diaryMap.invalidateSize(); 
-        if (markers.length > 0) {
-            diaryMap.fitBounds(new L.featureGroup(markers).getBounds().pad(0.3)); 
-        }
-    }, 300);
+    if (latlngs.length > 0) {
+        diaryMap.fitBounds(L.polyline(latlngs).getBounds(), { padding: [50, 50] });
+    }
 }
     // [7] 오늘의 랜덤 질문 기능
     window.showRandomQuestion = function() {
@@ -1537,6 +1548,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
