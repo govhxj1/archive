@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=e12174f6753a399a28edc31022a362ef"></script>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e12174f6753a399a28edc31022a362ef"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -1254,20 +1254,38 @@ function renderTempLocations() {
    // [6] 지도 기능 수정
 
 window.openMap = function() {
+    // 1. 카카오 라이브러리가 로드되었는지 체크
+    if (typeof kakao === 'undefined') {
+        alert("지도 라이브러리를 불러오는 중입니다. 잠시 후 다시 눌러주세요! ✨");
+        return;
+    }
+
+    // 2. 화면 표시 설정
     document.getElementById('map-container').style.display = 'flex'; 
     document.getElementById('side-menu').style.display = 'none';
     
-    // [카카오 지도 초기화 버전]
+    // 3. 지도 초기화 및 레이아웃 조정
     if (!kakaoMap) { 
-        const container = document.getElementById('map'); // 지도를 담을 영역
+        const container = document.getElementById('map'); 
         const options = {
-            center: new kakao.maps.LatLng(36.3537, 127.3415), // 유성온천역 기준 좌표
-            level: 4 // 지도의 확대 레벨
+            center: new kakao.maps.LatLng(36.3537, 127.3415), // 유성온천역
+            level: 4 
         };
-
-        // 실제 카카오 지도 생성!
         kakaoMap = new kakao.maps.Map(container, options);
+    } else {
+        // [중요] 지도가 이미 있을 때, 숨겨져 있다가 나타나면 크기가 깨질 수 있어요.
+        // 이를 방지하기 위해 relayout()을 실행해줍니다.
+        setTimeout(() => {
+            kakaoMap.relayout();
+            kakaoMap.setCenter(new kakao.maps.LatLng(36.3537, 127.3415));
+        }, 100);
     }
+    
+    // 4. 지도 열 때 현재 등록된 장소들을 바로 그려줍니다.
+    if (typeof renderMapPath === 'function') {
+        renderMapPath(tempLocations);
+    }
+};
     
             // [6-2] 지도 닫기 함수 (새로 추가)
         window.closeMap = () => {
@@ -1630,6 +1648,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
