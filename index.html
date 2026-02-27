@@ -188,7 +188,7 @@
         .date-num { font-size: 0.7rem; color: #aaa; font-weight: 700; }
         .date-cell.sunday .date-num { color: var(--holiday-red); }
         .date-cell.saturday .date-num { color: var(--saturday-blue); }
-        .date-cell.holiday .date-num { color: var(--holiday-red) !important; font-weight: 900; }
+        .date-cell.holiday .date-num { color: var(--holiday-red) !ant; font-weight: 900; }
         
         .anniv-label { 
             position: absolute; bottom: 3px; left: 50%; 
@@ -283,8 +283,8 @@
 
         .comment-section { flex: 1; max-height: 280px; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; padding-right: 5px; touch-action: pan-y; }
         .comment-item {
-            display: flex !important;
-            flex-direction: row !important;
+            display: flex !ant;
+            flex-direction: row !ant;
             justify-content: space-between;
             align-items: flex-start;
             background: white;
@@ -307,7 +307,7 @@
             font-size: 0.95rem; color: #444; line-height: 1.4; word-break: break-all;
         }
         .delete-btn {
-            display: block !important;
+            display: block !ant;
             background: none; border: none; color: #ccc; font-size: 1.2rem; cursor: pointer;
             flex-shrink: 0; width: 24px; text-align: right; padding: 0; line-height: 1; margin-top: 2px;
         }
@@ -423,7 +423,7 @@
         
         /* 📍 입력창(textarea, input) 클릭 시 확대되는 현상 방지 */
         input, textarea {
-            font-size: 16px !important; /* 모바일 브라우저는 16px 미만일 때 자동 확대되므로 고정 */
+            font-size: 16px !ant; /* 모바일 브라우저는 16px 미만일 때 자동 확대되므로 고정 */
         }
                 /* 하트가 두근두근 뛰는 애니메이션 */
         @keyframes heartbeat {
@@ -650,7 +650,7 @@
     // [1] 라이브러리 및 설정 로드
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyB-hq1CBtux14k5zin3RlqpsnE-AOFKPoc",
@@ -1844,6 +1844,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
