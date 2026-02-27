@@ -1029,23 +1029,45 @@ function renderCalendar() {
     // [1] 카카오 검색 도우미 함수 (먼저 정의)
 async function searchPlace(keyword) {
     const REST_API_KEY = '32be3db3ae5a3825183411db163d344d';
-    const url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(keyword)}&size=1`;
+    // 1. 먼저 '주소'인지 확인하는 API 호출
+    const addrUrl = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(keyword)}`;
+    // 2. '장소명(키워드)'으로 확인하는 API 호출
+    const keyUrl = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(keyword)}&size=1`;
 
     try {
-        const response = await fetch(url, {
-            headers: { 'Authorization': `KakaoAK ${REST_API_KEY}` } // KakaoAK 한 칸 띄우고 키 입력
-        });
-        
-        // 403 에러가 나는 경우 여기서 원인을 알려줍니다.
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("카카오 로컬 API 에러:", errorData);
-            return null;
+        const headers = { 'Authorization': `KakaoAK ${REST_API_KEY}` };
+
+        // [STEP 1] 주소 검색 시도
+        let response = await fetch(addrUrl, { headers });
+        let data = await response.json();
+
+        // 주소 검색 결과가 있으면 바로 반환
+        if (data.documents && data.documents.length > 0) {
+            const addr = data.documents[0];
+            return {
+                name: addr.address_name,
+                lat: parseFloat(addr.y),
+                lng: parseFloat(addr.x)
+            };
         }
 
-        const data = await response.json();
-        //
-    } catch (e) { console.error(e); }
+        // [STEP 2] 주소 결과가 없으면 키워드(장소명)로 재검색
+        response = await fetch(keyUrl, { headers });
+        data = await response.json();
+
+        if (data.documents && data.documents.length > 0) {
+            const place = data.documents[0];
+            return {
+                name: place.place_name,
+                lat: parseFloat(place.y),
+                lng: parseFloat(place.x)
+            };
+        }
+
+        alert("검색 결과가 없어요. 주소를 조금 더 자세히 적어보시겠어요? ✨");
+    } catch (e) {
+        console.error("검색 중 에러 발생:", e);
+    }
     return null;
 }
 
@@ -1670,6 +1692,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
