@@ -1060,6 +1060,22 @@ function renderCalendar() {
         const removeBtn = document.getElementById('remove-img');
 
        // 여기시작
+       imgInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                selectedImgBase64 = ev.target.result;
+                previewImg.src = selectedImgBase64;
+                previewBox.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        };
+        removeBtn.onclick = () => {
+            selectedImgBase64 = "";
+            previewBox.style.display = 'none';
+            imgInput.value = "";
+        };
 
         // [5] 등록 버튼 클릭 로직
         document.getElementById('add-comment-btn').onclick = async () => {
@@ -1284,33 +1300,38 @@ window.closeTimeTravel = () => {
         timeOverlay.style.display = 'none';
     }
 };
-    
-    // 📍 수정된 인증 및 로딩 제거 로직
+    // [통합 인증 및 로딩 제거 코드] - 이 뭉치를 통째로 한 곳에만 넣으세요!
 onAuthStateChanged(auth, async (u) => {
-    user = u;
-    if (user) {
-        onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords'), (snapshot) => {
-            try {
-                cloudRecords = {}; 
-                snapshot.forEach(doc => cloudRecords[doc.id] = doc.data());
-                renderCalendar(); 
-                updateDday();
-                
-                // 데이터 로드 완료 후 확실히 제거
-                if (loadingOverlay) { 
-                    loadingOverlay.style.opacity = '0'; 
-                    setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500); 
-                }
-            } catch (err) {
-                console.error("데이터 렌더링 에러:", err);
-                loadingOverlay.style.display = 'none'; // 에러 나더라도 화면은 보여줌
-            }
-        });
-    } else {
-        signInAnonymously(auth);
+    const loadingOverlay = document.getElementById('loading-overlay');
+    
+    if (!u) {
+        await signInAnonymously(auth);
+        return; 
     }
-});
 
+    user = u; // 👈 질문하신 부분! 여기서 한 번만 정확히 해주면 됩니다.
+    console.log("인증 완료:", user.uid);
+
+    // 데이터 감시 및 로딩창 끄기
+    const diaryCol = collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords');
+    onSnapshot(diaryCol, (snapshot) => {
+        cloudRecords = {};
+        snapshot.forEach(doc => { cloudRecords[doc.id] = doc.data(); });
+
+        if (loadingOverlay) {
+            loadingOverlay.style.opacity = '0';
+            setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500);
+        }
+        renderCalendar();
+        if (typeof updateDday === 'function') updateDday();
+    }, (err) => {
+        console.error("데이터 에러:", err);
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
+    });
+
+    setupHeartNotification(); 
+});
+   
     getDaejeonWeather();
 
     const calSwipeArea = document.getElementById('calendar-swipe-area');
@@ -1388,15 +1409,7 @@ function setupHeartNotification() {
     }
 }
 
-// [2] 앱 인증 및 데이터 로드 (무한 로딩 방지)
-onAuthStateChanged(auth, async (u) => {
-    // 1. 로그인 안 되어 있으면 로그인부터
-    if (!u) {
-        await signInAnonymously(auth);
-        return; 
-    }
 
-    user = u;
 
     // 2. 일기 기록(달력 스티커 등) 감시
     const diaryCol = collection(db, 'artifacts', appId, 'public', 'data', 'diaryRecords');
@@ -1452,6 +1465,7 @@ onAuthStateChanged(auth, async (u) => {
 </script>
 </body>
 </html>
+
 
 
 
