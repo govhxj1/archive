@@ -641,12 +641,11 @@
     </div>
 </div>
     
-<div class="overlay" id="overlay">
-</div> 
-    <div id="diary-modal"></div>
 <div class="overlay" id="overlay"></div>
-<div id="diary-modal"></div>
-
+<div id="diary-modal" style="display: none;">
+    <div id="diary-modal-content">
+        </div>
+</div>
 <script type="module">
     // [1] 라이브러리 및 설정 로드
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -967,38 +966,48 @@ function renderCalendar() {
             const diaryModal = document.getElementById('diary-modal');
             const overlay = document.getElementById('overlay');
             
-            // 해당 날짜에 저장된 데이터 가져오기
+            // 1. 데이터 가져오기
             const data = cloudRecords[dateKey] || { comments: [], sticker: "", locations: [] };
-            const plan = specialDates[dateKey]; // 하드코딩된 플랜 체크
+            const plan = specialDates[dateKey]; 
+        
+            // 📍 [중요] 댓글(comments) 속에 숨어있는 장소들까지 싹 다 긁어모읍니다!
+            let allLocations = [...(data.locations || [])];
+            if (data.comments) {
+                data.comments.forEach(c => {
+                    if (c.locations && c.locations.length > 0) {
+                        allLocations.push(...c.locations);
+                    }
+                });
+            }
         
             diaryModal.innerHTML = `<button class="close-modal-btn" onclick="closeModal()">✕</button><div id="modal-content-area" style="height:100%; display:flex; flex-direction:column;"></div>`;
             const contentArea = document.getElementById('modal-content-area');
         
-            // [수정 포인트] 하드코딩된 플랜이 있거나, 이미 저장된 장소(locations)가 있는 경우
-            if (plan || (data.locations && data.locations.length > 0)) {
-                const displayLocations = plan ? plan.plans : data.locations;
-                const displayTitle = plan ? plan.title : `${viewMonth + 1}월 ${day}일 우리의 데이트`;
+            // 2. 하드코딩된 플랜이 있거나, 긁어모은 장소가 있을 때 요약창 띄우기
+            if (plan || allLocations.length > 0) {
+                const displayLocations = plan ? plan.plans : allLocations;
+                const displayTitle = plan ? plan.title : `${viewMonth + 1}/${day} 💕 우리의 데이트`;
         
                 contentArea.innerHTML = `
                     <div id="plan-view" style="padding:10px 5px; display:flex; flex-direction:column; height:100%;">
-                        <h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px;">❤️ ${displayTitle}</h3>
+                        <h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px; text-align:center;">${displayTitle}</h3>
                         <div style="background:#fff0f3; border-radius:25px; padding:15px; overflow-y:auto; flex:1; margin-bottom:15px;">
                             ${displayLocations.map(loc => `
-                                <div style="margin-bottom:12px; text-align:left; padding:12px; background:white; border-radius:15px; border:1px solid #ffe5ec; display:flex; align-items:center; gap:10px;">
-                                    <span style="font-size:1.2rem;">${loc.icon || (loc.link ? '📍' : '✨')}</span>
-                                    <div>
-                                        <div style="font-weight:900; color:#444;">${loc.name}</div>
-                                        ${loc.link ? `<a href="${loc.link}" target="_blank" style="font-size:0.8rem; color:#ff8fab; text-decoration:none;">📍 지도 보기</a>` : ''}
+                                <div class="place-summary-card" style="margin-bottom:12px; text-align:left; padding:12px; background:white; border-radius:15px; border:1px solid #ffe5ec; display:flex; align-items:center; gap:10px; box-shadow: 0 2px 5px rgba(255,182,193,0.2);">
+                                    <span style="font-size:1.2rem;">${loc.icon || '📍'}</span>
+                                    <div style="flex:1;">
+                                        <div style="font-weight:900; color:#444; font-size:0.95rem;">${loc.name}</div>
+                                        <div onclick="window.focusMap(${loc.lat}, ${loc.lng})" style="font-size:0.75rem; color:#ff8fab; cursor:pointer; margin-top:3px; display:inline-block;">📍 지도 보기</div>
                                     </div>
                                 </div>
                             `).join('')}
                         </div>
-                        <button id="switch-to-diary" style="width:100%; padding:15px; background:#ff8fab; border:none; border-radius:20px; color:white; font-weight:900; cursor:pointer; flex-shrink:0;">우리 추억 기록하기 ✏️</button>
+                        <button id="switch-to-diary" style="width:100%; padding:15px; background:#ff8fab; border:none; border-radius:25px; color:white; font-weight:900; cursor:pointer; flex-shrink:0; box-shadow: 0 4px 10px rgba(255,143,171,0.3);">우리 추억 기록하기 ✏️</button>
                     </div>`;
                 
                 document.getElementById('switch-to-diary').onclick = () => window.setupOriginalDiary(dateKey);
             } else {
-                // 장소가 없으면 바로 일기 작성 모드로
+                // 장소가 아예 없으면 바로 일기 작성 모드로
                 window.setupOriginalDiary(dateKey);
             }
         
@@ -1895,6 +1904,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
