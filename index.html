@@ -1282,8 +1282,7 @@ function renderTempLocations() {
             };
         }
                    
-            function renderComments(scrollToBottom = false) 
-            {
+            function renderComments(scrollToBottom = false) {
             const list = document.getElementById('comment-list'); 
             if (!list) return;
         
@@ -1299,34 +1298,14 @@ function renderTempLocations() {
                 const div = document.createElement('div'); 
                 div.className = 'comment-item'; 
         
-                // 📍 [핵심] 장소 데이터(locations)가 있는 경우 카드 형태로 그리기
-                if (c.locations && c.locations.length > 0) {
-                    const loc = c.locations[0]; // 첫 번째 장소 기준
-                    div.classList.add('place-card-item'); // CSS용 클래스 추가
-                    
-                    div.innerHTML = `
-                        <div class="place-comment-content">
-                            <div class="place-comment-icon">${loc.icon || '📍'}</div>
-                            <div class="place-comment-info">
-                                <div class="place-comment-name">${loc.name}</div>
-                                <a href="#" class="view-map-link" onclick="focusMap(${loc.lat}, ${loc.lng}); return false;">📍 지도 보기</a>
-                            </div>
-                        </div>
-                        ${c.text ? `<div class="comment-memo">${c.text}</div>` : ''}
-                        ${c.img ? `<img src="${c.img}" style="width:100%; border-radius:10px; margin-top:10px;">` : ''}
-                        <button class="delete-btn" onclick="window.requestDel(${i})">✕</button>
-                    `;
-                } else {
-                    // 일반 텍스트 댓글 디자인 (기본 유지)
-                    div.innerHTML = `
-                        <div class="comment-content">
-                            ${c.img ? `<img src="${c.img}" style="width:100%; border-radius:10px; margin-bottom:5px;">` : ''}
-                            <span class="comment-text">${c.text}</span>
-                        </div>
-                        <button class="delete-btn" onclick="window.requestDel(${i})">✕</button>
-                    `;
-                }
-                
+                // 📍 여기서는 장소 카드를 그리지 않고, 일반 댓글 디자인만 유지합니다.
+                div.innerHTML = `
+                    <div class="comment-content">
+                        ${c.img ? `<img src="${c.img}" style="width:100%; border-radius:10px; margin-bottom:5px;">` : ''}
+                        <span class="comment-text">${c.text}</span>
+                    </div>
+                    <button class="delete-btn" onclick="window.requestDel(${i})">✕</button>
+                `;
                 list.appendChild(div); 
             });
         
@@ -1488,44 +1467,33 @@ window.loadMemoriesByDate();
         }
     
         // [3] 데이터 초기화 및 로딩 (파이어베이스 호출 부분은 기존 코드 유지)
-        comments = [];
-        const docRef = doc(db, "diaryRecords", date);
-        const docSnap = await getDoc(docRef);
-    
-        let cloudLocations = [];
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            comments = data.comments || [];
-            // 댓글 데이터 안에 있는 장소 정보만 쏙쏙 뽑아내기
-            comments.forEach(c => {
-                if (c.locations) cloudLocations.push(...c.locations);
-            });
-        }
-    
-        // [4] 하드코딩된 데이터(allPaths)와 파이어베이스 데이터 합치기
         const combinedLocations = [...(allPaths[date] || []), ...cloudLocations];
-    
-        // [5] 요약 뷰(Summary List) 그리기
-        const summaryList = document.getElementById('summary-place-list');
-        if (summaryList) {
-            summaryList.innerHTML = '';
-            combinedLocations.forEach(loc => {
-                const card = document.createElement('div');
-                card.className = 'place-summary-card';
-                card.innerHTML = `
-                    <div class="place-icon">${loc.icon || '📍'}</div>
-                    <div class="place-info">
-                        <div class="place-name">${loc.name}</div>
-                        <div class="view-map" onclick="openMap(); focusMap(${loc.lat}, ${loc.lng});">📍 지도 보기</div>
-                    </div>
-                `;
-                summaryList.appendChild(card);
-            });
-        }
-    
-        // [6] 무조건 요약 뷰부터 보여주기!
-        showSummaryView(); 
+
+    const summaryList = document.getElementById('summary-place-list');
+    if (summaryList) {
+        summaryList.innerHTML = ''; // 초기화
+        
+        combinedLocations.forEach(loc => {
+            const card = document.createElement('div');
+            card.className = 'place-summary-card'; // 2/15 이미지와 같은 디자인 클래스
+            card.innerHTML = `
+                <div class="place-icon-box">${loc.icon || '📍'}</div>
+                <div class="place-info-box">
+                    <div class="place-name-text">${loc.name}</div>
+                    <div class="view-map-btn" onclick="openMap(); focusMap(${loc.lat}, ${loc.lng});">📍 지도 보기</div>
+                </div>
+            `;
+            summaryList.appendChild(card);
+        });
     }
+
+    // [4] 화면 전환: 요약 뷰만 보여주고 기록 뷰는 숨김
+    document.getElementById('summary-view').style.display = 'block';
+    document.getElementById('record-view').style.display = 'none';
+    
+    // 기록 뷰의 댓글들도 미리 그려두기 (나중에 버튼 누르면 보임)
+    renderComments();
+}
     
     
 function renderMapPath(pathData) {
@@ -1850,6 +1818,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
