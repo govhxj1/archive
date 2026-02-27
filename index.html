@@ -1308,18 +1308,25 @@ window.openMap = function() {
             }
         };
     
-    // 📍 열릴 때 오늘 날짜를 기본값으로 세팅
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('date-selector').value = today;
-    
-    // 오늘 날짜 데이터 불러오기 시도
-    window.loadMemoriesByDate();
-
-// 📍 날짜를 선택해서 데이터를 불러오는 새로운 핵심 함수
+    // 1. [정의] 함수를 먼저 만들어줍니다. ✅
 window.loadMemoriesByDate = function() {
     const selectedDate = document.getElementById('date-selector').value; 
     if (!selectedDate) return;
+    
+    console.log(selectedDate + " 데이터를 불러오는 중... ✨");
+    // 데이터를 불러오는 나머지 로직들...
+};
 
+// 2. [실행] 함수가 만들어진 다음에 호출해야 에러가 안 나요! ✅
+const today = new Date().toISOString().split('T')[0];
+const dateSelector = document.getElementById('date-selector');
+if (dateSelector) {
+    dateSelector.value = today;
+}
+
+// 이제 함수가 위에서 정의됐으므로 호출해도 에러가 안 납니다.
+window.loadMemoriesByDate();
+    
     const [y, m, d] = selectedDate.split('-');
     const dateKeyWithZero = `${y}-${m}-${d}`; 
     const dateKeyNoZero = `${y}-${parseInt(m)}-${parseInt(d)}`; 
@@ -1647,6 +1654,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
