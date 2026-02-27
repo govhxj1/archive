@@ -1545,10 +1545,23 @@ window.loadMemoriesByDate();
         });
     }
 
-    // [4] 화면 전환 (기존 동일)
-    document.getElementById('summary-view').style.display = 'block';
-    document.getElementById('record-view').style.display = 'none';
+    // [4] 화면 전환 (에러 방지 안전장치 추가)
+    const sv = document.getElementById('summary-view');
+    const rv = document.getElementById('record-view');
+
+    if (sv && rv) {
+        // 방이 존재할 때만 스타일을 바꿉니다!
+        sv.style.display = 'block';
+        rv.style.display = 'none';
+    } else {
+        // 혹시라도 방이 아직 안 만들어졌다면 콘솔에 기록만 남기고 멈추지 않게 합니다.
+        console.log("아직 화면 영역이 준비되지 않았어요.");
+    }
     
+    // 모달 자체를 보여주는 코드도 혹시 모르니 추가!
+    const modal = document.getElementById('diary-modal');
+    if (modal) modal.style.display = 'flex';
+
     renderComments(); // 댓글창 갱신
 }
     
@@ -1875,6 +1888,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
