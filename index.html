@@ -930,50 +930,50 @@ function renderCalendar() {
 }
         
             // [5] 모달 및 작성 기능 업그레이드 (장소 + 일기 통합)
-        window.openModal = function(day) {
+                window.openModal = function(day) {
             const mStr = String(viewMonth + 1).padStart(2, '0');
             const dStr = String(day).padStart(2, '0');
             const dateKey = `${viewYear}-${mStr}-${dStr}`;
             
-            if (viewYear === 1994 && viewMonth === 3 && day === 12) {
-                const timeOverlay = document.getElementById('time-travel-overlay');
-                if (timeOverlay) { timeOverlay.style.display = 'flex'; return; }
-            }
-        
             currentDay = day;
             const diaryModal = document.getElementById('diary-modal');
             const overlay = document.getElementById('overlay');
+            
+            // 해당 날짜에 저장된 데이터 가져오기
+            const data = cloudRecords[dateKey] || { comments: [], sticker: "", locations: [] };
+            const plan = specialDates[dateKey]; // 하드코딩된 플랜 체크
         
-            const startDate = new Date(2026, 0, 10);
-            const selectedDate = new Date(viewYear, viewMonth, day);
-            const diff = Math.floor((selectedDate - startDate) / 86400000) + 1;
-            if ((diff > 0 && diff % 100 === 0) || (viewMonth === 0 && day === 10 && viewYear > 2026)) {
-                makeHearts();
-            }
-        
-            const plan = specialDates[dateKey];
             diaryModal.innerHTML = `<button class="close-modal-btn" onclick="closeModal()">✕</button><div id="modal-content-area" style="height:100%; display:flex; flex-direction:column;"></div>`;
             const contentArea = document.getElementById('modal-content-area');
         
-            if (plan) {
+            // [수정 포인트] 하드코딩된 플랜이 있거나, 이미 저장된 장소(locations)가 있는 경우
+            if (plan || (data.locations && data.locations.length > 0)) {
+                const displayLocations = plan ? plan.plans : data.locations;
+                const displayTitle = plan ? plan.title : `${viewMonth + 1}월 ${day}일 우리의 데이트`;
+        
                 contentArea.innerHTML = `
                     <div id="plan-view" style="padding:10px 5px; display:flex; flex-direction:column; height:100%;">
-                        <h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px;">❤️ ${plan.title}</h3>
+                        <h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px;">❤️ ${displayTitle}</h3>
                         <div style="background:#fff0f3; border-radius:25px; padding:15px; overflow-y:auto; flex:1; margin-bottom:15px;">
-                            ${plan.plans.map(pl => `
-                                <div style="margin-bottom:12px; text-align:left; padding:12px; background:white; border-radius:15px; border:1px solid #ffe5ec;">
-                                    <div style="font-weight:900; color:#444;">${pl.icon} ${pl.name}</div>
-                                    ${pl.link ? `<a href="${pl.link}" target="_blank" style="font-size:0.8rem; color:#ff8fab; text-decoration:none;">📍 지도 보기</a>` : ''}
+                            ${displayLocations.map(loc => `
+                                <div style="margin-bottom:12px; text-align:left; padding:12px; background:white; border-radius:15px; border:1px solid #ffe5ec; display:flex; align-items:center; gap:10px;">
+                                    <span style="font-size:1.2rem;">${loc.icon || (loc.link ? '📍' : '✨')}</span>
+                                    <div>
+                                        <div style="font-weight:900; color:#444;">${loc.name}</div>
+                                        ${loc.link ? `<a href="${loc.link}" target="_blank" style="font-size:0.8rem; color:#ff8fab; text-decoration:none;">📍 지도 보기</a>` : ''}
+                                    </div>
                                 </div>
                             `).join('')}
                         </div>
-                        <p style="margin-bottom:15px; font-size:0.85rem; color:#ff8fab; font-weight:900;">${plan.footer}</p>
                         <button id="switch-to-diary" style="width:100%; padding:15px; background:#ff8fab; border:none; border-radius:20px; color:white; font-weight:900; cursor:pointer; flex-shrink:0;">우리 추억 기록하기 ✏️</button>
                     </div>`;
+                
                 document.getElementById('switch-to-diary').onclick = () => window.setupOriginalDiary(dateKey);
             } else {
+                // 장소가 없으면 바로 일기 작성 모드로
                 window.setupOriginalDiary(dateKey);
             }
+        
             diaryModal.style.display = 'flex';
             overlay.style.display = 'block';
         };
@@ -1245,30 +1245,41 @@ window.openMap = function() {
 
 // 📍 날짜를 선택해서 데이터를 불러오는 새로운 핵심 함수
 window.loadMemoriesByDate = function() {
-    const selectedDate = document.getElementById('date-selector').value; // "2026-02-14" 형태
+    const selectedDate = document.getElementById('date-selector').value; 
     if (!selectedDate) return;
 
-    // 📍 핵심: "2026-02-14"를 "2026-02-14" 그대로 쓰거나, 
-    // 기존 데이터 형식에 맞게 문자열을 맞춰야 합니다.
-    // 기존 allPaths가 "2026-02-14" 형식을 쓰고 있으므로 변환 없이 그대로 사용해보고, 
-    // 안될 경우를 대비해 두 가지 형식을 모두 체크합니다.
-    
     const [y, m, d] = selectedDate.split('-');
-    const dateKeyWithZero = `${y}-${m}-${d}`; // "2026-02-14"
-    const dateKeyNoZero = `${y}-${parseInt(m)}-${parseInt(d)}`; // "2026-2-14"
+    const dateKeyWithZero = `${y}-${m}-${d}`; 
+    const dateKeyNoZero = `${y}-${parseInt(m)}-${parseInt(d)}`; 
 
-    // 기존 데이터(allPaths)에서 찾기
-    const pathData = allPaths[dateKeyWithZero] || allPaths[dateKeyNoZero];
+    // 1. 하드코딩된 경로 (allPaths)
+    let pathData = allPaths[dateKeyWithZero] || allPaths[dateKeyNoZero] || [];
 
-    if (pathData) {
+    // 2. 파이어베이스에 저장된 실제 장소 데이터 추가 (cloudRecords)
+    const savedData = cloudRecords[dateKeyWithZero] || cloudRecords[dateKeyNoZero];
+    if (savedData && savedData.comments) {
+        savedData.comments.forEach(comment => {
+            if (comment.locations && comment.locations.length > 0) {
+                // 저장된 장소 데이터를 지도용 형식으로 변환하여 합치기
+                comment.locations.forEach(loc => {
+                    pathData.push({
+                        name: loc.name,
+                        lat: loc.lat,
+                        lng: loc.lng,
+                        memo: comment.text || "우리의 추억 장소 ✨"
+                    });
+                });
+            }
+        });
+    }
+
+    if (pathData.length > 0) {
         renderMapPath(pathData);
     } else {
-        // 데이터가 없을 때
         if (pathLine) diaryMap.removeLayer(pathLine);
         markers.forEach(m => diaryMap.removeLayer(m));
         markers = [];
-        // 너무 자주 뜨면 불편하니 알림은 선택사항입니다.
-        console.log(dateKeyWithZero + " 데이터가 없습니다.");
+        console.log(selectedDate + "에 표시할 장소가 없습니다.");
     }
 };
 
@@ -1528,6 +1539,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
