@@ -947,10 +947,14 @@ function renderCalendar() {
             <span class="sticker-display">${data.sticker || ""}</span>
             ${anniv ? `<span class="anniv-label">${anniv}</span>` : ''}
         `;
-        cell.onclick = () => openModal(i);
+        cell.onclick = () => {
+        const selectedDate = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        
+        loadMemoriesByDate(selectedDate);
+        };
         dateContainer.appendChild(cell);
-    }
-}
+            }
+        }
         
             // [5] 모달 및 작성 기능 업그레이드 (장소 + 일기 통합)
                 window.openModal = function(day) {
@@ -1840,6 +1844,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
