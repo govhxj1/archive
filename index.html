@@ -730,15 +730,21 @@
             if (addBtn) {
                 addBtn.onclick = async () => {
                     const diaryInput = document.getElementById('diary-input');
+                    
+                    // 데이터가 아예 없는 경우 방지
                     if (!diaryInput || (!diaryInput.value.trim() && !selectedImgBase64 && tempLocations.length === 0)) return;
-        
+            
                     try {
-                        comments.push({ 
+                        // [핵심 수정] 모든 필드에 || 연산자를 써서 undefined를 방지합니다.
+                        const newComment = { 
                             text: diaryInput.value.trim() || (tempLocations.length > 0 ? "장소 기록 ✨" : "사진 기록"), 
-                            img: selectedImgBase64,
-                            locations: [...tempLocations] 
-                        });
-        
+                            img: selectedImgBase64 || "", // undefined면 빈 문자열로!
+                            locations: tempLocations.length > 0 ? [...tempLocations] : [] // 없으면 빈 배열로!
+                        };
+            
+                        comments.push(newComment);
+            
+                        // 입력창 초기화
                         diaryInput.value = "";
                         selectedImgBase64 = "";
                         tempLocations = []; 
@@ -748,10 +754,12 @@
                         if (pb) pb.style.display = 'none';
                         if (la) la.innerHTML = ""; 
                         
-                        renderComments(true);
-                        await saveData(); 
+                        renderComments(true); // 핑크색 카드로 그리기
+                        await saveData();     // 파이어베이스에 최종 저장
+                        
                     } catch (err) {
-                        console.error("저장 에러:", err);
+                        console.error("저장 중 에러 발생:", err);
+                        alert("저장에 실패했어요. 다시 한번 시도해주세요! 😭");
                     }
                 };
             }
@@ -1754,6 +1762,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
