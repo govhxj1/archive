@@ -1059,12 +1059,7 @@ function renderCalendar() {
         const previewImg = document.getElementById('img-preview');
         const removeBtn = document.getElementById('remove-img');
 
-
-        removeBtn.onclick = () => {
-            selectedImgBase64 = "";
-            previewBox.style.display = 'none';
-            imgInput.value = "";
-        };
+       // 여기시작
 
         // [5] 등록 버튼 클릭 로직
         document.getElementById('add-comment-btn').onclick = async () => {
@@ -1457,6 +1452,7 @@ onAuthStateChanged(auth, async (u) => {
 </script>
 </body>
 </html>
+
 
 
 
