@@ -1315,6 +1315,46 @@ if (dateSelector) {
 // 함수가 위에서 정의되었으므로 이제 에러 없이 호출됩니다!
 window.loadMemoriesByDate();
 
+            window.openMap = function() {
+            // 카카오 라이브러리 체크
+            if (typeof kakao === 'undefined') {
+                alert("지도 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요! ✨");
+                return;
+            }
+        
+            // 지도 영역 보이기 (id가 'map-container'인지 확인하세요!)
+            const mapContainer = document.getElementById('map-container');
+            if (mapContainer) {
+                mapContainer.style.display = 'flex';
+            }
+            
+            // 사이드 메뉴 숨기기 (필요하다면)
+            const sideMenu = document.getElementById('side-menu');
+            if (sideMenu) sideMenu.style.display = 'none';
+        
+            // 지도 초기화
+            if (!kakaoMap) {
+                const container = document.getElementById('map');
+                const options = {
+                    center: new kakao.maps.LatLng(36.3537, 127.3415), // 유성온천역 기준
+                    level: 4
+                };
+                kakaoMap = new kakao.maps.Map(container, options);
+            } else {
+                // 이미 있으면 레이아웃 재조정 (회색 화면 방지)
+                setTimeout(() => {
+                    kakaoMap.relayout();
+                    kakaoMap.setCenter(new kakao.maps.LatLng(36.3537, 127.3415));
+                }, 100);
+            }
+        
+            // 저장된 경로 그리기 (함수가 있다면 실행)
+            if (typeof renderMapPath === 'function') {
+                // tempLocations는 현재 날짜의 장소 데이터 변수 이름에 맞게 수정하세요.
+                renderMapPath(tempLocations || []); 
+            }
+        };
+    
 function renderMapPath(pathData) {
     // kakaoMap이 생성되지 않았거나 데이터가 없으면 중단
     if (!kakaoMap || !pathData || pathData.length === 0) return;
@@ -1606,6 +1646,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
