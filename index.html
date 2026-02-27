@@ -1304,31 +1304,49 @@ function renderTempLocations() {
                 });
             }
             
-            // [2] 요약 뷰 그리기 (이미지 2/15 스타일 전용)
             async function loadMemoriesByDate(date) {
-                // ... (타이틀 변경 로직) ...
-            
-                const summaryList = document.getElementById('summary-place-list');
-                if (summaryList) {
-                    summaryList.innerHTML = '';
-                    // 하드코딩 + 저장된 장소들만 모으기
-                    const combinedLocs = [...(allPaths[date] || []), ...cloudLocations];
-            
-                    combinedLocs.forEach(loc => {
-                        const card = document.createElement('div');
-                        card.className = 'place-summary-card'; // 요약 전용 클래스
-                        card.innerHTML = `
-                            <div class="place-icon">${loc.icon || '📍'}</div>
-                            <div class="place-info">
-                                <div class="place-name">${loc.name}</div>
-                                <div class="view-map" onclick="openMap(); focusMap(${loc.lat}, ${loc.lng});">📍 지도 보기</div>
-                            </div>
-                        `;
-                        summaryList.appendChild(card);
-                    });
-                }
-                showSummaryView(); // 요약 화면 먼저 보여주기
+            // 1. 타이틀 업데이트 (아까 만든 자동 날짜 로직)
+            updateDynamicTitle(date);
+        
+            // 2. 파이어베이스에서 입력된 데이터 가져오기
+            const docRef = doc(db, "diaryRecords", date);
+            const docSnap = await getDoc(docRef);
+        
+            let cloudLocations = [];
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                // 등록 버튼 눌러서 저장했던 locations 배열만 쏙 뽑아옵니다.
+                (data.comments || []).forEach(c => {
+                    if (c.locations) cloudLocations.push(...c.locations);
+                });
             }
+        
+            // 3. [핵심] 2/15 이미지와 '똑같은' 디자인으로 그리기
+            const summaryList = document.getElementById('summary-place-list');
+            if (summaryList) {
+                summaryList.innerHTML = ''; // 초기화
+        
+                // 2/15 하드코딩 데이터 + 직접 입력한 데이터 합치기
+                const allLocs = [...(allPaths[date] || []), ...cloudLocations];
+        
+                allLocs.forEach(loc => {
+                    const card = document.createElement('div');
+                    // 📍 2/15 이미지 디자인을 결정하는 클래스 이름을 그대로 씁니다.
+                    card.className = 'place-summary-card'; 
+                    
+                    card.innerHTML = `
+                        <div class="place-icon">${loc.icon || '📍'}</div>
+                        <div class="place-info">
+                            <div class="place-name">${loc.name}</div>
+                            <div class="view-map" onclick="openMap(); focusMap(${loc.lat}, ${loc.lng});">📍 지도 보기</div>
+                        </div>
+                    `;
+                    summaryList.appendChild(card);
+                });
+            }
+        
+            showSummaryView(); // 요약 화면(2/15 스타일) 보여주기
+        }
 
 // 지도 이동 함수 (없으면 추가하세요!)
 window.focusMap = (lat, lng) => {
@@ -1833,6 +1851,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
