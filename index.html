@@ -1516,14 +1516,6 @@ window.loadMemoriesByDate();
     
     renderComments(); // 댓글창 갱신
 }
-
-    // [4] 화면 전환: 요약 뷰만 보여주고 기록 뷰는 숨김
-    document.getElementById('summary-view').style.display = 'block';
-    document.getElementById('record-view').style.display = 'none';
-    
-    // 기록 뷰의 댓글들도 미리 그려두기 (나중에 버튼 누르면 보임)
-    renderComments();
-}
     
     
 function renderMapPath(pathData) {
@@ -1848,6 +1840,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
