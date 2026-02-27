@@ -1014,55 +1014,68 @@ function renderCalendar() {
 
                 // [1] 실제 좌표 + 랜덤 하트 기능이 들어간 장소 추가 함수
                window.addNewLocation = async () => {
-            const userInput = prompt("네이버 지도 링크나 장소 이름을 알려주세요! 🗺️");
-            if (!userInput) return;
-        
-            let locName = userInput;
-            let icon = "";
-        
-            // [1] 링크인 경우 이름 다시 확인
-            if (userInput.includes("naver.me") || userInput.includes("map.naver")) {
-                locName = prompt("이 장소의 이름은 무엇인가요? (예: 아리네 닭볶음탕)");
-                if (!locName) locName = "새로운 데이트 장소";
-            }
-        
-            // [2] 아이콘 설정 (기존 로직 유지)
-            const keywords = {
-                "식당": "🥘", "맛집": "🍴", "닭볶음탕": "🥘", "고기": "🍖", "카페": "☕", 
-                "볼링": "🎳", "영화": "🎬", "숙소": "🏨", "산책": "🌳", "쇼핑": "🛍️"
-            };
-            for (let key in keywords) {
-                if (locName.includes(key)) { icon = keywords[key]; break; }
-            }
-            if (!icon) { icon = ["💛", "💖", "💗"][Math.floor(Math.random() * 3)]; }
-        
-            // [3] 좌표 찾기 (중요!)
-            // 브라우저 GPS가 아니라, 입력된 'locName'으로 좌표를 검색하는 로직을 시뮬레이션합니다.
-            // 실제 운영 환경에서는 Google Maps Geocoding API 등을 쓰지만, 
-            // 우선 제가 거니님이 입력한 장소에 맞춰 좌표를 매칭해 드릴게요.
-            
-            alert(`${locName}의 좌표를 찾는 중... 🔍`);
-        
-            // 임시로 대전 주요 지역 좌표를 할당하거나, 
-            // 향후 API 연동을 위해 구조를 잡습니다.
-            let lat = 36.3504; // 기본 대전 시청 좌표
-            let lng = 127.3845;
-        
-            // 만약 거니님이 특정 장소를 입력하면 제가 그 위치를 기억하게 할 수 있어요.
-            // (예: 유성온천역, 아리네 등)
-            if (locName.includes("유성온천")) { lat = 36.3537; lng = 127.3415; }
-            else if (locName.includes("아리네")) { lat = 36.3522; lng = 127.3400; }
-        
-            tempLocations.push({ 
+    const userInput = prompt("네이버 지도 링크나 장소 이름을 알려주세요! 🗺️");
+    if (!userInput) return;
+
+    let locName = userInput;
+    let icon = "";
+
+    // [1] 링크인 경우 이름 추출 시도
+    if (userInput.includes("naver.me") || userInput.includes("map.naver")) {
+        locName = prompt("이 장소의 이름은 무엇인가요? (예: 아리네 닭볶음탕)");
+        if (!locName) locName = "새로운 데이트 장소";
+    }
+
+    // [2] 거니님이 말씀하신 아이콘 매칭 로직 (여기 다시 넣었어요!)
+    const keywords = {
+        "식당": "🥘", "맛집": "🍴", "닭볶음탕": "🥘", "고기": "🍖", "카페": "☕", 
+        "커피": "☕", "볼링": "🎳", "영화": "🎬", "숙소": "🏨", "호텔": "🏨", 
+        "산책": "🌳", "쇼핑": "🛍️", "사파리": "🦁", "동물원": "🦒", "게임": "🎮",
+        "호프": "🍺", "술": "🍺", "오뎅": "🍢", "백화점": "🛍️"
+    };
+
+    for (let key in keywords) {
+        if (locName.includes(key)) {
+            icon = keywords[key];
+            break;
+        }
+    }
+
+    // 아이콘이 없으면 하트 3종 랜덤 선택 ❤️
+    if (!icon) {
+        icon = ["💛", "💖", "💗"][Math.floor(Math.random() * 3)];
+    }
+
+    // [3] 좌표 가져오기 및 저장
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+            // 새 장소 객체 생성
+            const newLoc = { 
                 name: locName, 
-                icon: icon, 
+                icon: icon, // 매칭된 아이콘 저장
                 link: userInput.includes("http") ? userInput : "", 
-                lat: lat, 
-                lng: lng 
-            });
+                lat: pos.coords.latitude, 
+                lng: pos.coords.longitude 
+            };
             
+            tempLocations.push(newLoc); // 배열에 추가
+            renderTempLocations(); // 카드 갱신
+            
+            // 지도에 즉시 반영 (전체 배열 전달)
+            if (typeof renderMapPath === 'function') {
+                renderMapPath(tempLocations);
+            }
+        }, () => {
+            // 위치 실패 시 기본 좌표
+            const fallbackLoc = { name: locName, icon: icon, lat: 36.35, lng: 127.34 };
+            tempLocations.push(fallbackLoc);
             renderTempLocations();
-        };
+            if (typeof renderMapPath === 'function') {
+                renderMapPath(tempLocations);
+            }
+        });
+    }
+};
 
         // [2] 화면에 장소 카드를 그려주는 함수 (새로 추가)
         // ✅ 이 뭉치 하나만 스크립트 안에 남겨두세요!
@@ -1282,18 +1295,22 @@ window.loadMemoriesByDate = function() {
 };
 
 // 지도에 경로를 그리는 함수 수정 버전
-function renderMapPath(pathData) {
-    if (!diaryMap) return;
+let markers = []; // 마커들을 담아둘 배열 (함수 밖에 선언)
+let pathLine = null;
 
-    // 기존 마커/라인 제거
-    if (pathLine) diaryMap.removeLayer(pathLine);
+function renderMapPath(pathData) {
+    if (!diaryMap || !pathData || pathData.length === 0) return;
+
+    // 1. 기존에 지도에 그려진 마커와 선을 싹 지웁니다.
     markers.forEach(m => diaryMap.removeLayer(m));
     markers = [];
+    if (pathLine) diaryMap.removeLayer(pathLine);
 
+    // 2. 모든 장소의 좌표를 모읍니다.
     const latlngs = pathData.map(loc => [loc.lat, loc.lng]);
 
-    // 마커 찍기 (하트나 아이콘으로)
-    pathData.forEach(loc => {
+    // 3. 배열을 돌면서 마커를 하나씩 다 찍습니다.
+    pathData.forEach((loc) => {
         const marker = L.marker([loc.lat, loc.lng], {
             icon: L.divIcon({
                 html: `<div style="font-size:24px;">${loc.icon || '📍'}</div>`,
@@ -1302,15 +1319,23 @@ function renderMapPath(pathData) {
                 iconAnchor: [15, 15]
             })
         }).addTo(diaryMap).bindPopup(loc.name);
-        markers.push(marker);
+        
+        markers.push(marker); // 나중에 지우기 위해 배열에 저장
     });
 
-    // 선 연결
-    pathLine = L.polyline(latlngs, { color: '#ff8fab', weight: 4, opacity: 0.6 }).addTo(diaryMap);
-    
-    if (latlngs.length > 0) {
-        diaryMap.fitBounds(L.polyline(latlngs).getBounds(), { padding: [50, 50] });
+    // 4. 장소가 2개 이상이면 선으로 연결합니다.
+    if (latlngs.length > 1) {
+        pathLine = L.polyline(latlngs, {
+            color: '#ff8fab',
+            weight: 4,
+            opacity: 0.6,
+            dashArray: '10, 10' // 점선 효과
+        }).addTo(diaryMap);
     }
+
+    // 5. 모든 마커가 다 보이도록 지도 화면을 맞춥니다.
+    const group = new L.FeatureGroup(markers);
+    diaryMap.fitBounds(group.getBounds().pad(0.2));
 }
     // [7] 오늘의 랜덤 질문 기능
     window.showRandomQuestion = function() {
@@ -1548,6 +1573,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
