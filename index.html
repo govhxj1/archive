@@ -960,64 +960,65 @@ function renderCalendar() {
             }
         }
         
-            // [5] 모달 및 작성 기능 업그레이드 (장소 + 일기 통합)
-                window.openModal = function(day) {
-            const mStr = String(viewMonth + 1).padStart(2, '0');
-            const dStr = String(day).padStart(2, '0');
-            const dateKey = `${viewYear}-${mStr}-${dStr}`;
-            
-            currentDay = day;
-            const diaryModal = document.getElementById('diary-modal');
-            const overlay = document.getElementById('overlay');
-            
-            // 1. 데이터 가져오기
-            const data = cloudRecords[dateKey] || { comments: [], sticker: "", locations: [] };
-            const plan = specialDates[dateKey]; 
-        
-            // 📍 [중요] 댓글(comments) 속에 숨어있는 장소들까지 싹 다 긁어모읍니다!
-            let allLocations = [...(data.locations || [])];
-            if (data.comments) {
-                data.comments.forEach(c => {
-                    if (c.locations && c.locations.length > 0) {
-                        allLocations.push(...c.locations);
-                    }
-                });
-            }
-        
-            diaryModal.innerHTML = `<button class="close-modal-btn" onclick="closeModal()">✕</button><div id="modal-content-area" style="height:100%; display:flex; flex-direction:column;"></div>`;
-            const contentArea = document.getElementById('modal-content-area');
-        
-            // 2. 하드코딩된 플랜이 있거나, 긁어모은 장소가 있을 때 요약창 띄우기
-            if (plan || allLocations.length > 0) {
-                const displayLocations = plan ? plan.plans : allLocations;
-                const displayTitle = plan ? plan.title : `${viewMonth + 1}/${day} 💕 우리의 데이트`;
-        
-                contentArea.innerHTML = `
-                    <div id="plan-view" style="padding:10px 5px; display:flex; flex-direction:column; height:100%;">
-                        <h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px; text-align:center;">${displayTitle}</h3>
-                        <div style="background:#fff0f3; border-radius:25px; padding:15px; overflow-y:auto; flex:1; margin-bottom:15px;">
-                            ${displayLocations.map(loc => `
-                                <div class="place-summary-card" style="margin-bottom:12px; text-align:left; padding:12px; background:white; border-radius:15px; border:1px solid #ffe5ec; display:flex; align-items:center; gap:10px; box-shadow: 0 2px 5px rgba(255,182,193,0.2);">
-                                    <span style="font-size:1.2rem;">${loc.icon || '📍'}</span>
-                                    <div style="flex:1;">
-                                        <div style="font-weight:900; color:#444; font-size:0.95rem;">${loc.name}</div>
-                                        <div onclick="window.focusMap(${loc.lat}, ${loc.lng})" style="font-size:0.75rem; color:#ff8fab; cursor:pointer; margin-top:3px; display:inline-block;">📍 지도 보기</div>
-                                    </div>
-                                </div>
-                            `).join('')}
+            window.openModal = function(day) {
+    // 1. 날짜 키 생성 (예: 2026-02-27)
+    const mStr = String(viewMonth + 1).padStart(2, '0');
+    const dStr = String(day).padStart(2, '0');
+    const dateKey = `${viewYear}-${mStr}-${dStr}`;
+    
+    currentDay = day; // 전역 변수 업데이트
+    const diaryModal = document.getElementById('diary-modal');
+    const overlay = document.getElementById('overlay');
+    const contentArea = document.getElementById('modal-content-area'); // 📍 이름 확인!
+    
+    if (!contentArea) return; // 영역 없으면 중단
+
+    // 2. 데이터 확인 (데이터가 없으면 빈 객체라도 생성)
+    const data = (typeof cloudRecords !== 'undefined' && cloudRecords[dateKey]) 
+                 ? cloudRecords[dateKey] 
+                 : { comments: [], sticker: "", locations: [] };
+    const plan = (typeof specialDates !== 'undefined') ? specialDates[dateKey] : null;
+
+    // 📍 댓글 속 장소까지 싹 긁어모으기
+    let allLocations = [...(data.locations || [])];
+    if (data.comments) {
+        data.comments.forEach(c => {
+            if (c.locations) allLocations.push(...c.locations);
+        });
+    }
+
+    // 3. 화면 그리기 (요약 뷰 vs 기록 뷰 결정)
+    if (plan || allLocations.length > 0) {
+        // [데이트 코스가 있을 때]
+        const displayLocations = plan ? plan.plans : allLocations;
+        const displayTitle = plan ? plan.title : `${viewMonth + 1}/${day} 💕 우리의 데이트`;
+
+        contentArea.innerHTML = `
+            <div id="plan-view" style="padding:10px; display:flex; flex-direction:column; height:100%;">
+                <h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px; text-align:center;">${displayTitle}</h3>
+                <div class="location-list-scroll" style="background:#fff0f3; border-radius:25px; padding:15px; overflow-y:auto; flex:1; margin-bottom:15px;">
+                    ${displayLocations.map(loc => `
+                        <div class="place-summary-card" style="margin-bottom:12px; padding:12px; background:white; border-radius:15px; display:flex; align-items:center; gap:10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                            <span style="font-size:1.2rem;">📍</span>
+                            <div style="flex:1;">
+                                <div style="font-weight:900; color:#444;">${loc.name}</div>
+                                <div style="font-size:0.75rem; color:#ff8fab; cursor:pointer;">지도 보기</div>
+                            </div>
                         </div>
-                        <button id="switch-to-diary" style="width:100%; padding:15px; background:#ff8fab; border:none; border-radius:25px; color:white; font-weight:900; cursor:pointer; flex-shrink:0; box-shadow: 0 4px 10px rgba(255,143,171,0.3);">우리 추억 기록하기 ✏️</button>
-                    </div>`;
-                
-                document.getElementById('switch-to-diary').onclick = () => window.setupOriginalDiary(dateKey);
-            } else {
-                // 장소가 아예 없으면 바로 일기 작성 모드로
-                window.setupOriginalDiary(dateKey);
-            }
-        
-            diaryModal.style.display = 'flex';
-            overlay.style.display = 'block';
-        };
+                    `).join('')}
+                </div>
+                <button onclick="window.setupOriginalDiary('${dateKey}')" style="width:100%; padding:15px; background:#ff9fb2; border:none; border-radius:25px; color:white; font-weight:900; cursor:pointer;">우리 추억 기록하기 ✏️</button>
+            </div>`;
+    } else {
+        // [데이터가 아예 없을 때] 바로 기록창으로 보냄
+        window.setupOriginalDiary(dateKey);
+    }
+
+    // 4. 모달 띄우기 (마지막에 실행)
+    diaryModal.style.display = 'flex';
+    overlay.style.display = 'block';
+};
+
         
         window.setupOriginalDiary = function(dateKey) {
             const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
@@ -1908,6 +1909,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
