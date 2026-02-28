@@ -641,11 +641,15 @@
     </div>
 </div>
     
-<div class="overlay" id="overlay"></div>
+<div class="overlay" id="overlay" onclick="closeModal()"></div>
+
 <div id="diary-modal" style="display: none;">
-    <div id="diary-modal-content">
+    <span class="close-modal-btn" onclick="closeModal()" style="position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer; color: #aaa; z-index: 10;">&times;</span>
+
+    <div id="modal-content-area" style="width: 100%; min-height: 200px;">
         </div>
 </div>
+    
 <script type="module">
     // [1] 라이브러리 및 설정 로드
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -1904,6 +1908,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
