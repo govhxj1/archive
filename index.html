@@ -861,7 +861,7 @@ window.closeMenuSecret = () => {
     const commonOverlay = document.getElementById('overlay');
     
     // 📍 핵심: 다이어리 기록창(diary-modal)이나 질문창이 열려있지 않을 때만 배경을 완전히 제거
-    const isDiaryOpen = document.getElementById('diary-modal').style.display !== 'none';
+    const isDiaryOpen = document.getElementById('diary-modal').style.display !== 'flex';
     const isQuestionOpen = document.getElementById('question-overlay').style.display !== 'none';
     
     if (!isDiaryOpen && !isQuestionOpen) {
@@ -1904,6 +1904,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
