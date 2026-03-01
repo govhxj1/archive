@@ -1535,6 +1535,21 @@ window.updateSummaryView = async function(dateKey) {
     }
 };
     
+    function showRecordView() {
+    console.log("기록하기 버튼 클릭됨! 화면 전환 시작 ⚡");
+    
+    // 요약 뷰(목록)를 숨기고
+    const summary = document.getElementById('summary-view');
+    if (summary) summary.style.display = 'none';
+    
+    // 기록 입력 뷰를 보여줍니다. (id가 'record-view'인지 꼭 확인!)
+    const record = document.getElementById('record-view'); 
+    if (record) record.style.display = 'block';
+}
+
+// 2. HTML 버튼이 찾을 수 있게 window 객체에 강제로 연결합니다. (핵심!)
+window.showRecordView = showRecordView;
+    
     
 function renderMapPath(pathData) {
     // kakaoMap이 생성되지 않았거나 데이터가 없으면 중단
@@ -1858,6 +1873,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
