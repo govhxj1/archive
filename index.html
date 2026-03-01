@@ -961,75 +961,26 @@ function renderCalendar() {
         }
         
             window.openModal = function(day) {
-    try {
-        const mStr = String(viewMonth + 1).padStart(2, '0');
-        const dStr = String(day).padStart(2, '0');
-        const dateKey = `${viewYear}-${mStr}-${dStr}`;
-        
-        currentDay = day; 
-        const diaryModal = document.getElementById('diary-modal');
-        const overlay = document.getElementById('overlay');
-        const contentArea = document.getElementById('modal-content-area');
-        
-        if (!diaryModal || !overlay || !contentArea) {
-            console.error("HTML에 모달 엘리먼트가 없어요!");
-            return;
-        }
+    const mStr = String(viewMonth + 1).padStart(2, '0');
+    const dStr = String(day).padStart(2, '0');
+    const dateKey = `${viewYear}-${mStr}-${dStr}`;
+    
+    currentDay = day; 
+    const diaryModal = document.getElementById('diary-modal');
+    const overlay = document.getElementById('overlay');
 
-        // 1. 데이터 안전하게 가져오기 (에러 방지)
-        const data = (typeof cloudRecords !== 'undefined' && cloudRecords[dateKey]) 
-                     ? cloudRecords[dateKey] 
-                     : { comments: [], sticker: "", locations: [] };
-        
-        const plan = (typeof specialDates !== 'undefined') ? specialDates[dateKey] : null;
+    // 📍 일단 모달과 배경부터 무조건 켭니다! (흰 화면 방지)
+    diaryModal.style.display = 'flex';
+    overlay.style.display = 'block';
 
-        // 2. 장소 데이터 합치기
-        let allLocations = [...(data.locations || [])];
-        if (data.comments) {
-            data.comments.forEach(c => {
-                if (c.locations) allLocations.push(...c.locations);
-            });
-        }
-
-        // 3. 화면 그리기
-        if (plan || allLocations.length > 0) {
-            const displayLocations = plan ? plan.plans : allLocations;
-            const displayTitle = plan ? plan.title : `${viewMonth + 1}월 ${day}일 우리의 데이트`;
-
-            contentArea.innerHTML = `
-                <div id="plan-view" style="padding:10px; display:flex; flex-direction:column; height:100%;">
-                    <h3 style="color:#ff8fab; font-weight:900; margin-bottom:15px; text-align:center;">❤️ ${displayTitle}</h3>
-                    <div style="background:#fff0f3; border-radius:25px; padding:15px; overflow-y:auto; flex:1; margin-bottom:15px;">
-                        ${displayLocations.map(loc => `
-                            <div style="margin-bottom:12px; padding:12px; background:white; border-radius:15px; display:flex; align-items:center; gap:10px; border:1px solid #ffe5ec;">
-                                <span style="font-size:1.2rem;">📍</span>
-                                <div style="flex:1;">
-                                    <div style="font-weight:900; color:#444;">${loc.name}</div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <button id="record-btn-trigger" style="width:100%; padding:15px; background:#ff9fb2; border:none; border-radius:25px; color:white; font-weight:900; cursor:pointer;">우리 추억 기록하기 ✏️</button>
-                </div>`;
-            
-            // 버튼 클릭 이벤트 연결
-            document.getElementById('record-btn-trigger').onclick = () => {
-                if(typeof window.setupOriginalDiary === 'function') window.setupOriginalDiary(dateKey);
-            };
-        } else {
-            // 데이터 없으면 바로 기록창 실행
-            if(typeof window.setupOriginalDiary === 'function') window.setupOriginalDiary(dateKey);
-        }
-
-        // 4. 마지막에 모달 보이기
-        diaryModal.style.display = 'flex';
-        overlay.style.display = 'block';
-
-    } catch (e) {
-        console.error("openModal 실행 중 에러 발생:", e);
+    // 📍 핵심: 장소고 뭐고 일단 "기록창" 함수를 강제로 실행해 봅니다.
+    if (typeof window.setupOriginalDiary === 'function') {
+        window.setupOriginalDiary(dateKey);
+    } else {
+        // 만약 이 글자가 뜨면 setupOriginalDiary 함수 이름이 바뀐 거예요!
+        document.getElementById('modal-content-area').innerHTML = "기록창 함수를 찾을 수 없어요! 😭";
     }
 };
-
         
         window.setupOriginalDiary = function(dateKey) {
             const data = cloudRecords[dateKey] || { comments: [], sticker: "" };
@@ -1920,6 +1871,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
