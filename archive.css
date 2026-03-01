@@ -21,7 +21,9 @@ body {
     border-radius: 20px;
     padding: 15px 20px;
     margin-bottom: 12px;
-    width: 100%;
+    width: 100%; 
+    box-sizing: border-box; 
+    
     display: flex;
     align-items: center;
     gap: 15px;
@@ -48,8 +50,10 @@ body {
 /* 3. [우리 추억 기록하기] 핑크색 메인 버튼 스타일 */
 .pink-full-btn {
     width: 100%;
+    box-sizing: border-box; 
+    
     padding: 18px;
-    background: #ff9fb2; /* 이미지 속 부드러운 핑크 */
+    background: #ff9fb2;
     color: white !important;
     border: none;
     border-radius: 25px;
