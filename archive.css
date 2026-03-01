@@ -61,28 +61,28 @@
 }
 
 #diary-modal {
-    display: none; 
+    display: none;
     position: fixed;
+    /* 화면 정중앙 정렬 */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     
-    width: 90%;
-    max-width: 380px;
+    /* 너비 설정 (오른쪽 짤림 방지 핵심) */
+    width: 90%;            /* 화면 너비의 90%만 차지하게 함 */
+    max-width: 340px;      /* 너무 커지지 않게 최대 너비 제한 (아이폰 미니 등 고려) */
+    box-sizing: border-box; /* 패딩이 너비에 포함되게 해서 밖으로 안 삐져나가게 함 */
+    
+    /* 디자인 요소 */
     background: #ffffff;
     border-radius: 30px;
-    box-shadow: 0 15px 50px rgba(255, 159, 178, 0.4);
+    padding: 20px;
     z-index: 10001;
-    padding: 25px;
-    box-sizing: border-box;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     
+    /* 내용이 길어질 경우 대비 */
     max-height: 80vh;
     overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-
-    /* 크롬, 사파리 전용 스크롤바 숨기기 */
-    -webkit-overflow-scrolling: touch;
 }
 
 #diary-modal::-webkit-scrollbar {
