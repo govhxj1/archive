@@ -89,6 +89,9 @@ body {
     background: white;
     border-radius: 20px;
     padding: 20px;
+    display: flex;
+    flex-direction: column; /* 세로로 쌓이게 */
+    align-items: stretch;   /* 자식들이 너비 100%를 꽉 채우게 강제함 */
 }
 
 #diary-modal::-webkit-scrollbar {
