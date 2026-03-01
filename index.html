@@ -641,11 +641,10 @@
     </div>
 </div>
     
-<div class="overlay" id="overlay" onclick="closeModal()"></div>
+<div class="overlay" id="overlay" style="z-index: 10000;" onclick="closeModal()"></div>
 
-<div id="diary-modal" style="display: none;">
+<div id="diary-modal" style="display: none; z-index: 10001;">
     <span class="close-modal-btn" onclick="closeModal()">&times;</span>
-    
     <div id="modal-content-area" style="min-height: 200px;">
         </div>
 </div>
@@ -1856,6 +1855,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
