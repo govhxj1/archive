@@ -61,25 +61,32 @@
 }
 
 #diary-modal {
-    display: none; /* JS에서 block이나 flex로 띄움 */
-    position: fixed; 
-    top: 50% !important; 
-    left: 50% !important; 
-    transform: translate(-50%, -50%) !important; 
+    display: none; 
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     
-    width: 90%; 
-    max-width: 380px; 
-    background: white;
-    border-radius: 30px; 
-    box-shadow: 0 15px 50px rgba(255, 159, 178, 0.3); /* 핑크빛 그림자 */
-    z-index: 10001; /* 오버레이(9999)보다 높게 */
+    width: 90%;
+    max-width: 380px;
+    background: #ffffff;
+    border-radius: 30px;
+    box-shadow: 0 15px 50px rgba(255, 159, 178, 0.4);
+    z-index: 10001;
     padding: 25px;
+    box-sizing: border-box;
     
-    /* 📍 핵심: 내부 정렬 및 높이 제어 */
-    box-sizing: border-box; 
-    max-height: 85vh; 
-    overflow-y: auto; 
+    max-height: 80vh;
+    overflow-y: auto;
+    display: flex;
     flex-direction: column;
+
+    /* 크롬, 사파리 전용 스크롤바 숨기기 */
+    -webkit-overflow-scrolling: touch;
+}
+
+#diary-modal::-webkit-scrollbar {
+    display: none;
 }
 
 /* 스크롤바 숨기기 (더 깔끔하게) */
@@ -94,7 +101,8 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.5); /* 배경을 조금 더 어둡게 */
+    background: rgba(0, 0, 0, 0.4); /* 배경 어두운 정도 */
     z-index: 10000;
-    backdrop-filter: blur(2px); /* 배경 살짝 흐리게 (고급스러움) */
+    backdrop-filter: blur(3px); /* 📍 화면이 너무 뿌옇다면 1px로 줄이세요 */
+    -webkit-backdrop-filter: blur(3px); /* 사파리/아이폰 브라우저용 */
 }
