@@ -1,3 +1,13 @@
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    /* 화면 옆으로 밀림(스크롤) 방지 핵심! */
+    overflow-x: hidden; 
+    /* 팝업이 떴을 때 배경이 밀리는 현상도 방지 */
+    position: relative; 
+}
+
 /* 1. 요약 뷰 전체 배경과 카드 (이미지 디자인 반영) */
 #summary-view {
     padding: 10px;
@@ -61,28 +71,18 @@
 }
 
 #diary-modal {
-    display: none;
     position: fixed;
-    /* 화면 정중앙 정렬 */
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    
-    /* 너비 설정 (오른쪽 짤림 방지 핵심) */
-    width: 90%;            /* 화면 너비의 90%만 차지하게 함 */
-    max-width: 340px;      /* 너무 커지지 않게 최대 너비 제한 (아이폰 미니 등 고려) */
-    box-sizing: border-box; /* 패딩이 너비에 포함되게 해서 밖으로 안 삐져나가게 함 */
-    
-    /* 디자인 요소 */
-    background: #ffffff;
-    border-radius: 30px;
-    padding: 20px;
+    /* 이거 없으면 왼쪽 끝이 중앙이라 오른쪽으로 짤림! */
+    transform: translate(-50%, -50%); 
+    width: 90%;
+    max-width: 340px;
+    box-sizing: border-box; /* 패딩 때문에 커지는 거 방지 */
     z-index: 10001;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    
-    /* 내용이 길어질 경우 대비 */
-    max-height: 80vh;
-    overflow-y: auto;
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
 }
 
 #diary-modal::-webkit-scrollbar {
