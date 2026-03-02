@@ -1229,8 +1229,9 @@ function renderTempLocations() {
 }
                 
         window.removeTempLoc = (idx) => {
+            console.log(idx + "번 장소 삭제 시도! ⚡"); // 작동 확인용 로그
             tempLocations.splice(idx, 1);
-            renderTempLocations();
+            renderTempLocations(); // 삭제 후 다시 그리기
         };
         
         // [3] 초기 실행
@@ -1873,6 +1874,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
