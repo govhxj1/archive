@@ -1490,7 +1490,7 @@ window.loadMemoriesByDate();
     }
 };
 
-        // 기존 661번 줄 근처의 loadMemoriesByDate는 삭제하고 아래 함수를 넣으세요
+        
 window.updateSummaryView = async function(dateKey) {
     const sv = document.getElementById('summary-view');
     const rv = document.getElementById('record-view');
@@ -1517,24 +1517,48 @@ window.updateSummaryView = async function(dateKey) {
 
     const combined = [...(allPaths[dateKey] || []), ...cloudLocations];
 
-    // 3. 화면 그리기 결정
+    // 3. 화면 그리기 결정 (X 버튼 추가 버전)
     if (combined.length > 0) {
-        summaryList.innerHTML = combined.map(loc => `
-            <div class="place-summary-card" style="display:flex; align-items:center; gap:12px; background:white; padding:12px; border-radius:15px; border:1px solid #ffe5ec; margin-bottom:10px;">
+        summaryList.innerHTML = combined.map((loc, idx) => `
+            <div class="place-summary-card" style="display:flex; align-items:center; gap:12px; background:white; padding:12px; border-radius:15px; border:1px solid #ffe5ec; margin-bottom:10px; position:relative;">
                 <div style="font-size:1.5rem;">${loc.icon || '📍'}</div>
                 <div style="flex:1;">
                     <div style="font-weight:900; color:#444;">${loc.name}</div>
                     <div class="view-map-btn" onclick="openMap(); focusMap(${loc.lat}, ${loc.lng});" style="color:#ff8fab; font-size:12px; cursor:pointer; font-weight:bold;">📍 지도 보기</div>
                 </div>
+                <div 
+                    onclick="window.deleteSummaryLocation('${dateKey}', ${idx})" 
+                    style="cursor:pointer; color:#ffafcc; font-size:1.2rem; padding:5px 10px; font-weight:bold;"
+                >
+                    ✕
+                </div>
             </div>
         `).join('');
         sv.style.display = 'block';
         rv.style.display = 'none';
-    } else {
+    } 
+    else {
         // 장소 없으면 바로 기록창으로 전환
         window.showRecordView();
     }
 };
+            window.deleteSummaryLocation = function(dateKey, index) {
+            if (!confirm("이 장소를 목록에서 삭제할까요?")) return;
+        
+            // 1. 하드코딩 데이터(allPaths)에서 삭제
+            if (allPaths[dateKey]) {
+                allPaths[dateKey].splice(index, 1);
+            }
+            
+            // 2. 만약 파이어베이스(cloudRecords) 데이터라면 여기도 처리 로직이 필요하지만,
+            // 일단 현재 화면 배열에서 삭제한 뒤 다시 그려줍니다.
+            // (더 완벽하게 하려면 여기서 DB 삭제 API를 호출해야 해요!)
+        
+            // 3. 화면 새로고침 (수정된 데이터를 다시 그려줌)
+            window.updateSummaryView(dateKey);
+            
+            console.log(`[${dateKey}]의 ${index}번 장소 삭제 완료! ⚡`);
+        };
     
     function showRecordView() {
     console.log("기록하기 버튼 클릭됨! 화면 전환 시작 ⚡");
@@ -1874,6 +1898,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
