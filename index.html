@@ -1542,59 +1542,50 @@ window.updateSummaryView = async function(dateKey) {
         window.showRecordView();
     }
 };
+    
            window.deleteSummaryLocation = async function(dateKey, index) {
             if (!confirm("이 추억을 정말로 삭제할까요? 😢")) return;
         
             try {
-                console.log("⚡ 파이어베이스 접속 시도...");
+                console.log("⚡ 삭제 시작! 날짜:", dateKey, "순서:", index);
         
-                // 1. 파이어베이스가 이미 실행 중인지 확인하고, 아니면 초기화합니다.
-                if (!firebase.apps.length) {
-                    const firebaseConfig = {
-                        apiKey: "AIzaSyB-hq1CBtux14k5zin3RlqpsnE-AOFKPoc",
-                        authDomain: "archive-3e5da.firebaseapp.com",
-                        projectId: "archive-3e5da",
-                        storageBucket: "archive-3e5da.firebasestorage.app",
-                        messagingSenderId: "585863845966",
-                        appId: "1:585863845966:web:ddc811abff636222590b1f"
-                    };
-                    firebase.initializeApp(firebaseConfig);
-                }
-        
-                const database = firebase.database();
-                // [주의] 파이어베이스 콘솔 사진대로 경로를 'diaryRecords'로 잡았습니다.
+                // 1. 거니님이 찾아낸 '진짜 이름' database를 사용합니다!
                 const dbRef = database.ref(`diaryRecords/${dateKey}`);
                 
-                // 2. 데이터 가져오기
+                // 2. 현재 데이터를 한 번 가져오기
                 const snapshot = await dbRef.once('value');
                 let currentData = snapshot.val();
         
                 if (currentData) {
-                    console.log("⚡ 기존 데이터 발견, 삭제 처리 중...");
-                    
-                    // 배열이면 splice, 객체면 delete
+                    console.log("⚡ 서버 데이터 확인 완료, 삭제 중...");
+        
+                    // 데이터가 배열인 경우와 객체인 경우 모두 대응
                     if (Array.isArray(currentData)) {
                         currentData.splice(index, 1);
                     } else {
+                        // 객체 형태(0, 1, 2...)일 경우 해당 키 삭제
                         const keys = Object.keys(currentData).sort();
-                        delete currentData[keys[index]];
+                        const keyToDelete = keys[index];
+                        if (keyToDelete) {
+                            delete currentData[keyToDelete];
+                        }
                     }
         
-                    // 3. 🔥 서버에 업데이트 (이게 좀비를 죽이는 결정타!)
+                    // 3. 🔥 서버에 업데이트 (이게 좀비를 잡는 결정타!)
                     await dbRef.set(currentData);
                     
-                    console.log("⚡ 서버 저장 완료!");
+                    console.log("⚡ 서버 저장 성공!");
         
-                    // 4. 화면 즉시 새로고침
+                    // 4. 화면 즉시 새로고침 (이게 되어야 우리 눈에 사라져요!)
                     window.updateSummaryView(dateKey);
-                    alert("서버까지 깨끗하게 삭제되었습니다! ⚡");
+                    alert("서버까지 완벽하게 삭제되었습니다! ⚡");
                 } else {
-                    alert("삭제할 데이터를 찾을 수 없어요.");
+                    alert("삭제할 데이터를 찾지 못했어요.");
                 }
         
             } catch (error) {
-                console.error("❌ 진짜 에러:", error);
-                alert("삭제 중 에러가 발생했어요. F12 콘솔을 확인해주세요!");
+                console.error("❌ 진짜 에러 내용:", error);
+                alert("에러가 발생했어요! F12 콘솔창의 빨간 글씨를 확인해주세요.");
             }
         };
     
@@ -1936,6 +1927,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
