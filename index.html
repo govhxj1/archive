@@ -1547,45 +1547,41 @@ window.updateSummaryView = async function(dateKey) {
             if (!confirm("이 추억을 정말로 삭제할까요? 😢")) return;
         
             try {
-                console.log("⚡ 삭제 시작! 날짜:", dateKey, "순서:", index);
+                console.log("⚡ 파이어베이스 연결 확인 중...");
         
-                // 1. 거니님이 찾아낸 '진짜 이름' database를 사용합니다!
-                const dbRef = database.ref(`diaryRecords/${dateKey}`);
+                // 1. 변수가 선언되지 않았을 경우를 대비해 파이어베이스에서 직접 꺼내오기
+                // firebase.database() 가 안된다면 거니님 코드에서 파이어베이스를 부르는 본명을 써야합니다.
+                const db = firebase.database(); 
+                const dbRef = db.ref(`diaryRecords/${dateKey}`);
                 
-                // 2. 현재 데이터를 한 번 가져오기
+                // 2. 데이터 가져오기
                 const snapshot = await dbRef.once('value');
                 let currentData = snapshot.val();
         
                 if (currentData) {
-                    console.log("⚡ 서버 데이터 확인 완료, 삭제 중...");
-        
-                    // 데이터가 배열인 경우와 객체인 경우 모두 대응
+                    // 배열/객체 구분해서 삭제 로직 실행
                     if (Array.isArray(currentData)) {
                         currentData.splice(index, 1);
                     } else {
-                        // 객체 형태(0, 1, 2...)일 경우 해당 키 삭제
                         const keys = Object.keys(currentData).sort();
                         const keyToDelete = keys[index];
-                        if (keyToDelete) {
-                            delete currentData[keyToDelete];
-                        }
+                        if (keyToDelete) delete currentData[keyToDelete];
                     }
         
-                    // 3. 🔥 서버에 업데이트 (이게 좀비를 잡는 결정타!)
+                    // 3. 🔥 서버에 저장 (좀비 박멸!)
                     await dbRef.set(currentData);
                     
-                    console.log("⚡ 서버 저장 성공!");
-        
-                    // 4. 화면 즉시 새로고침 (이게 되어야 우리 눈에 사라져요!)
+                    // 4. 화면 즉시 새로고침
                     window.updateSummaryView(dateKey);
-                    alert("서버까지 완벽하게 삭제되었습니다! ⚡");
+                    alert("서버 삭제 완료! 이제 좀비는 나타나지 않아요! ⚡");
                 } else {
-                    alert("삭제할 데이터를 찾지 못했어요.");
+                    alert("삭제할 데이터를 찾지 못했습니다.");
                 }
         
             } catch (error) {
-                console.error("❌ 진짜 에러 내용:", error);
-                alert("에러가 발생했어요! F12 콘솔창의 빨간 글씨를 확인해주세요.");
+                console.error("❌ 최종 에러 발생:", error);
+                // 만약 여기서 'firebase is not defined'가 또 뜨면 아래 해결책을 봐주세요!
+                alert("데이터베이스 연결에 문제가 있어요. F12 콘솔을 확인해주세요!");
             }
         };
     
@@ -1927,6 +1923,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
