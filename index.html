@@ -671,6 +671,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    window.db = db;
     const appId = 'shared-gomi-diary-app';
 
     let user = null, cloudRecords = {}, viewYear = 2026, viewMonth = 1, currentDay = 0, selectedSticker = "", comments = [], selectedImgBase64 = "", isDateMode = false, currentPage = 0, commentToDeleteIndex = -1, secretClickCount = 0;
@@ -1543,45 +1544,48 @@ window.updateSummaryView = async function(dateKey) {
     }
 };
     
-           window.deleteSummaryLocation = async function(dateKey, index) {
+           // [주의] 이 코드는 상단의 import 문들과 같은 스크립트 블록 안에 있거나, 
+           // db 변수에 접근할 수 있어야 합니다.
+        window.deleteSummaryLocation = async function(dateKey, index) {
             if (!confirm("이 추억을 정말로 삭제할까요? 😢")) return;
         
             try {
-                console.log("⚡ 파이어베이스 연결 확인 중...");
-        
-                // 1. 변수가 선언되지 않았을 경우를 대비해 파이어베이스에서 직접 꺼내오기
-                // firebase.database() 가 안된다면 거니님 코드에서 파이어베이스를 부르는 본명을 써야합니다.
-                const db = firebase.database(); 
-                const dbRef = db.ref(`diaryRecords/${dateKey}`);
+                console.log("⚡ Firestore 접속 시도... 날짜:", dateKey);
                 
-                // 2. 데이터 가져오기
-                const snapshot = await dbRef.once('value');
-                let currentData = snapshot.val();
+                // 1. 문서 참조 가져오기 (거니님의 diaryRecords 컬렉션)
+                // 위에서 'import { doc, getDoc, setDoc }' 가 되어 있어야 합니다!
+                const { doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+                
+                const docRef = doc(db, "diaryRecords", dateKey);
+                const docSnap = await getDoc(docRef);
         
-                if (currentData) {
-                    // 배열/객체 구분해서 삭제 로직 실행
-                    if (Array.isArray(currentData)) {
-                        currentData.splice(index, 1);
-                    } else {
-                        const keys = Object.keys(currentData).sort();
-                        const keyToDelete = keys[index];
-                        if (keyToDelete) delete currentData[keyToDelete];
-                    }
-        
-                    // 3. 🔥 서버에 저장 (좀비 박멸!)
-                    await dbRef.set(currentData);
+                if (docSnap.exists()) {
+                    let data = docSnap.data();
                     
-                    // 4. 화면 즉시 새로고침
-                    window.updateSummaryView(dateKey);
-                    alert("서버 삭제 완료! 이제 좀비는 나타나지 않아요! ⚡");
+                    // 2. 데이터 삭제 로직
+                    // Firestore의 diaryRecords는 보통 배열이 아닌 객체 필드(0, 1, 2...)일 확률이 높습니다.
+                    const keys = Object.keys(data).sort(); 
+                    const keyToDelete = keys[index];
+        
+                    if (keyToDelete) {
+                        console.log("⚡ 삭제할 키:", keyToDelete);
+                        delete data[keyToDelete]; // 해당 데이터 삭제
+        
+                        // 3. 🔥 서버에 업데이트 (덮어쓰기)
+                        await setDoc(docRef, data);
+                        console.log("⚡ 서버 삭제 완료!");
+        
+                        // 4. 화면 즉시 새로고침
+                        window.updateSummaryView(dateKey);
+                        alert("서버까지 깨끗하게 삭제되었습니다! ⚡");
+                    }
                 } else {
                     alert("삭제할 데이터를 찾지 못했습니다.");
                 }
         
             } catch (error) {
-                console.error("❌ 최종 에러 발생:", error);
-                // 만약 여기서 'firebase is not defined'가 또 뜨면 아래 해결책을 봐주세요!
-                alert("데이터베이스 연결에 문제가 있어요. F12 콘솔을 확인해주세요!");
+                console.error("❌ 진짜 에러 내용:", error);
+                alert("삭제 중 오류가 발생했어요. 콘솔창을 확인해주세요!");
             }
         };
     
@@ -1923,6 +1927,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
