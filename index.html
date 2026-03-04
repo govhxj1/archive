@@ -1546,47 +1546,42 @@ window.updateSummaryView = async function(dateKey) {
 
 
            window.deleteSummaryLocation = async function(dateKey, index) {
-    if (!confirm("이 추억을 정말로 삭제할까요? 😢")) return;
+    if (!confirm("이 항목 하나만 삭제할까요? ⚡")) return;
 
     try {
-        const { doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        // 1. 필요한 도구들 가져오기 (updateDoc, deleteField 추가!)
+        const { doc, getDoc, updateDoc, deleteField } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
-        // 📍 사진(image_45f9c6.png)에 나온 정확한 계층 주소입니다!
+        // 2. 정확한 경로 설정
         const docRef = doc(window.db, "artifacts", "shared-gomi-diary-app", "public", "data", "diaryRecords", dateKey);
-        
-        console.log("⚡ 탐색 중인 경로: artifacts > shared-gomi-diary-app > public > data > diaryRecords >", dateKey);
         
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            let data = docSnap.data();
-            console.log("✅ 데이터를 찾았습니다!:", data);
-            
-            // 데이터 삭제 로직 (필드 이름이 1, 2, 3... 인 경우)
+            const data = docSnap.data();
+            // 숫자 키(1, 2, 3...)를 순서대로 정렬해서 내가 누른 놈(index) 찾기
             const keys = Object.keys(data).sort((a, b) => Number(a) - Number(b));
             const keyToDelete = keys[index];
 
             if (keyToDelete) {
-                console.log("⚡ 삭제할 필드 번호:", keyToDelete);
-                delete data[keyToDelete]; 
+                console.log(`⚡ ${keyToDelete}번 항목만 정밀 타격 삭제합니다!`);
 
-                // 덮어쓰기 방식으로 삭제 반영
-                await setDoc(docRef, data);
+                // 3. 🔥 핵심 변경: 전체를 덮어쓰지 않고, '그 필드'만 삭제함!
+                const updatePayload = {};
+                updatePayload[keyToDelete] = deleteField(); // "이 번호만 지워줘!"
+
+                await updateDoc(docRef, updatePayload);
                 
-                // 화면 즉시 업데이트
+                // 4. 화면 즉시 반영
                 window.updateSummaryView(dateKey);
-                alert("서버까지 완벽하게 지워졌어요! 좀비 퇴치 성공! ⚡");
-            } else {
-                alert("삭제할 데이터의 번호를 찾지 못했습니다.");
+                alert("선택한 항목만 깔끔하게 삭제되었습니다! ⚡");
             }
         } else {
-            console.log("❌ 여전히 문서를 못 찾음. dateKey 형태를 확인하세요:", dateKey);
-            alert("DB에서 해당 날짜 문서를 찾을 수 없습니다. 경로 설정을 다시 확인해야 해요.");
+            alert("데이터를 찾을 수 없습니다.");
         }
-
     } catch (error) {
-        console.error("❌ 진짜 에러:", error);
-        alert("삭제 중 오류가 발생했습니다.");
+        console.error("❌ 정밀 삭제 실패:", error);
+        alert("삭제 중 오류가 발생했어요.");
     }
 };
     
@@ -1929,6 +1924,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
