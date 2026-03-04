@@ -1546,45 +1546,46 @@ window.updateSummaryView = async function(dateKey) {
             if (!confirm("이 추억을 정말로 삭제할까요? 😢")) return;
         
             try {
-                // 1. 파이어베이스(Firestore) 참조 준비
-                // 거니님의 설정에 따라 db 또는 firestore 변수명을 확인하세요!
-                const docRef = db.collection('diaryRecords').doc(dateKey);
-                const doc = await docRef.get();
+                // 1. 파이어베이스 데이터베이스 연결 (이름이 다를 수 있으니 직접 호출)
+                const dbRef = firebase.database().ref(`diaryRecords/${dateKey}`);
+                
+                // 2. 현재 저장된 데이터를 한 번 가져오기
+                const snapshot = await dbRef.once('value');
+                let currentData = snapshot.val();
         
-                if (doc.exists) {
-                    let data = doc.data();
-                    
-                    // 2. 화면에 보이는 순서(index)에 맞는 데이터를 삭제
-                    // 파이어베이스 화면을 보니 필드가 숫자로 되어있거나 배열일 가능성이 큽니다.
-                    // 여기서는 가장 안전하게 해당 데이터를 필터링해서 다시 저장합니다.
-                    
-                    // 객체의 키들을 배열로 만들어서 해당 인덱스 요소를 삭제
-                    const keys = Object.keys(data).sort(); // 0, 1, 2... 순서 정렬
-                    const keyToDelete = keys[index];
-        
-                    if (keyToDelete) {
-                        // 삭제할 데이터 제외하고 새 객체 만들기 (또는FieldValue.delete() 사용)
-                        delete data[keyToDelete];
-                        
-                        // 3. 서버에 업데이트 (삭제된 상태로 덮어쓰기)
-                        await docRef.set(data); 
-                        
-                        console.log(`${dateKey}의 ${keyToDelete}번 데이터 서버 삭제 완료! ⚡`);
-                        
-                        // 4. 로컬 메모리(cloudRecords)도 동기화해서 새로고침 시 좀비 방지
-                        if (window.cloudRecords && window.cloudRecords[dateKey]) {
-                            delete window.cloudRecords[dateKey].comments[index];
+                if (currentData) {
+                    // 3. 데이터가 배열 형태(0, 1, 2...)라면 해당 순서 삭제
+                    if (Array.isArray(currentData)) {
+                        currentData.splice(index, 1);
+                    } else {
+                        // 만약 객체 형태라면 키를 찾아서 삭제
+                        const keys = Object.keys(currentData).sort();
+                        const keyToDelete = keys[index];
+                        if (keyToDelete) {
+                            delete currentData[keyToDelete];
                         }
+                    }
+        
+                    // 4. 🔥 서버에 업데이트 (이게 좀비를 잡는 핵심!)
+                    await dbRef.set(currentData);
+                    
+                    console.log(`${dateKey} 데이터 서버 삭제 완료! ⚡`);
+        
+                    // 5. 로컬 메모리(cloudRecords)도 동기화 (새로고침 안 해도 바로 반영되게)
+                    if (window.cloudRecords && window.cloudRecords[dateKey]) {
+                        // cloudRecords 구조가 { comments: [ { locations: [] } ] } 인 경우
+                        // 거니님의 데이터 구조에 맞춰서 로컬 배열도 비워줍니다.
+                        window.cloudRecords[dateKey] = currentData; 
                     }
                 }
         
-                // 5. 화면 즉시 새로고침
+                // 6. 화면 즉시 새로고침
                 window.updateSummaryView(dateKey);
-                alert("삭제되었습니다! 이제 다시 나타나지 않을 거예요. ⚡");
+                alert("서버까지 깔끔하게 삭제되었습니다! ⚡");
         
             } catch (error) {
-                console.error("삭제 중 오류 발생:", error);
-                alert("서버 삭제에 실패했어요. 인터넷 연결을 확인해 주세요!");
+                console.error("진짜 에러 내용:", error);
+                alert("삭제 중 오류가 발생했어요. F12 콘솔창을 확인해 보세요!");
             }
         };
     
@@ -1926,6 +1927,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
