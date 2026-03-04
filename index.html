@@ -1549,45 +1549,49 @@ window.updateSummaryView = async function(dateKey) {
     if (!confirm("이 추억을 정말로 삭제할까요? 😢")) return;
 
     try {
-        const { doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        const { doc, getDoc, setDoc, deleteField } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
-        // [핵심] 만약 dateKey가 '2월 27일'처럼 들어온다면 '2026-02-27'로 바꿔줘야 합니다.
-        //  경로의 이름인 '2026-02-27'을 직접 조준합니다.
-        let targetDocName = dateKey; 
+        // 1. 거니님의 실제 DB 경로를 찾습니다. 
+        // 1순위: diaryRecords 컬렉션 안의 날짜 문서
+        // 2순위: shared-gomi-diary-app 컬렉션 안의 diaryRecords 문서 안의 날짜 필드
         
-        // 날짜 형식 보정 (혹시 몰라서 넣는 안전장치)
-        if (!targetDocName.includes('-')) {
-             // dateKey가 '2026. 2. 27.' 이런 식이라면 변환 로직이 필요합니다.
-             console.log("📍 원본 날짜 데이터:", dateKey);
-        }
+        let docRef = doc(window.db, "diaryRecords", dateKey);
+        let docSnap = await getDoc(docRef);
 
-        const docRef = doc(window.db, "diaryRecords", targetDocName);
-        const docSnap = await getDoc(docRef);
+        // 만약 1순위 경로에 없다면 appId 경로로 재시도
+        if (!docSnap.exists()) {
+            console.log("📍 1순위 경로 실패, appId 경로로 재시도합니다.");
+            docRef = doc(window.db, "shared-gomi-diary-app", "data", "diaryRecords", dateKey);
+            // ※ 참고: 위 경로는 거니님의 실제 DB 구조에 따라 달라질 수 있습니다.
+            docSnap = await getDoc(docRef);
+        }
 
         if (docSnap.exists()) {
             let data = docSnap.data();
             console.log("✅ 데이터를 찾았습니다!:", data);
             
-            // 필드 키를 정렬해서 index로 접근 (0, 1, 2...)
-            const keys = Object.keys(data).sort();
-            const keyToDelete = keys[index];
-
-            if (keyToDelete) {
-                // 해당 필드 삭제
-                delete data[keyToDelete];
-                
-                // 🔥 서버 업데이트
+            // 데이터가 배열인 경우 처리
+            if (Array.isArray(data)) {
+                data.splice(index, 1);
                 await setDoc(docRef, data);
-                
-                // 화면 즉시 반영
-                window.updateSummaryView(dateKey);
-                alert("좀비 데이터 삭제 완료! 이제 다시는 안 나타나요! ⚡");
-            } else {
-                alert("해당 순서의 데이터를 찾을 수 없어요.");
+            } 
+            // 데이터가 객체(0, 1, 2...)인 경우 처리
+            else {
+                const keys = Object.keys(data).sort((a, b) => Number(a) - Number(b));
+                const keyToDelete = keys[index];
+
+                if (keyToDelete) {
+                    delete data[keyToDelete];
+                    // 삭제 후 번호를 다시 맞추거나(Re-indexing), 그냥 삭제된 상태로 저장
+                    await setDoc(docRef, data);
+                }
             }
+
+            window.updateSummaryView(dateKey);
+            alert("서버 삭제 성공! 좀비 퇴치 완료! ⚡");
         } else {
-            console.log("❌ 문서 없음! 시도한 경로:", `diaryRecords/${targetDocName}`);
-            alert(`'${targetDocName}' 경로에 데이터가 없어요. 날짜 형식을 확인해야 합니다!`);
+            console.log("❌ 모든 경로에서 문서를 찾지 못함. 현재 시도한 날짜 키:", dateKey);
+            alert(`'${dateKey}' 날짜의 문서를 찾을 수 없어요. DB의 컬렉션 이름을 다시 확인해주세요!`);
         }
 
     } catch (error) {
@@ -1934,6 +1938,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
