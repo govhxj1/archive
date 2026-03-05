@@ -1549,39 +1549,46 @@ window.updateSummaryView = async function(dateKey) {
     if (!confirm("이 항목 하나만 삭제할까요? ⚡")) return;
 
     try {
-        // 1. 필요한 도구들 가져오기 (updateDoc, deleteField 추가!)
-        const { doc, getDoc, updateDoc, deleteField } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-        
-        // 2. 정확한 경로 설정
+        const { doc, getDoc, updateDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         const docRef = doc(window.db, "artifacts", "shared-gomi-diary-app", "public", "data", "diaryRecords", dateKey);
-        
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            const data = docSnap.data();
-            // 숫자 키(1, 2, 3...)를 순서대로 정렬해서 내가 누른 놈(index) 찾기
-            const keys = Object.keys(data).sort((a, b) => Number(a) - Number(b));
-            const keyToDelete = keys[index];
-
-            if (keyToDelete) {
-                console.log(`⚡ ${keyToDelete}번 항목만 정밀 타격 삭제합니다!`);
-
-                // 3. 🔥 핵심 변경: 전체를 덮어쓰지 않고, '그 필드'만 삭제함!
-                const updatePayload = {};
-                updatePayload[keyToDelete] = deleteField(); // "이 번호만 지워줘!"
-
-                await updateDoc(docRef, updatePayload);
+            let data = docSnap.data();
+            
+            // 📍 [핵심] 데이터가 어떤 모양인지 먼저 확인하고 처리합니다.
+            // 보통 거니님의 코드는 'comments'라는 배열 안에 데이터가 쌓여 있을 거예요.
+            if (data.comments && Array.isArray(data.comments)) {
+                console.log("⚡ 배열 데이터 발견! 인덱스 삭제 중...");
                 
-                // 4. 화면 즉시 반영
-                window.updateSummaryView(dateKey);
-                alert("선택한 항목만 깔끔하게 삭제되었습니다! ⚡");
+                // 1. 해당 순서(index)의 데이터만 배열에서 쏙 뺍니다.
+                data.comments.splice(index, 1);
+
+                // 2. 수정된 '배열 전체'를 다시 업데이트합니다.
+                await updateDoc(docRef, {
+                    comments: data.comments
+                });
+            } 
+            // 만약 필드가 0, 1, 2... 숫자로 되어 있는 경우
+            else {
+                console.log("⚡ 필드 형태 데이터 발견! 필드 삭제 중...");
+                const keys = Object.keys(data).sort((a, b) => Number(a) - Number(b));
+                const keyToDelete = keys[index];
+                
+                if (keyToDelete) {
+                    // 이 방식은 전체를 다시 써야 순서가 안 꼬입니다.
+                    delete data[keyToDelete];
+                    await updateDoc(docRef, data);
+                }
             }
-        } else {
-            alert("데이터를 찾을 수 없습니다.");
+
+            // 3. 화면 새로고침
+            window.updateSummaryView(dateKey);
+            alert("하나만 깔끔하게 삭제되었습니다! ⚡");
         }
     } catch (error) {
-        console.error("❌ 정밀 삭제 실패:", error);
-        alert("삭제 중 오류가 발생했어요.");
+        console.error("❌ 삭제 수술 실패:", error);
+        alert("삭제 중 오류가 발생했어요. 콘솔을 확인해주세요!");
     }
 };
     
@@ -1924,6 +1931,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
