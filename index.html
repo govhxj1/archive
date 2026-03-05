@@ -674,7 +674,20 @@
     window.db = db;
     const appId = 'shared-gomi-diary-app';
 
-    let user = null, cloudRecords = {}, viewYear = 2026, viewMonth = 1, currentDay = 0, selectedSticker = "", comments = [], selectedImgBase64 = "", isDateMode = false, currentPage = 0, commentToDeleteIndex = -1, secretClickCount = 0;
+    const todayDate = new Date();
+    let user = null, 
+        cloudRecords = {}, 
+        viewYear = todayDate.getFullYear(), 
+        viewMonth = todayDate.getMonth(), // 오늘이 3월이면 자동으로 2가 들어갑니다!
+        currentDay = 0, 
+        selectedSticker = "", 
+        comments = [], 
+        selectedImgBase64 = "", 
+        isDateMode = false, 
+        currentPage = 0, 
+        commentToDeleteIndex = -1, 
+        secretClickCount = 0;
+    
     let currentWriter = "", weatherClickCount = 0, currentWeatherStatus = "";
     let tempLocations = []; // 📍 여기에 있어야 어디서든 에러 없이 접근 가능해요!
 
@@ -1931,6 +1944,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
