@@ -976,6 +976,11 @@ function renderCalendar() {
                 return;
             }
             
+            if (anniv) {
+        console.log("🎊 축하합니다! 기념일 폭죽 발사! ⚡");
+        makeHearts(); 
+    }
+            
             // 일반 날짜는 모달 열기
             window.openModal(i);
         };
@@ -1944,6 +1949,7 @@ function setupHeartNotification() {
 </script>
 </body>
 </html>
+
 
 
 
