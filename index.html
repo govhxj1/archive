@@ -651,8 +651,10 @@
         </div>    
 </div>
 
-    <div id="fortune-button" onclick="openFortune()">
-    <span style="font-size: 30px;">💛</span> <div class="fortune-badge">거니의 응원</div>
+    <div id="fortune-button" onclick="openFortune()" 
+     style="position: fixed; bottom: 20px; right: 20px; width: 70px; height: 70px; background: #ffcfdf; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; z-index: 999;">
+    <span style="font-size: 30px;">💛</span> 
+    <div class="fortune-badge" style="font-size: 10px; font-weight: bold; color: #ff6f91;">거니의 응원</div>
 </div>
 
 <div id="fortune-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 4000; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
@@ -660,13 +662,13 @@
         
         <div style="font-size: 45px; margin-bottom: 10px; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.1));">💛</div>
         
-        <div style="color: #666; font-size: 0.8rem; margin-bottom: 5px; font-weight: bold;">유미야! 보고싶어</div>
+        <div style="color: #ff8fab; font-size: 0.9rem; margin-bottom: 5px; font-weight: bold;">유미야! 보고싶어</div>
         
         <div id="fortune-text" style="font-weight: 900; line-height: 1.6; margin: 15px 0; font-size: 1.1rem; color: #333; word-break: keep-all;">
-            오늘은 어제보다 더 많이 사랑해❣️
+            나도 많이 사랑해❣️
         </div>
         
-        <button onclick="closeFortune()" style="background: #c1f0e8; border: none; width: 100%; padding: 12px; border-radius: 15px; font-weight: bold; cursor: pointer; color: #333; margin-top: 10px; transition: 0.2s;">
+        <button onclick="closeFortune()" style="background: #ffcfdf; border: none; width: 100%; padding: 12px; border-radius: 15px; font-weight: bold; cursor: pointer; color: #ff6f91; margin-top: 10px; transition: 0.2s;">
             오늘은 어제보다 더 많이 사랑해❣️
         </button>
     </div>
