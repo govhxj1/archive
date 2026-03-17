@@ -648,8 +648,42 @@
     <button class="close-modal-btn" onclick="closeModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; color: #ccc; cursor: pointer; z-index: 110;">&times;</button>
     
     <div id="modal-content-area" style="min-height: 200px; width: 100%; display: flex; flex-direction: column;">
+        </div>    
+</div>
+
+    <div id="fortune-button" onclick="openFortune()">
+    <span style="font-size: 30px;">💛</span> <div class="fortune-badge">거니의 응원</div>
+</div>
+
+<div id="fortune-overlay" class="overlay" onclick="closeFortune()">
+    <div class="fortune-box" onclick="event.stopPropagation()">
+        <div class="gomi-avatar">💛</div>
+        <div id="fortune-text">오늘도 힘내!</div>
+        <button onclick="closeFortune()">오늘은 어제보다 더 사랑해❣️</button>
+    </div>
+</div>
+
+    <div id="admin-secret-gate" onclick="handleSecretClick()" 
+     style="position: fixed; top: 0; left: 0; width: 50px; height: 50px; z-index: 9999; cursor: default;">
+</div>
+
+<div id="fortune-pw-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 6000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 25px; border-radius: 20px; text-align: center; width: 280px;">
+        <div style="font-weight: 900; margin-bottom: 15px;">비밀번호를 입력하세요</div>
+        <input type="password" id="admin-pw-input" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; text-align: center; margin-bottom: 15px;">
+        <button onclick="checkAdminPassword()" style="width: 100%; background: #c1f0e8; border: none; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer;">확인</button>
+    </div>
+</div>
+
+<div id="fortune-admin-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 6001; align-items: center; justify-content: center;">
+    <div style="background: white; width: 85%; max-width: 320px; padding: 25px; border-radius: 25px; text-align: center;">
+        <div style="font-weight: 900; margin-bottom: 15px;">내일 유미에게 보낼 응원 ⚡</div>
+        <textarea id="special-fortune-input" placeholder="여기에 적은 말은 내일 유미가 버튼을 누르면 첫 번째로 떠요! 😊" style="width: 100%; height: 80px; border-radius: 10px; padding: 10px; border: 1px solid #c1f0e8; margin-bottom: 15px;"></textarea>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="saveSpecialFortune()" style="flex: 1; background: #c1f0e8; border: none; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer;">예약하기</button>
+            <button onclick="document.getElementById('fortune-admin-overlay').style.display='none'" style="flex: 1; background: #eee; border: none; padding: 10px; border-radius: 10px; cursor: pointer;">닫기</button>
         </div>
-    
+    </div>
 </div>
     
 <script type="module">
@@ -2011,82 +2045,110 @@ function setupHeartNotification() {
     // 3. 하트 알림 실시간 감시 별도 시작
     setupHeartNotification();
 
+    const defaultFortunes = [
+    "오늘따라 더 보고싶다!희히",
+    "언제든 보고싶으면 말해! 달려갈께!",
+    "신경쓸거 많을텐데 내생각도 해주고 고마워!",
+    "유미는 왜케 맨날 사랑스럽지?",
+    "힝...뽀뽀해조ㅜㅠ"
+    "항상 유미 옆에 있을께!"
+    "오늘도, 유미 덕분에 행복해 여보도 나보고 행복했으면 좋겠다!"
+    "앞으로도 행복만 가득하자!"
+    "오늘보다 내일더 행복하게 해줄께! 사랑해💛"
+    "여보와 함께하는 동안 항상 꽃길이야🌸"
+    "유미 옆에있으면, 내가 디지니 동화속에 들어온것 같은 너무 꿈만같은 시간이야"
+    "안녕!! 유미 지금 내가 짠하고 나타면 어떨까?! 도라에몽 어디로든지문!!"
+    "사랑해. 그냥 오늘은 사랑한다고 말하고싶내"
+    "조금만더 가까웠으면 좋겠다...지금 이시간에도 같이있을텐데"
+    "유미야!! 항상 내생각 많이해줘서 고마워! 나도 유미생각중이야ㅎㅎ"
+];
+
+window.openFortune = async function() {
+    const today = new Date();
+    const dateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    const docRef = doc(db, "fortune_messages", dateKey);
+    const snap = await getDoc(docRef);
     
-</script>
+    let message = "";
+    
+    if (snap.exists() && snap.data().specialMessage) {
+        message = snap.data().specialMessage;
+    } else {
+        const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+        message = defaultFortunes[seed % defaultFortunes.length];
+    }
+    
+    document.getElementById('fortune-text').innerText = message;
+    document.getElementById('fortune-overlay').style.display = 'flex';
+};
+
+window.closeFortune = () => {
+    document.getElementById('fortune-overlay').style.display = 'none';
+};
+
+let secretClickCount = 0;
+let secretClickTimer;
+
+// 1. 5번 클릭 감지 함수
+window.handleSecretClick = function() {
+    secretClickCount++;
+    
+    clearTimeout(secretClickTimer);
+    secretClickTimer = setTimeout(() => { secretClickCount = 0; }, 2000);
+
+    if (secretClickCount === 5) {
+        secretClickCount = 0;
+        document.getElementById('fortune-pw-overlay').style.display = 'flex';
+        document.getElementById('admin-pw-input').focus();
+    }
+};
+
+// 2. 비밀번호 확인 함수
+window.checkAdminPassword = function() {
+    const pw = document.getElementById('admin-pw-input').value;
+    
+    // 📍 거니님만의 비밀번호를 설정하세요! (예: 1234)
+    if (pw === "1029") { 
+        document.getElementById('fortune-pw-overlay').style.display = 'none';
+        document.getElementById('admin-pw-input').value = ""; // 초기화
+        document.getElementById('fortune-admin-overlay').style.display = 'flex';
+    } else {
+        alert("비밀번호가 틀렸습니다! 거니가 지켜보고 있어요.");
+        document.getElementById('admin-pw-input').value = "";
+    }
+};
+
+// 3. 메시지 저장 함수 (지난번 코드 유지)
+window.saveSpecialFortune = async function() {
+    const text = document.getElementById('special-fortune-input').value.trim();
+    if (!text) return alert("메시지를 입력해주세요! 🌸");
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowKey = `${tomorrow.getFullYear()}-${tomorrow.getMonth() + 1}-${tomorrow.getDate()}`;
+
+    try {
+        const { doc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        const docRef = doc(db, "fortune_messages", tomorrowKey);
+        
+        await setDoc(docRef, {
+            specialMessage: text,
+            sender: "거니",
+            timestamp: serverTimestamp()
+        }, { merge: true });
+
+        alert("예약 완료! 내일 유미에게 거니의 마음이 전달됩니다. ⚡😊");
+        document.getElementById('fortune-admin-overlay').style.display = 'none';
+        document.getElementById('special-fortune-input').value = "";
+    } catch (e) {
+        console.error("저장 에러:", e);
+    }
+};
+    
+    
+</script>      
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
