@@ -655,13 +655,29 @@
     <span style="font-size: 30px;">💛</span> <div class="fortune-badge">거니의 응원</div>
 </div>
 
-<div id="fortune-overlay" class="overlay" onclick="closeFortune()">
-    <div class="fortune-box" onclick="event.stopPropagation()">
-        <div class="gomi-avatar">💛</div>
-        <div id="fortune-text">오늘도 힘내!</div>
-        <button onclick="closeFortune()">오늘은 어제보다 더 사랑해❣️</button>
+<div id="fortune-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 4000; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+    <div class="fortune-box" style="background: white; width: 80%; max-width: 300px; padding: 30px 20px; border-radius: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onclick="event.stopPropagation()">
+        
+        <div style="font-size: 45px; margin-bottom: 10px; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.1));">💛</div>
+        
+        <div style="color: #666; font-size: 0.8rem; margin-bottom: 5px; font-weight: bold;">거니의 응원</div>
+        
+        <div id="fortune-text" style="font-weight: 900; line-height: 1.6; margin: 15px 0; font-size: 1.1rem; color: #333; word-break: keep-all;">
+            오늘은 어제보다 더 많이 사랑해❣️
+        </div>
+        
+        <button onclick="closeFortune()" style="background: #c1f0e8; border: none; width: 100%; padding: 12px; border-radius: 15px; font-weight: bold; cursor: pointer; color: #333; margin-top: 10px; transition: 0.2s;">
+            고마워 유미야!
+        </button>
     </div>
 </div>
+
+<style>
+@keyframes popUp {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+</style>
 
     <div id="admin-secret-gate" onclick="handleSecretClick()" 
      style="position: fixed; top: 0; left: 0; width: 50px; height: 50px; z-index: 9999; cursor: default;">
