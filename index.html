@@ -679,24 +679,53 @@
 </style>
 
     <div id="admin-secret-gate" onclick="handleSecretClick()" 
-     style="position: fixed; top: 0; left: 0; width: 50px; height: 50px; z-index: 9999; cursor: default;">
+     style="position: fixed; top: 0; left: 0; width: 60px; height: 60px; z-index: 9999; 
+            cursor: default; 
+            background: transparent;
+            -webkit-tap-highlight-color: rgba(0,0,0,0); 
+            -webkit-tap-highlight-color: transparent; 
+            -webkit-touch-callout: none; 
+            user-select: none; 
+            -webkit-user-select: none; 
+            outline: none;">
 </div>
 
-<div id="fortune-pw-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 6000; align-items: center; justify-content: center;">
-    <div style="background: white; padding: 25px; border-radius: 20px; text-align: center; width: 280px;">
-        <div style="font-weight: 900; margin-bottom: 15px;">비밀번호를 입력하세요</div>
-        <input type="password" id="admin-pw-input" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; text-align: center; margin-bottom: 15px;">
-        <button onclick="checkAdminPassword()" style="width: 100%; background: #c1f0e8; border: none; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer;">확인</button>
+<div id="fortune-pw-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="background: #111; padding: 30px; border-radius: 15px; text-align: center; width: 280px; border: 1px solid #333; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+        
+        <div style="font-weight: 900; margin-bottom: 20px; color: #555; font-size: 0.9rem; letter-spacing: 2px;">AUTHORIZATION</div>
+        
+        <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <input type="password" id="admin-pw-input" placeholder="****" 
+                   style="width: 70%; padding: 12px; border-radius: 5px; border: 1px solid #333; background: #000; color: #fff; text-align: center; font-size: 1.2rem; letter-spacing: 5px;">
+        </div>
+        
+        <button onclick="checkAdminPassword()" 
+                style="width: 100%; background: #222; border: 1px solid #333; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; color: #fff; text-transform: uppercase; font-size: 0.8rem; transition: 0.3s;"
+                onmouseover="this.style.background='#333'" onmouseout="this.style.background='#222'">
+            Confirm
+        </button>
     </div>
 </div>
 
-<div id="fortune-admin-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 6001; align-items: center; justify-content: center;">
-    <div style="background: white; width: 85%; max-width: 320px; padding: 25px; border-radius: 25px; text-align: center;">
-        <div style="font-weight: 900; margin-bottom: 15px;">내일 유미에게 보낼 응원 ⚡</div>
-        <textarea id="special-fortune-input" placeholder="여기에 적은 말은 내일 유미가 버튼을 누르면 첫 번째로 떠요! 😊" style="width: 100%; height: 80px; border-radius: 10px; padding: 10px; border: 1px solid #c1f0e8; margin-bottom: 15px;"></textarea>
-        <div style="display: flex; gap: 10px;">
-            <button onclick="saveSpecialFortune()" style="flex: 1; background: #c1f0e8; border: none; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer;">예약하기</button>
-            <button onclick="document.getElementById('fortune-admin-overlay').style.display='none'" style="flex: 1; background: #eee; border: none; padding: 10px; border-radius: 10px; cursor: pointer;">닫기</button>
+<div id="fortune-admin-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6001; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="background: #111; width: 85%; max-width: 320px; padding: 30px 25px; border-radius: 20px; text-align: center; border: 1px solid #333; box-shadow: 0 0 25px rgba(0,0,0,0.6);">
+        
+        <div style="font-weight: 900; margin-bottom: 20px; color: #777; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">Encrypt Message for Tomorrow</div>
+        
+        <textarea id="special-fortune-input" 
+                  placeholder="내일 유미에게 닿을 첫 번째 진심을 적어주세요..." 
+                  style="width: 100%; height: 100px; border-radius: 10px; padding: 15px; border: 1px solid #222; background: #000; color: #eee; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; resize: none; box-sizing: border-box; outline: none;"></textarea>
+        
+        <div style="display: flex; gap: 12px;">
+            <button onclick="saveSpecialFortune()" 
+                    style="flex: 1.5; background: #eee; border: none; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; color: #000; font-size: 0.9rem; transition: 0.3s;">
+                DEPOSIT
+            </button>
+            <button onclick="document.getElementById('fortune-admin-overlay').style.display='none'" 
+                    style="flex: 1; background: #222; border: 1px solid #333; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; color: #666; font-size: 0.9rem;">
+                CANCEL
+            </button>
         </div>
     </div>
 </div>
