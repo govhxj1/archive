@@ -1715,21 +1715,19 @@ function renderMapPath(pathData) {
     linePath.forEach(pos => bounds.extend(pos));
     kakaoMap.setBounds(bounds);
 }
-    // [7] 오늘의 랜덤 질문 기능 (수정 버전)
+    // [7] 오늘의 랜덤 질문 기능
 window.showRandomQuestion = function() {
     const today = new Date(); 
     const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
     
-    // 📍 기준점: 오늘(2026-03-17)부터 새 질문 시작
+    // 📍 기준점: 2026-03-17부터 새 질문 시작
     const startDate = new Date('2026-03-17');
     let selectedQuestion = "";
 
     if (today < startDate) {
-        // 과거 날짜: 기존 계산법 유지
         const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-        selectedQuestion = oldQuestions[dateSeed % oldQuestions.length];
+        selectedQuestion = oldQuestions[dateSeed % oldQuestions.length] || "소중한 질문 시간입니다 🌸";
     } else {
-        // 오늘부터: 0번부터 새 질문 시작
         const dateSeed = (today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()) - 20260317;
         selectedQuestion = dailyQuestions[dateSeed % dailyQuestions.length];
     }
@@ -1738,7 +1736,7 @@ window.showRandomQuestion = function() {
 
     onSnapshot(doc(db, "daily_answers", dateKey), (snap) => {
         const d = snap.exists() ? snap.data() : {};
-        // 📍 만약 이미 DB에 저장된 질문이 있다면 그걸 우선적으로 보여줍니다 (과거 기록 조회용)
+        // 저장된 질문이 있으면 그걸 우선 표시
         if (d.question) document.getElementById('question-content').innerText = d.question;
 
         const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
@@ -1751,7 +1749,16 @@ window.showRandomQuestion = function() {
     document.getElementById('question-overlay').style.display = 'flex';
 };
 
-// [수정] 질문과 답변을 함께 저장하는 기능
+// 📍 [복구] 작성 창 열기 함수
+window.openInput = (name) => { 
+    currentWriter = name; 
+    document.getElementById('writer-selector').style.display = 'none'; 
+    document.getElementById('q-input-area').style.display = 'flex'; 
+    document.getElementById('q-answer-input').placeholder = name + "의 고민시간..."; 
+    document.getElementById('q-answer-input').focus(); 
+};
+
+// 📍 [복구 & 강화] 질문과 답변 동시 저장 함수
 window.submitDailyAnswer = async () => {
     const input = document.getElementById('q-answer-input'); 
     if (!input.value.trim()) return alert("내용을 입력해주세요! 🌸");
@@ -1759,12 +1766,10 @@ window.submitDailyAnswer = async () => {
     const today = new Date();
     const dateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     const docRef = doc(db, 'daily_answers', dateKey);
-
-    // 📍 현재 화면에 떠있는 질문을 가져옵니다.
     const currentQuestion = document.getElementById('question-content').innerText;
 
     await setDoc(docRef, { 
-        question: currentQuestion,   // ⚡ 질문 저장 추가!
+        question: currentQuestion,
         [currentWriter]: input.value, 
         timestamp: serverTimestamp() 
     }, { merge: true });
@@ -1772,8 +1777,22 @@ window.submitDailyAnswer = async () => {
     input.value = ""; 
     document.getElementById('q-input-area').style.display = 'none'; 
     document.getElementById('writer-selector').style.display = 'flex';
-    alert("소중한 질문과 답변이 함께 저장되었습니다! ⚡");
+    alert("질문과 답변이 함께 저장되었습니다! ⚡");
 };
+
+// 📍 [복구] 질문 창 닫기 함수
+window.closeQuestion = () => {
+    document.getElementById('question-overlay').style.display = 'none';
+    const o = document.getElementById('overlay');
+    const isDiaryOpen = document.getElementById('diary-modal').style.display === 'flex';
+    const isMenuOpen = document.getElementById('side-menu').style.display === 'flex';
+    
+    if (!isDiaryOpen && !isMenuOpen) {
+        o.style.display = 'none';
+        o.style.zIndex = "100";
+    }
+};
+    
     
     // [8] 기념일 축하 (confetti)
     function makeHearts() {
