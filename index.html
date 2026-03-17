@@ -713,8 +713,41 @@
     const holidays2026 = {"01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", "03-01": "삼일절", "03-02": "대체공휴일", "05-05": "어린이날", "05-24": "부처님오신날", "05-25": "대체공휴일", "06-03": "지방선거", "06-06": "현충일", "08-15": "광복절", "08-17": "대체공휴일", "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", "10-03": "개천절", "10-05": "대체공휴일", "10-09": "한글날", "12-25": "성탄절"};
     const specialDates = { "2026-02-14": { title: "💛 토요일 데이트 (2/14)", plans: [{ icon: "🏨", name: "저스트슬립 호텔", link: "https://naver.me/xnh1MzBd" }, { icon: "🛍️", name: "쇼핑 (NC백화점)", link: "https://naver.me/Gq845LFP" }, { icon: "🍢", name: "오뎅바 (어묵사랑애)", link: "https://naver.me/FpxlCCJk" }, { icon: "🌙", name: "숙소 앞 밤산책", note: "함께 걷기" }], footer: "✨ 이번 데이트도 재밌게 놀자!" }, "2026-02-15": { title: "💗 일요일 데이트 (2/15)", plans: [{ icon: "🦁", name: "오월드 / 사파리", link: "https://naver.me/5mI5LMtE" }, { icon: "🥘", name: "아리네 닭볶음탕", link: "https://naver.me/FW0IIu9e" }], footer: "🌙 집에서도 하루종일 별 보여줄게요" }, "2026-02-16": { title: "💝 월요일 데이트 (2/16)", plans: [{ icon: "🍖", name: "농민뜨끈이 옥천뼈구이", link: "https://naver.me/GRukZPUE" }, { icon: "🎲", name: "보드게임카페 (홈즈앤루팡)", link: "https://naver.me/xqu5B8IR" }], footer: "🌸 마지막 날까지 행복하게 보내자!" } };
     const allPaths = { "2026-02-14": [{ name: "1. 저스트슬립 호텔", lat: 36.354441, lng: 127.349343, memo: "우리의 아늑한 숙소 🏨" }, { name: "2. NC백화점 유성점", lat: 36.353746, lng: 127.344029, memo: "즐거운 쇼핑 데이트! 🛍️" }, { name: "3. 어묵사랑애", lat: 36.358807, lng: 127.349159, memo: "따끈한 오뎅바에서 한잔 🍢" }, { name: "4. 숙소 앞 산책", lat: 36.357320, lng: 127.354823, memo: "밤공기 마시며 걷기 🌙" }], "2026-02-15": [{ name: "1. 저스트슬립 호텔", lat: 36.354441, lng: 127.349343, memo: "우리의 아늑한 숙소 🏨" }, { name: "2. 오월드 사파리", lat: 36.288478, lng: 127.397009, memo: "사자랑 호랑이 보러 가기 🦁" }, { name: "3. 아리네 닭볶음탕", lat: 36.320661, lng: 127.373775, memo: "맛있는 저녁 냠냠 🥘" }], "2026-02-16": [{ name: "1. 농민뜨끈이", lat: 36.356835, lng: 127.348079, memo: "옥천 뼈구이 맛집! 🍖" }, { name: "2. 홈즈앤루팡", lat: 36.358767, lng: 127.343918, memo: "보드게임 한판 대결 🎲" }] };
-    const dailyQuestions = ["우리 처음 만났을 때, 나의 첫인상은 어땠어? 😊", "나랑 가장 먹고싶은 음식 어떤거야? 🥘", "내가 가장 귀여워 보일 때는 언제야? 💛", "상대방을 생각하면 가장 먼저 떠오르는 노래가 있어?", "지구 마지막 날이라면, 나랑 가장 먼저 하고 싶은 일은 뭐야? 🌎", "'이 사람 만나길 잘했다'라고 확신이 들었던 순간은? 💍", "상대방이 지쳐 보일 때, 내가 해줄 수 있는 최고의 위로는?", "우리가 닮은 점은 무엇이고, 서로 달라서 좋은 점은 뭐야?", "서로에게 꼭 전하고 싶은 '오늘의 응원' 한마디!", "만약 우리가 내일 당장 세계여행을 떠난다면, 가장 먼저 가고 싶은 나라는?", "거니와 유미, 우리 둘을 가장 잘 표현하는 단어 하나는 뭘까?", "나랑 연애하며 새롭게 발견한 너의 모습은? ✨", "우리가 함께한 날 중 가장 기억에 남는 날은? 🌸", "나랑 꼭 같이 해보고 싶은 버킷리스트가 있어? ✨", "우리 관계에서 가장 고마웠던 순간은 언제야? 💝", "서운할 때 내가 어떻게 다가와 주면 마음이 풀려? 🧸", "10년 뒤 우리 모습은 어떨 것 같아? ⏳", "나를 세 단어로 표현한다면? 🏷️"];
-
+    const oldQuestions = ["우리 처음 만났을 때, 나의 첫인상은 어땠어? 😊", "나랑 가장 먹고싶은 음식 어떤거야? 🥘", "내가 가장 귀여워 보일 때는 언제야? 💛", "상대방을 생각하면 가장 먼저 떠오르는 노래가 있어?", "지구 마지막 날이라면, 나랑 가장 먼저 하고 싶은 일은 뭐야? 🌎", "'이 사람 만나길 잘했다'라고 확신이 들었던 순간은? 💍", "상대방이 지쳐 보일 때, 내가 해줄 수 있는 최고의 위로는?", "우리가 닮은 점은 무엇이고, 서로 달라서 좋은 점은 뭐야?", "서로에게 꼭 전하고 싶은 '오늘의 응원' 한마디!", "만약 우리가 내일 당장 세계여행을 떠난다면, 가장 먼저 가고 싶은 나라는?", "거니와 유미, 우리 둘을 가장 잘 표현하는 단어 하나는 뭘까?", "나랑 연애하며 새롭게 발견한 너의 모습은? ✨", "우리가 함께한 날 중 가장 기억에 남는 날은? 🌸", "나랑 꼭 같이 해보고 싶은 버킷리스트가 있어? ✨", "우리 관계에서 가장 고마웠던 순간은 언제야? 💝", "서운할 때 내가 어떻게 다가와 주면 마음이 풀려? 🧸", "10년 뒤 우리 모습은 어떨 것 같아? ⏳", "나를 세 단어로 표현한다면? 🏷️"];
+    const dailyQuestions = [
+    "최근에 본 영화나 드라마 속 인물 중 우리와 닮은 커플은?",
+    "만약 우리가 내일 당장 복권에 당첨된다면, 가장 먼저 같이 하고 싶은 일은?",
+    "요즘 내가 가장 자주 하는 생각이나 고민은 뭐야?",
+    "우리가 처음 만난 날, 나의 첫인상은 구체적으로 어땠어?",
+    "너와 함께 가본 곳 중, 눈을 감으면 가장 먼저 떠오르는 풍경은?",
+    "내가 생각하는 '가장 나다운 모습'은 어떤 거야?",
+    "최근에 나 때문에 가장 크게 웃었던 순간이 언제야?",
+    "우리가 나중에 함께 살게 된다면, 집안일 역할 분담은 어떻게 하고 싶어?",
+    "서로에게 '이것만은 절대 변하지 않았으면 좋겠다' 하는 점은?",
+    "내가 요즘 가장 꽂혀있는 음식이나 취미가 있어?",
+    "만약 우리가 단 하루 동안 서로 몸이 바뀐다면, 뭘 제일 해보고 싶어?",
+    "너의 플레이리스트 중에서 나에게 꼭 들려주고 싶은 노래는?",
+    "요즘 나를 가장 행복하게 만드는 사소한 습관은?",
+    "우리가 만난 이후로 너에게 생긴 가장 큰 변화는 뭐야?",
+    "너의 어린 시절 꿈은 무엇이었고, 지금은 어떤 꿈을 꾸고 있어?",
+    "내가 생각하는 '완벽한 데이트'의 조건 3가지는?",
+    "최근에 나에게 말하지 못했던 고마운 순간이 있었어?",
+    "만약 우리에게 한 달간의 휴가가 주어진다면, 어디로 떠나고 싶어?",
+    "내가 가장 좋아하는 나의 신체 부위나 성격은 어디야?",
+    "우리가 나중에 할아버지가, 할머니가 되었을 때 어떤 모습일 것 같아?",
+    "너에게 '사랑'이란 단어를 정의한다면 어떤 문장으로 표현하고 싶어?",
+    "내가 요즘 가장 받고 싶은 위로나 응원은 뭐야?",
+    "우리가 함께 찍은 사진 중 너의 원픽은? 그 이유는?",
+    "나를 보면서 '아, 이 사람 정말 내 사람이구나'라고 느꼈던 순간은?",
+    "1년 뒤의 우리에게 보내는 짧은 영상 편지를 찍는다면 어떤 말을 남길래?",
+    "내가 가진 의외의 매력 포인트라고 생각하는 건 뭐야?",
+    "요즘 너를 가장 설레게 하는 것은 무엇이야?",
+    "우리가 싸웠을 때, 가장 빨리 화해할 수 있는 '비밀 신호'를 만든다면?",
+    "만약 우리가 다시 태어나도 서로를 선택할 것 같아?",
+    "오늘 하루 중 나에게 가장 들려주고 싶은 한 문장은?"
+];
+    
+    
     function setupDiaryEvents() {
             // 1. 이미지 업로드 버튼 체크
             const imgInput = document.getElementById('img-upload');
@@ -1682,31 +1715,56 @@ function renderMapPath(pathData) {
     linePath.forEach(pos => bounds.extend(pos));
     kakaoMap.setBounds(bounds);
 }
-    // [7] 오늘의 랜덤 질문 기능
-    window.showRandomQuestion = function() {
-        const today = new Date(); const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+    // [7] 오늘의 랜덤 질문 기능 (수정 버전)
+window.showRandomQuestion = function() {
+    const today = new Date(); 
+    const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+    
+    // 📍 기준점: 오늘(2026-03-17)부터 새 질문 시작
+    const startDate = new Date('2026-03-17');
+    let selectedQuestion = "";
+
+    if (today < startDate) {
+        // 과거 날짜: 기존 계산법 유지
         const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-        document.getElementById('question-content').innerText = dailyQuestions[dateSeed % dailyQuestions.length];
-        onSnapshot(doc(db, "daily_answers", dateKey), (snap) => {
-            const d = snap.exists() ? snap.data() : {};
-            const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
-            if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
-            if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
-        });
-        document.getElementById('q-input-area').style.display = 'none'; document.getElementById('writer-selector').style.display = 'flex'; document.getElementById('question-overlay').style.display = 'flex';
-    };
-    window.openInput = (name) => { currentWriter = name; document.getElementById('writer-selector').style.display = 'none'; document.getElementById('q-input-area').style.display = 'flex'; document.getElementById('q-answer-input').placeholder = name + "의 고민시간..."; document.getElementById('q-answer-input').focus(); };
-    window.submitDailyAnswer = async () => {
+        selectedQuestion = oldQuestions[dateSeed % oldQuestions.length];
+    } else {
+        // 오늘부터: 0번부터 새 질문 시작
+        const dateSeed = (today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()) - 20260317;
+        selectedQuestion = dailyQuestions[dateSeed % dailyQuestions.length];
+    }
+
+    document.getElementById('question-content').innerText = selectedQuestion;
+
+    onSnapshot(doc(db, "daily_answers", dateKey), (snap) => {
+        const d = snap.exists() ? snap.data() : {};
+        // 📍 만약 이미 DB에 저장된 질문이 있다면 그걸 우선적으로 보여줍니다 (과거 기록 조회용)
+        if (d.question) document.getElementById('question-content').innerText = d.question;
+
+        const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
+        if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
+        if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
+    });
+
+    document.getElementById('q-input-area').style.display = 'none'; 
+    document.getElementById('writer-selector').style.display = 'flex'; 
+    document.getElementById('question-overlay').style.display = 'flex';
+};
+
+// [수정] 질문과 답변을 함께 저장하는 기능
+window.submitDailyAnswer = async () => {
     const input = document.getElementById('q-answer-input'); 
     if (!input.value.trim()) return alert("내용을 입력해주세요! 🌸");
     
     const today = new Date();
     const dateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-    
-    // 📍 저장 경로도 최상위 daily_answers로 통일
     const docRef = doc(db, 'daily_answers', dateKey);
 
+    // 📍 현재 화면에 떠있는 질문을 가져옵니다.
+    const currentQuestion = document.getElementById('question-content').innerText;
+
     await setDoc(docRef, { 
+        question: currentQuestion,   // ⚡ 질문 저장 추가!
         [currentWriter]: input.value, 
         timestamp: serverTimestamp() 
     }, { merge: true });
@@ -1714,18 +1772,9 @@ function renderMapPath(pathData) {
     input.value = ""; 
     document.getElementById('q-input-area').style.display = 'none'; 
     document.getElementById('writer-selector').style.display = 'flex';
+    alert("소중한 질문과 답변이 함께 저장되었습니다! ⚡");
 };
-        window.closeQuestion = () => {
-            document.getElementById('question-overlay').style.display = 'none';
-            const o = document.getElementById('overlay');
-            const isDiaryOpen = document.getElementById('diary-modal').style.display === 'flex';
-            const isMenuOpen = document.getElementById('side-menu').style.display === 'flex';
-            
-            if (!isDiaryOpen && !isMenuOpen) {
-                o.style.display = 'none';
-                o.style.zIndex = "100";
-            }
-        };
+    
     // [8] 기념일 축하 (confetti)
     function makeHearts() {
         const heartEmojis = ['💛', '💖', '💗'];
