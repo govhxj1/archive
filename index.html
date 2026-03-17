@@ -2104,7 +2104,7 @@ function setupHeartNotification() {
     "여보와 함께하는 동안 항상 꽃길이야🌸",
     "유미 옆에있으면, 내가 디지니 동화속에 들어온것 같은 너무 꿈만같은 시간이야",
     "안녕!! 유미 지금 내가 짠하고 나타면 어떨까?! 도라에몽 어디로든지문!!",
-    "사랑해. 그냥 오늘은 사랑한다고 말하고싶내",
+    "사랑해💛<br>오늘은 계쏙 사랑한다고 말해주고 싶내",
     "조금만더 가까웠으면 좋겠다...지금 이시간에도 같이있을텐데",
     "유미야!! 항상 내생각 많이해줘서 고마워! 나도 유미생각중이야ㅎㅎ"
 ];
@@ -2149,17 +2149,43 @@ window.handleSecretClick = function() {
 };
 
 // 2. 비밀번호 확인 함수
-window.checkAdminPassword = function() {
+window.checkAdminPassword = async function() {
     const pw = document.getElementById('admin-pw-input').value;
     
-    // 📍 거니님만의 비밀번호를 설정하세요! (예: 1234)
-    if (pw === "1029") { 
+    if (pw === "261029") { 
         document.getElementById('fortune-pw-overlay').style.display = 'none';
-        document.getElementById('admin-pw-input').value = ""; // 초기화
+        document.getElementById('admin-pw-input').value = "";
+
+        // 🔍 내일 날짜 데이터 존재 여부만 확인
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowKey = `${tomorrow.getFullYear()}-${tomorrow.getMonth() + 1}-${tomorrow.getDate()}`;
+        
+        const titleArea = document.querySelector('#fortune-admin-overlay div div:first-child');
+        const inputArea = document.getElementById('special-fortune-input');
+        inputArea.value = ""; 
+
+        try {
+            const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+            const docRef = doc(db, "fortune_messages", tomorrowKey);
+            const snap = await getDoc(docRef);
+            
+            if (snap.exists() && snap.data().specialMessage) {
+                // ✅ 예약된 메시지가 이미 있는 경우
+                titleArea.innerText = "🔒 MESSAGE SECURED FOR TOMORROW";
+                titleArea.style.color = "#ff6f91"; 
+            } else {
+                // ❌ 예약된 메시지가 없는 경우
+                titleArea.innerText = "ENCRYPT MESSAGE FOR TOMORROW";
+                titleArea.style.color = "#777";
+            }
+        } catch (e) {
+            console.error("확인 에러:", e);
+        }
+
         document.getElementById('fortune-admin-overlay').style.display = 'flex';
     } else {
-        alert("비밀번호가 틀렸습니다! 거니가 지켜보고 있어요.");
-        document.getElementById('admin-pw-input').value = "";
+        alert("비밀번호가 틀렸습니다! ⚡");
     }
 };
 
