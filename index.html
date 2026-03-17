@@ -1749,7 +1749,6 @@ window.showRandomQuestion = function() {
     document.getElementById('question-overlay').style.display = 'flex';
 };
 
-// 📍 [복구] 작성 창 열기 함수
 window.openInput = (name) => { 
     currentWriter = name; 
     document.getElementById('writer-selector').style.display = 'none'; 
@@ -1758,7 +1757,6 @@ window.openInput = (name) => {
     document.getElementById('q-answer-input').focus(); 
 };
 
-// 📍 [복구 & 강화] 질문과 답변 동시 저장 함수
 window.submitDailyAnswer = async () => {
     const input = document.getElementById('q-answer-input'); 
     if (!input.value.trim()) return alert("내용을 입력해주세요! 🌸");
@@ -1777,7 +1775,7 @@ window.submitDailyAnswer = async () => {
     input.value = ""; 
     document.getElementById('q-input-area').style.display = 'none'; 
     document.getElementById('writer-selector').style.display = 'flex';
-    alert("질문과 답변이 함께 저장되었습니다! ⚡");
+    alert("오늘도 많이 사랑해💛");
 };
 
 // 📍 [복구] 질문 창 닫기 함수
