@@ -333,7 +333,7 @@
         .close-modal-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.2rem; color: #ccc; cursor: pointer; z-index: 110; }
         
         /* 오버레이 팝업들 */
-        #confirm-overlay, #surprise-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999 !important; align-items: center; justify-content: center; touch-action: none; }
+        #confirm-overlay, #surprise-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000 !important; align-items: center; justify-content: center; touch-action: none; }
         .confirm-box, .surprise-box { background: white; width: 85%; max-width: 340px; padding: 25px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; max-height: 80vh; touch-action: auto; }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .confirm-msg { color: var(--text-dark); font-weight: 900; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; }
