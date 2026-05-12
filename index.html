@@ -460,12 +460,17 @@
 </div>
 <div id="question-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center; touch-action: none;">
     <div class="surprise-box" style="width: 90%; max-width: 360px; padding: 25px; box-sizing: border-box;">
-        <span class="surprise-title" style="color: #ffb7c5;">📅 오늘의 질문</span>
+        <span class="surprise-title" id="q-modal-title" style="color: #ffb7c5;">📅 오늘의 질문</span>
         
         <div class="surprise-msg-container" style="margin: 15px 0; background-color: #fff9fa;">
             <div id="question-content" style="font-size: 1.05rem; font-weight: 900; color: #555; text-align: center; word-break: keep-all;">
                 질문을 불러오는 중...
             </div>
+        </div>
+
+        <div id="weekend-old-record" style="display: none; background: #111; color: #777; padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 0.8rem; text-align: left;">
+            <div style="font-weight: bold; color: #555; margin-bottom: 5px; font-size: 0.7rem;">🔒 PAST RECORD (우리의 예전 생각)</div>
+            <div id="old-answers-text" style="color: #eee; line-height: 1.4;"></div>
         </div>
 
         <div id="answers-display" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
@@ -486,7 +491,7 @@
             <textarea id="q-answer-input" placeholder="내용을 입력해주세요..." 
                 style="width: 100%; height: 80px; border-radius: 12px; border: 2px solid #fff0f3; background-color: #fff9fa; padding: 12px; font-family: inherit; font-size: 0.9rem; resize: none; box-sizing: border-box; outline: none;">
             </textarea>
-            <button class="confirm-btn" onclick="submitDailyAnswer()" style="width: 100%; margin: 0; background: #ffafcc; color: white; box-sizing: border-box;">기록 완료 ✨</button>
+            <button class="confirm-btn" id="q-submit-btn" onclick="submitDailyAnswer()" style="width: 100%; margin: 0; background: #ffafcc; color: white; box-sizing: border-box;">기록 완료 ✨</button>
         </div>
 
         <button class="confirm-btn" onclick="closeQuestion()" style="width: 100%; margin-top: 10px; background: #eee; color: #888; font-size: 0.9rem; border: none; padding: 10px; border-radius: 10px; box-sizing: border-box;">닫기</button>
@@ -2037,28 +2042,52 @@ function renderMapPath(pathData) {
     kakaoMap.setBounds(bounds);
 }
     // [7] 오늘의 랜덤 질문 기능
+// [7] 오늘의 랜덤 질문 & 주말 타임머신 통합 기능
 window.showRandomQuestion = function() {
-    const today = new Date(); 
-    const dateKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0: 일, 6: 토
+    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+    const dateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     
-    // 📍 기준점: 2026-03-17부터 새 질문 시작
-    const startDate = new Date('2026-03-17');
-    let selectedQuestion = "";
+    const modalTitle = document.getElementById('q-modal-title');
+    const weekendBox = document.getElementById('weekend-old-record');
+    const oldText = document.getElementById('old-answers-text');
+    const submitBtn = document.getElementById('q-submit-btn');
 
-    if (today < startDate) {
-        const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-        selectedQuestion = oldQuestions[dateSeed % oldQuestions.length] || "소중한 질문 시간입니다 🌸";
+    // 1. 질문 선정 (주말이면 과거 질문 중 랜덤, 평일이면 리스트 순서대로)
+    let selectedQuestion = "";
+    if (isWeekend) {
+        modalTitle.innerText = "🕰️ 생각의 타임머신";
+        modalTitle.style.color = "#ffde59"; // 주말은 노란색 타이틀
+        submitBtn.innerText = "새로운 생각 기록하기 ✨";
+        // 과거 질문 중 랜덤 추출
+        const randomIdx = Math.floor(Math.random() * oldQuestions.length);
+        selectedQuestion = oldQuestions[randomIdx];
     } else {
+        modalTitle.innerText = "📅 오늘의 질문";
+        modalTitle.style.color = "#ffb7c5";
+        submitBtn.innerText = "기록 완료 ✨";
         const dateSeed = (today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()) - 20260317;
         selectedQuestion = dailyQuestions[dateSeed % dailyQuestions.length];
     }
 
     document.getElementById('question-content').innerText = selectedQuestion;
 
+    // 2. 실시간 데이터 감시
     onSnapshot(doc(db, "daily_answers", dateKey), (snap) => {
         const d = snap.exists() ? snap.data() : {};
-        // 저장된 질문이 있으면 그걸 우선 표시
         if (d.question) document.getElementById('question-content').innerText = d.question;
+
+        // 주말이고 기존 답변(OLD)이 있다면 표시
+        if (isWeekend && (d.유미_old || d.거니_old)) {
+            weekendBox.style.display = 'block';
+            oldText.innerHTML = `
+                ${d.유미_old ? `<b>유미:</b> ${d.유미_old}<br>` : ''}
+                ${d.거니_old ? `<b>거니:</b> ${d.거니_old}` : ''}
+            `;
+        } else {
+            weekendBox.style.display = 'none';
+        }
 
         const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
         if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
@@ -2083,20 +2112,33 @@ window.submitDailyAnswer = async () => {
     if (!input.value.trim()) return alert("내용을 입력해주세요! 🌸");
     
     const today = new Date();
+    const isWeekend = (today.getDay() === 0 || today.getDay() === 6);
     const dateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     const docRef = doc(db, 'daily_answers', dateKey);
     const currentQuestion = document.getElementById('question-content').innerText;
 
-    await setDoc(docRef, { 
+    // 📍 [핵심] 주말이면 기존 답변을 _old로 복사하고 새 답변 저장
+    const snap = await getDoc(docRef);
+    let updateData = { 
         question: currentQuestion,
         [currentWriter]: input.value, 
         timestamp: serverTimestamp() 
-    }, { merge: true });
+    };
+
+    if (isWeekend && snap.exists()) {
+        const existingData = snap.data();
+        if (existingData[currentWriter] && existingData[currentWriter] !== input.value) {
+            // 기존 답변이 있으면 그걸 _old에 보관
+            updateData[currentWriter + "_old"] = existingData[currentWriter];
+        }
+    }
+
+    await setDoc(docRef, updateData, { merge: true });
 
     input.value = ""; 
     document.getElementById('q-input-area').style.display = 'none'; 
     document.getElementById('writer-selector').style.display = 'flex';
-    alert("오늘도 많이 사랑해💛");
+    alert(isWeekend ? "우리의 바뀐 생각이 저장되었어! 🕰️" : "오늘도 많이 사랑해💛");
 };
 
 // 📍 [복구] 질문 창 닫기 함수
