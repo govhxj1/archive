@@ -629,11 +629,12 @@
         <span class="surprise-title" style="color: #f59f00; font-weight: 900; font-size: 1.2rem; display: block; margin-bottom: 10px;">💛 거니의 행복 창고 💛</span>
         
         <!-- 📍 편지 선택 번호 버튼 -->
-        <div id="letter-tabs" style="display: flex; justify-content: center; gap: 10px; margin: 15px 0;">
+        <div id="letter-tabs" style="display: flex; justify-content: center; gap: 8px; margin: 15px 0; flex-wrap: wrap;">
             <button onclick="changeSecretLetter(1)" class="tab-btn active" id="tab-1">1</button>
             <button onclick="changeSecretLetter(2)" class="tab-btn" id="tab-2">2</button>
             <button onclick="changeSecretLetter(3)" class="tab-btn" id="tab-3">3</button>
-            <!-- 편지가 더 생기면 버튼을 더 추가하면 돼요! -->
+            <button onclick="changeSecretLetter(4)" class="tab-btn" id="tab-4">4</button>
+            <button onclick="changeSecretLetter(5)" class="tab-btn" id="tab-5">5</button>
         </div>
 
         <div class="surprise-msg-container" style="background: white; border: 1px solid #fff3bf; border-radius: 15px; margin-bottom: 15px; padding: 15px;">
@@ -791,18 +792,19 @@
 
     
     function changeSecretLetter(num) {
-        // 1. 모든 버튼에서 active 클래스 제거
+        // 모든 버튼에서 'active' 스타일 제거
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         
-        // 2. 클릭한 버튼에 active 클래스 추가
-        document.getElementById(`tab-${num}`).classList.add('active');
+        // 선택한 번호 버튼만 강조
+        const selectedTab = document.getElementById(`tab-${num}`);
+        if (selectedTab) selectedTab.classList.add('active');
         
-        // 3. 내용 교체
+        // 내용 교체
         const contentDiv = document.getElementById('menu-secret-content');
-        contentDiv.innerHTML = secretLetters[num] || "아직 비어있는 공간이에요! 🧸";
-        
-        // 4. 내용 변경 시 스크롤을 맨 위로 (글이 길 경우 대비)
-        contentDiv.scrollTop = 0;
+        if (contentDiv) {
+            contentDiv.innerHTML = secretLetters[num] || "아직 준비 중인 공간이에요! 🧸";
+            contentDiv.scrollTop = 0; // 내용이 길면 맨 위로 스크롤
+        }
     }
 
 </script>
