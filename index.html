@@ -625,32 +625,79 @@
     </div>
 
 <div id="menu-secret-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-    <div class="surprise-box" style="background: #fffbe6; border: 3px solid #ffde59; width: 85%; max-width: 340px;">
-        <span class="surprise-title" style="color: #f59f00;">💛 거니만 행복 창고 💛</span>
-        <div class="surprise-msg-container" style="background: white; border: 1px solid #fff3bf;">
-            <div class="surprise-msg" id="menu-secret-content" style="color: #666; font-weight: 500; line-height: 1.8; text-align: left;">
-                귀염둥이 곰돌이 거니야💛 <br><br>
-                나 요즘 너무 행복해 거니 덕분에💛<br>
-                너처럼 괜찮은 사람을 만난 것도 행운인데, 날 있는그대로 예쁘게 봐주고 많이 사랑해줘서 고마워💛<br>
-                매일매일 넘치도록 사랑 받는 중이라 진짜 행복해~~<br>
-                거니 덕분에 많이 웃게 되고 감동도 많이 받고 있고 예쁜 생각들로 가득찬 하루들을 보내게 되넹! 진짜 고맙고 많이 많이 사랑해💛<br>
-                대전 꿀잼 도시라는거 알게 해준 우리 거닝ㅋㅋ 완전 대문자 P의 여행만 다녔던 거니가 완벽한 계획을 세운 것 보니까 진짜 너무 고맙고 감동이고 대단하다고 느꼈어💛<br>
-                거니 덕분에 몸도 편하고 마음도 편한 여행들을 다닐 수 있었넹! 고마워 대박사거니~💛<br>
-                우리 처음 만나기로 했던 날! 만나자 이야기 나오고 진짜 만나는거 계획했을 때를 떠올려보면ㅋㅋ<br>
-                그땐 진짜 만나면 막 떨리고 긴장되고 어색할 것 같아서 걱정했었거든? 근데 만나는 날이 다가오면 다가올수록 점점 마음이 편해지더라?<br>
-                거니가 그동안 보여줬던 모습들이 한결같아서 뭔가 안심이 된걸까? 그냥 너라는 사람에게 믿음이 갔던 걸까? 만나는 당일에도 긴장이랑 어색함보단 기대가 되고 재미있을 것 같단 생각뿐이였어ㅋㅋ<br>
-                그날은 차분한 거니, 점잖은 거니의 온도가 나랑 잘 맞았던 것 같아ㅋㅋ 거니 말처럼 가식거니는 아니였겠지만ㅋㅋ 내가 생각하는 이미지는 완전 개구쟁이였는데 만났을땐 그정도는 아니였넹!<br>
-                근데 어떤 모습을 해도 좋아~ 난 거니가 이상한 모습을 보여줘도 이젠 이미 사랑에 빠져버렸으니🤭 그냥 다 귀엽게 바라볼 것 같아 ㅋㅋ<br>
-                진짜 거니가 편하게 대해주고 배려해주고 예뻐해줘서 난 내 모습 그대로 보여주는 중이야!<br>
-                거니도 있는그대로 모습 보여줬으면 좋겠고 나 만날 땐 걱정같은거 하나도 안했으면 좋겠어!💛<br>
-                소중한 우리 거니! 앞으로도 많이많이 웃었으면 좋겠고, 사랑 받고 있다는 느낌 들도록 내가 많이 표현하고 아껴줄게!💛<br>
-                거니 덕분에 행복한 하루들 보내고 있어서 요즘엔 나 진짜 운 좋은 사람이다~ 이런 생각 많이 해 ㅋㅋ 로또보다 더 값진 우리 거닝💛<br><br>
-                많이 고맙고 많이 사랑해💛💛💛"
+    <div class="surprise-box" style="background: #fffbe6; border: 3px solid #ffde59; width: 85%; max-width: 340px; padding: 20px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+        <span class="surprise-title" style="color: #f59f00; font-weight: 900; font-size: 1.2rem; display: block; margin-bottom: 10px;">💛 거니의 행복 창고 💛</span>
+        
+        <!-- 📍 편지 선택 번호 버튼 -->
+        <div id="letter-tabs" style="display: flex; justify-content: center; gap: 10px; margin: 15px 0;">
+            <button onclick="changeSecretLetter(1)" class="tab-btn active" id="tab-1">1</button>
+            <button onclick="changeSecretLetter(2)" class="tab-btn" id="tab-2">2</button>
+            <button onclick="changeSecretLetter(3)" class="tab-btn" id="tab-3">3</button>
+            <!-- 편지가 더 생기면 버튼을 더 추가하면 돼요! -->
+        </div>
+
+        <div class="surprise-msg-container" style="background: white; border: 1px solid #fff3bf; border-radius: 15px; margin-bottom: 15px; padding: 15px;">
+            <!-- 📍 내용이 표시되는 영역 -->
+            <div class="surprise-msg" id="menu-secret-content" style="color: #666; font-weight: 500; line-height: 1.8; text-align: left; max-height: 40vh; overflow-y: auto;">
+                편지를 고르는 중... 🧸
             </div>
         </div>
-        <button class="confirm-btn" onclick="closeMenuSecret()" style="background: #ffde59; color: #856404; border: none; padding: 12px; border-radius: 12px; font-weight: 900; cursor: pointer;">❣️ 거니의 비밀</button>
+        
+        <!-- 📍 거니 님이 주신 기존 닫기 버튼 -->
+        <button class="confirm-btn" onclick="closeMenuSecret()" style="background: #ffde59; color: #856404; border: none; padding: 12px; border-radius: 12px; font-weight: 900; cursor: pointer; width: 100%;">❣️ 거니의 비밀</button>
     </div>
 </div>
+
+<style>
+    /* 📍 번호 탭 버튼 디자인 */
+    .tab-btn {
+        width: 38px; height: 38px; border-radius: 50%; border: 2px solid #ffde59;
+        background: white; color: #f59f00; font-weight: 900; cursor: pointer;
+        transition: all 0.2s ease; font-family: inherit; font-size: 0.9rem;
+    }
+    .tab-btn.active {
+        background: #ffde59; color: #856404; transform: scale(1.15);
+        box-shadow: 0 3px 8px rgba(245, 159, 0, 0.2);
+    }
+</style>
+
+<script>
+    const secretLetters = {
+        1:  귀염둥이 곰돌이 거니야💛 <br><br>
+            나 요즘 너무 행복해 거니 덕분에💛<br>
+            너처럼 괜찮은 사람을 만난 것도 행운인데, 날 있는그대로 예쁘게 봐주고 많이 사랑해줘서 고마워💛<br>
+            매일매일 넘치도록 사랑 받는 중이라 진짜 행복해~~<br>
+            거니 덕분에 많이 웃게 되고 감동도 많이 받고 있고 예쁜 생각들로 가득찬 하루들을 보내게 되넹! 진짜 고맙고 많이 많이 사랑해💛<br>
+            대전 꿀잼 도시라는거 알게 해준 우리 거닝ㅋㅋ 완전 대문자 P의 여행만 다녔던 거니가 완벽한 계획을 세운 것 보니까 진짜 너무 고맙고 감동이고 대단하다고 느꼈어💛<br>
+            거니 덕분에 몸도 편하고 마음도 편한 여행들을 다닐 수 있었넹! 고마워 대박사거니~💛<br>
+            우리 처음 만나기로 했던 날! 만나자 이야기 나오고 진짜 만나는거 계획했을 때를 떠올려보면ㅋㅋ<br>
+            그땐 진짜 만나면 막 떨리고 긴장되고 어색할 것 같아서 걱정했었거든? 근데 만나는 날이 다가오면 다가올수록 점점 마음이 편해지더라?<br>
+            거니가 그동안 보여줬던 모습들이 한결같아서 뭔가 안심이 된걸까? 그냥 너라는 사람에게 믿음이 갔던 걸까? 만나는 당일에도 긴장이랑 어색함보단 기대가 되고 재미있을 것 같단 생각뿐이였어ㅋㅋ<br>
+            그날은 차분한 거니, 점잖은 거니의 온도가 나랑 잘 맞았던 것 같아ㅋㅋ 거니 말처럼 가식거니는 아니였겠지만ㅋㅋ 내가 생각하는 이미지는 완전 개구쟁이였는데 만났을땐 그정도는 아니였넹!<br>
+            근데 어떤 모습을 해도 좋아~ 난 거니가 이상한 모습을 보여줘도 이젠 이미 사랑에 빠져버렸으니🤭 그냥 다 귀엽게 바라볼 것 같아 ㅋㅋ<br>
+            진짜 거니가 편하게 대해주고 배려해주고 예뻐해줘서 난 내 모습 그대로 보여주는 중이야!<br>
+            거니도 있는그대로 모습 보여줬으면 좋겠고 나 만날 땐 걱정같은거 하나도 안했으면 좋겠어!💛<br>
+            소중한 우리 거니! 앞으로도 많이많이 웃었으면 좋겠고, 사랑 받고 있다는 느낌 들도록 내가 많이 표현하고 아껴줄게!💛<br>
+            거니 덕분에 행복한 하루들 보내고 있어서 요즘엔 나 진짜 운 좋은 사람이다~ 이런 생각 많이 해 ㅋㅋ 로또보다 더 값진 우리 거닝💛<br><br>
+            많이 고맙고 많이 사랑해💛💛💛"
+        2:  유미보고싶음  
+            };
+    function changeSecretLetter(num) {
+        // 1. 모든 버튼에서 active 클래스 제거
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        
+        // 2. 클릭한 버튼에 active 클래스 추가
+        document.getElementById(`tab-${num}`).classList.add('active');
+        
+        // 3. 내용 교체
+        const contentDiv = document.getElementById('menu-secret-content');
+        contentDiv.innerHTML = secretLetters[num] || "아직 비어있는 공간이에요! 🧸";
+        
+        // 4. 내용 변경 시 스크롤을 맨 위로 (글이 길 경우 대비)
+        contentDiv.scrollTop = 0;
+    }
+
+</script>
     
 <div id="time-travel-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6000; align-items: center; justify-content: center; backdrop-filter: blur(15px);">
     <div style="position: relative; width: 85%; max-width: 400px; text-align: center;">
