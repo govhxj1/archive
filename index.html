@@ -1005,6 +1005,10 @@ async function saveStarData() {
 
 window.closeSky = () => {
     document.getElementById('sky-overlay').style.display = 'none';
+    
+    // 📍 이 코드를 추가해서 배경 블러(어두운 창)도 같이 꺼줍니다!
+    const overlay = document.getElementById('overlay');
+    if (overlay) overlay.style.display = 'none';
 };
 
 function renderStars() {
