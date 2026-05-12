@@ -9,8 +9,23 @@
     <title>우리들의 행복한 추억</title>
     <style>
         @keyframes star-twinkle {
-            0%, 100% { opacity: 0.3; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.1); }
+            0%, 100% { 
+                opacity: 0.2; 
+                transform: scale(0.7) rotate(0deg); 
+            }
+            50% { 
+                opacity: 1; 
+                transform: scale(1.2) rotate(90deg); /* 회전 효과를 주면 더 별사탕 같아요! */
+            }
+        }
+        
+        .star-candy {
+            position: absolute;
+            border-radius: 2px; /* 살짝 굴려줌 */
+            /* ⭐ 핵심: 원형을 십자 별 모양으로 깎아냅니다 */
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            /* 깜빡임 속도를 3초~5초로 대폭 늘려서 천천히 움직이게 합니다 */
+            animation: star-twinkle 4s infinite ease-in-out;
         }
         
         @font-face {
@@ -982,33 +997,34 @@ window.closeSky = () => {
 // [핵심] 별을 랜덤 위치에 그리는 함수
 function renderStars() {
     const field = document.getElementById('star-field');
-    field.innerHTML = ""; // 기존 별 지우기
+    field.innerHTML = ""; 
 
     const types = [
-        { key: 'bronze', size: '2px', color: '#cd7f32', glow: '3px' },
-        { key: 'silver', size: '4px', color: '#c0c0c0', glow: '6px' },
-        { key: 'gold', size: '7px', color: '#ffd700', glow: '12px' }
+        { key: 'bronze', size: '10px', color: '#cd7f32', glow: '4px' }, // 별사탕은 조금 더 커야 예뻐요
+        { key: 'silver', size: '14px', color: '#c0c0c0', glow: '7px' },
+        { key: 'gold', size: '20px', color: '#ffd700', glow: '12px' }
     ];
 
     types.forEach(t => {
         for (let i = 0; i < starCounts[t.key]; i++) {
             const star = document.createElement('div');
-            // 랜덤 위치 계산
-            const x = Math.random() * 100;
-            const y = Math.random() * 100;
-            // 깜빡임 애니메이션 지연시간 랜덤
-            const delay = Math.random() * 3;
+            // 클래스명을 star-candy로 변경!
+            star.className = 'star-candy';
+            
+            const x = Math.random() * 94 + 3; // 여백 살짝 조절
+            const y = Math.random() * 90 + 5;
+            const delay = Math.random() * 4; // 지연시간도 넉넉하게
+            const duration = 3 + Math.random() * 3; // 3~6초 사이로 개별 속도 다르게
 
             star.style.cssText = `
-                position: absolute;
                 left: ${x}%;
                 top: ${y}%;
                 width: ${t.size};
                 height: ${t.size};
                 background: ${t.color};
-                border-radius: 50%;
                 box-shadow: 0 0 ${t.glow} ${t.color};
-                animation: star-twinkle 2s infinite ease-in-out ${delay}s;
+                animation-duration: ${duration}s; 
+                animation-delay: ${delay}s;
             `;
             field.appendChild(star);
         }
