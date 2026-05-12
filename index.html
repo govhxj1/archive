@@ -2267,6 +2267,85 @@ const adminGate = document.getElementById('admin-secret-gate');
 if (adminGate) {
     adminGate.onclick = window.handleSecretClick;
 }
+    // ==============================================
+// 🔑 관리자 비밀번호 및 메시지 저장 로직 복구
+// ==============================================
+
+// 1. 비밀번호 확인 함수를 window에 직접 연결
+window.checkAdminPassword = async function() {
+    const pwInput = document.getElementById('admin-pw-input');
+    if (!pwInput) return;
+    
+    const pw = pwInput.value;
+    
+    if (pw === "261029") { // 거니님만의 비밀번호
+        document.getElementById('fortune-pw-overlay').style.display = 'none';
+        pwInput.value = ""; // 입력창 비우기
+
+        // 내일 날짜 계산
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowKey = `${tomorrow.getFullYear()}-${tomorrow.getMonth() + 1}-${tomorrow.getDate()}`;
+        
+        const titleArea = document.querySelector('#fortune-admin-overlay div div:first-child');
+        const inputArea = document.getElementById('special-fortune-input');
+        if (inputArea) inputArea.value = ""; 
+
+        try {
+            // 파이어베이스에서 내일 메시지가 이미 있는지 확인
+            const docRef = doc(db, "fortune_messages", tomorrowKey);
+            const snap = await getDoc(docRef);
+            
+            if (snap.exists() && snap.data().specialMessage) {
+                if (titleArea) {
+                    titleArea.innerText = "🔒 MESSAGE SECURED FOR TOMORROW";
+                    titleArea.style.color = "#ff6f91"; 
+                }
+            } else {
+                if (titleArea) {
+                    titleArea.innerText = "ENCRYPT MESSAGE FOR TOMORROW";
+                    titleArea.style.color = "#777";
+                }
+            }
+        } catch (e) {
+            console.error("메시지 확인 에러:", e);
+        }
+
+        document.getElementById('fortune-admin-overlay').style.display = 'flex';
+    } else {
+        alert("비밀번호가 틀렸습니다! ⚡");
+    }
+};
+
+// 2. 메시지 저장 함수도 window에 연결 (이것도 안 될 수 있으니 미리 방지!)
+window.saveSpecialFortune = async function() {
+    const textInput = document.getElementById('special-fortune-input');
+    if (!textInput) return;
+    
+    const text = textInput.value.trim();
+    if (!text) return alert("메시지를 입력해주세요! 🌸");
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowKey = `${tomorrow.getFullYear()}-${tomorrow.getMonth() + 1}-${tomorrow.getDate()}`;
+
+    try {
+        const docRef = doc(db, "fortune_messages", tomorrowKey);
+        
+        await setDoc(docRef, {
+            specialMessage: text,
+            sender: "거니",
+            timestamp: serverTimestamp()
+        }, { merge: true });
+
+        alert("예약 완료! 내일 유미에게 거니의 마음이 전달됩니다. ⚡😊");
+        document.getElementById('fortune-admin-overlay').style.display = 'none';
+        textInput.value = "";
+    } catch (e) {
+        console.error("저장 에러:", e);
+        alert("저장에 실패했습니다. 😭");
+    }
+};
 </script>       
 </body>
 </html>
