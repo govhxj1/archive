@@ -524,10 +524,13 @@
 </div>
 
 <div id="side-menu" class="surprise-box" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:1000; width:85%;">
-    <span class="surprise-title">✨ 우리들의 <span id="secret-word-trigger" style="cursor: pointer;">비밀</span> 메뉴 ✨</span>
+    <span class="surprise-title">✨ 우리들의 비밀 메뉴 ✨</span>
     <div style="display:flex; flex-direction:column; gap:12px; padding:10px;">
-        <button class="confirm-btn" style="background:var(--main-pink); color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="openMap()">🗺️ 우리의 추억 지도</button>
-<button class="confirm-btn" style="background:#ffc107; color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="showRandomQuestion()">💌 오늘의 랜덤 질문</button>    </div>
+        <button class="confirm-btn" style="background:var(--main-pink); color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="openMap()">🗺️ 추억 지도</button>
+        <button class="confirm-btn" style="background:#ffc107; color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="showRandomQuestion()">💌 랜덤 질문</button>
+        
+        <button class="confirm-btn" style="background:#0f172a; color:#facc15; border:none; padding:15px; border-radius:15px; font-weight:900; box-shadow: 0 0 10px rgba(250, 204, 21, 0.3);" onclick="openSky()">🌌 은하수</button>
+    </div>
     <button class="confirm-btn btn-cancel" style="margin-top:10px;" onclick="toggleMenu()">닫기</button>
 </div>
     
