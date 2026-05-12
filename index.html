@@ -9,24 +9,24 @@
     <title>우리들의 행복한 추억</title>
     <style>
         @keyframes star-twinkle {
-            0%, 100% { 
-                opacity: 0.2; 
-                transform: scale(0.7) rotate(0deg); 
-            }
-            50% { 
-                opacity: 1; 
-                transform: scale(1.2) rotate(90deg); /* 회전 효과를 주면 더 별사탕 같아요! */
-            }
-        }
-        
-        .star-candy {
-            position: absolute;
-            border-radius: 2px; /* 살짝 굴려줌 */
-            /* ⭐ 핵심: 원형을 십자 별 모양으로 깎아냅니다 */
-            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-            /* 깜빡임 속도를 3초~5초로 대폭 늘려서 천천히 움직이게 합니다 */
-            animation: star-twinkle 4s infinite ease-in-out;
-        }
+    0%, 100% { 
+        opacity: 0.2; 
+        transform: scale(0.8) rotate(0deg); 
+    }
+    50% { 
+        opacity: 1; 
+        transform: scale(1.1) rotate(45deg); /* 은은하게 회전 */
+    }
+}
+
+.star-candy {
+    position: absolute;
+    /* ⭐ 8꼭지점 별사탕 다각형 (꼭지점이 많아 훨씬 화려해요) */
+    clip-path: polygon(50% 0%, 60% 20%, 80% 20%, 70% 40%, 90% 50%, 70% 60%, 80% 80%, 60% 80%, 50% 100%, 40% 80%, 20% 80%, 30% 60%, 10% 50%, 30% 40%, 20% 20%, 40% 20%);
+    background: white;
+    /* 깜빡임 속도를 4초로 설정 (거니님 요청: 천천히) */
+    animation: star-twinkle 4s infinite ease-in-out;
+}
         
         @font-face {
             font-family: 'Pretendard-Regular';
@@ -480,9 +480,9 @@
     <div id="star-field" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 8001;"></div>
 
     <div style="position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 8003;">
-        <button onclick="confirmStar('bronze')" style="background: #cd7f32; border: none; padding: 10px 15px; border-radius: 15px; color: white; font-weight: bold; box-shadow: 0 0 10px rgba(205,127,50,0.5);">🥉 동별</button>
-        <button onclick="confirmStar('silver')" style="background: #c0c0c0; border: none; padding: 10px 15px; border-radius: 15px; color: #333; font-weight: bold; box-shadow: 0 0 10px rgba(192,192,192,0.5);">🥈 은별</button>
-        <button onclick="confirmStar('gold')" style="background: #ffd700; border: none; padding: 10px 15px; border-radius: 15px; color: #5d4037; font-weight: bold; box-shadow: 0 0 10px rgba(255,215,0,0.5);">🥇 금별</button>
+        <button onclick="confirmStar('bronze')" style="background: #cd7f32; border: none; padding: 10px 15px; border-radius: 15px; color: white; font-weight: bold; box-shadow: 0 0 10px rgba(205,127,50,0.5);">별</button>
+        <button onclick="confirmStar('silver')" style="background: #c0c0c0; border: none; padding: 10px 15px; border-radius: 15px; color: #333; font-weight: bold; box-shadow: 0 0 10px rgba(192,192,192,0.5);">별</button>
+        <button onclick="confirmStar('gold')" style="background: #ffd700; border: none; padding: 10px 15px; border-radius: 15px; color: #5d4037; font-weight: bold; box-shadow: 0 0 10px rgba(255,215,0,0.5);">별</button>
     </div>
 </div>
     
@@ -1002,7 +1002,7 @@ function renderStars() {
     const types = [
         { key: 'bronze', size: '10px', color: '#cd7f32', glow: '4px' }, // 별사탕은 조금 더 커야 예뻐요
         { key: 'silver', size: '14px', color: '#c0c0c0', glow: '7px' },
-        { key: 'gold', size: '20px', color: '#ffd700', glow: '12px' }
+        { key: 'gold', size: '18px', color: '#ffd700', glow: '12px' }
     ];
 
     types.forEach(t => {
@@ -1011,10 +1011,10 @@ function renderStars() {
             // 클래스명을 star-candy로 변경!
             star.className = 'star-candy';
             
-            const x = Math.random() * 94 + 3; // 여백 살짝 조절
-            const y = Math.random() * 90 + 5;
-            const delay = Math.random() * 4; // 지연시간도 넉넉하게
-            const duration = 3 + Math.random() * 3; // 3~6초 사이로 개별 속도 다르게
+            const x = Math.random() * 90 + 3;
+            const y = Math.random() * 85 + 5;
+            const delay = Math.random() * 4; 
+            const duration = 4 + Math.random() * 2; 
 
             star.style.cssText = `
                 left: ${x}%;
