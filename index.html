@@ -8,6 +8,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>우리들의 행복한 추억</title>
     <style>
+        @keyframes star-twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+        
         @font-face {
             font-family: 'Pretendard-Regular';
             src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
@@ -453,7 +458,19 @@
     </style>
 </head>
 <body>
+    
+<div id="sky-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #001524 0%, #000000 100%); z-index: 8000; flex-direction: column; overflow: hidden;">
+    <button onclick="closeSky()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 1.5rem; z-index: 8002;">✕</button>
+    
+    <div id="star-field" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 8001;"></div>
 
+    <div style="position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 8003;">
+        <button onclick="confirmStar('bronze')" style="background: #cd7f32; border: none; padding: 10px 15px; border-radius: 15px; color: white; font-weight: bold; box-shadow: 0 0 10px rgba(205,127,50,0.5);">🥉 동별</button>
+        <button onclick="confirmStar('silver')" style="background: #c0c0c0; border: none; padding: 10px 15px; border-radius: 15px; color: #333; font-weight: bold; box-shadow: 0 0 10px rgba(192,192,192,0.5);">🥈 은별</button>
+        <button onclick="confirmStar('gold')" style="background: #ffd700; border: none; padding: 10px 15px; border-radius: 15px; color: #5d4037; font-weight: bold; box-shadow: 0 0 10px rgba(255,215,0,0.5);">🥇 금별</button>
+    </div>
+</div>
+    
 <div id="loading-overlay">
     <div class="spinner"></div>
     <div id="loading-text">사랑 다이어리 펼치는 중... 🌸</div>
@@ -920,6 +937,81 @@
 </div>
     
 <script type="module">
+    
+// 밤하늘 데이터 관리
+    let starCounts = { bronze: 0, silver: 0, gold: 0 };
+
+// 밤하늘 열기
+window.openSky = async function() {
+    document.getElementById('side-menu').style.display = 'none';
+    document.getElementById('sky-overlay').style.display = 'flex';
+    
+    // 파이어베이스에서 저장된 별 개수 가져오기
+    const docRef = doc(db, "settings", "our_sky");
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+        starCounts = snap.data();
+    }
+    renderStars(); // 별 흩뿌리기
+};
+
+// 별 등록 팝업 및 저장
+window.confirmStar = function(type) {
+    if (confirm("거니와 유미의 즐거운 데이트!\n이 추억을 별로 등록할까요? ✨")) {
+        starCounts[type]++; // 개수 증가
+        saveStarData();     // DB 저장
+    }
+};
+
+// 파이어베이스 저장
+async function saveStarData() {
+    await setDoc(doc(db, "settings", "our_sky"), starCounts);
+    renderStars(); // 즉시 다시 그리기
+    makeHearts();  // 거니님이 만든 하트 폭죽 발사!
+}
+
+// 닫기
+window.closeSky = () => {
+    document.getElementById('sky-overlay').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+};
+
+// [핵심] 별을 랜덤 위치에 그리는 함수
+function renderStars() {
+    const field = document.getElementById('star-field');
+    field.innerHTML = ""; // 기존 별 지우기
+
+    const types = [
+        { key: 'bronze', size: '2px', color: '#cd7f32', glow: '3px' },
+        { key: 'silver', size: '4px', color: '#c0c0c0', glow: '6px' },
+        { key: 'gold', size: '7px', color: '#ffd700', glow: '12px' }
+    ];
+
+    types.forEach(t => {
+        for (let i = 0; i < starCounts[t.key]; i++) {
+            const star = document.createElement('div');
+            // 랜덤 위치 계산
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            // 깜빡임 애니메이션 지연시간 랜덤
+            const delay = Math.random() * 3;
+
+            star.style.cssText = `
+                position: absolute;
+                left: ${x}%;
+                top: ${y}%;
+                width: ${t.size};
+                height: ${t.size};
+                background: ${t.color};
+                border-radius: 50%;
+                box-shadow: 0 0 ${t.glow} ${t.color};
+                animation: star-twinkle 2s infinite ease-in-out ${delay}s;
+            `;
+            field.appendChild(star);
+        }
+    });
+}
+    
     // [1] 라이브러리 및 설정 로드
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -2497,8 +2589,7 @@ window.saveSpecialFortune = async function() {
     } catch (e) {
         console.error("저장 에러:", e);
     }
-};
-    
+};   
     
 </script>      
 </body>
