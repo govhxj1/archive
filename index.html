@@ -1332,26 +1332,38 @@ let secretWordClickCount = 0;
         };
     
 const secretTrigger = document.getElementById('secret-word-trigger');
-
-if (secretTrigger) { // 📍 요소가 진짜 있을 때만 실행!
+let secretWordClickCount = 0; // 클릭 횟수 초기화 변수 확인
+    
+if (secretTrigger) {
     secretTrigger.onclick = (e) => {
-        e.stopPropagation(); 
+        if (e) e.stopPropagation(); // 메뉴 닫힘 방지
+        
         secretWordClickCount++;
         
         if (secretWordClickCount === 5) {
+            // 1단계: 기존 메뉴와 블러 싹 지우기
             const menu = document.getElementById('side-menu');
             const overlay = document.getElementById('overlay');
             if (menu) menu.style.display = 'none';
             if (overlay) overlay.style.display = 'none';
             
+            // 2단계: 밤하늘 말고! 거니의 '비밀 편지창' 띄우기
+            // HTML에 있는 편지창 ID가 'menu-secret-overlay'인지 꼭 확인해주세요!
             const menuSecretOverlay = document.getElementById('menu-secret-overlay');
-            if (menuSecretOverlay) menuSecretOverlay.style.display = 'flex';
+            if (menuSecretOverlay) {
+                menuSecretOverlay.style.display = 'flex';
+            } else {
+                console.error("거니님! 'menu-secret-overlay'라는 ID를 가진 편지창을 찾을 수 없어요!");
+            }
             
             secretWordClickCount = 0;
         }
         
+        // 2초 뒤에 클릭 횟수 초기화
         clearTimeout(window.secretTimer);
-        window.secretTimer = setTimeout(() => { secretWordClickCount = 0; }, 2000);
+        window.secretTimer = setTimeout(() => { 
+            secretWordClickCount = 0; 
+        }, 2000);
     };
 }
 
