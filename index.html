@@ -2236,6 +2236,37 @@ if (fortuneBtn) {
         window.openFortune();
     };
 }
+    // ==============================================
+// 🔑 관리자용 내일 한마디 예약 게이트 복구
+// ==============================================
+
+// 1. 함수를 window에 직접 연결 (HTML의 onclick에서 찾을 수 있게)
+window.handleSecretClick = function() {
+    // secretClickCount는 위에서 이미 선언된 변수를 사용합니다.
+    secretClickCount++;
+    console.log("관리자 게이트 클릭:", secretClickCount); // 작동 확인용
+
+    clearTimeout(window.adminTimer);
+    window.adminTimer = setTimeout(() => { 
+        secretClickCount = 0; 
+    }, 2000);
+
+    if (secretClickCount === 5) {
+        secretClickCount = 0;
+        const pwOverlay = document.getElementById('fortune-pw-overlay');
+        if (pwOverlay) {
+            pwOverlay.style.display = 'flex';
+            const pwInput = document.getElementById('admin-pw-input');
+            if (pwInput) pwInput.focus();
+        }
+    }
+};
+
+// 2. HTML 요소를 직접 찾아서 한 번 더 연결 (보험용)
+const adminGate = document.getElementById('admin-secret-gate');
+if (adminGate) {
+    adminGate.onclick = window.handleSecretClick;
+}
 </script>       
 </body>
 </html>
