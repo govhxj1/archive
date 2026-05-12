@@ -9,20 +9,19 @@
     <title>우리들의 행복한 추억</title>
     <style>
         @keyframes star-twinkle {
-    0%, 100% { 
-        opacity: 0.2; 
-        transform: scale(0.8) rotate(0deg); 
-    }
-    50% { 
-        opacity: 1; 
-        transform: scale(1.1) rotate(45deg); /* 은은하게 회전 */
-    }
+    0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.1) rotate(20deg); }
+}
+
+.star-common {
+    position: absolute;
+    /* clip-path는 JS에서 랜덤으로 주입합니다 */
+    animation: star-twinkle 5s infinite ease-in-out;
 }
 
 .star-candy {
     position: absolute;
-    /* ⭐ 8꼭지점 별사탕 다각형 (꼭지점이 많아 훨씬 화려해요) */
-    clip-path: polygon(50% 0%, 60% 20%, 80% 20%, 70% 40%, 90% 50%, 70% 60%, 80% 80%, 60% 80%, 50% 100%, 40% 80%, 20% 80%, 30% 60%, 10% 50%, 30% 40%, 20% 20%, 40% 20%);
+    clip-path: polygon(50% 0%, 58% 30%, 85% 15%, 70% 42%, 100% 50%, 70% 58%, 85% 85%, 58% 70%, 50% 100%, 42% 70%, 15% 85%, 30% 58%, 0% 50%, 30% 42%, 15% 15%, 42% 30%);
     background: white;
     /* 깜빡임 속도를 4초로 설정 (거니님 요청: 천천히) */
     animation: star-twinkle 4s infinite ease-in-out;
@@ -997,23 +996,34 @@ window.closeSky = () => {
 // [핵심] 별을 랜덤 위치에 그리는 함수
 function renderStars() {
     const field = document.getElementById('star-field');
+    if (!field) return;
     field.innerHTML = ""; 
 
+    // ⭐ 8각 별과 10각 별의 뾰족한 모양 정의
+    const starShapes = [
+        // 8각 별 (화려함)
+        "polygon(50% 0%, 58% 30%, 85% 15%, 70% 42%, 100% 50%, 70% 58%, 85% 85%, 58% 70%, 50% 100%, 42% 70%, 15% 85%, 30% 58%, 0% 50%, 30% 42%, 15% 15%, 42% 30%)",
+        // 10각 별 (눈부심)
+        "polygon(50% 0%, 55% 25%, 80% 10%, 65% 40%, 100% 30%, 75% 50%, 100% 70%, 65% 60%, 80% 90%, 55% 75%, 50% 100%, 45% 75%, 20% 90%, 35% 60%, 0% 70%, 25% 50%, 0% 30%, 35% 40%, 20% 10%, 45% 25%)"
+    ];
+
     const types = [
-        { key: 'bronze', size: '10px', color: '#cd7f32', glow: '4px' }, // 별사탕은 조금 더 커야 예뻐요
-        { key: 'silver', size: '14px', color: '#c0c0c0', glow: '7px' },
-        { key: 'gold', size: '18px', color: '#ffd700', glow: '12px' }
+        { key: 'bronze', size: '10px', color: '#cd7f32', glow: '4px' },
+        { key: 'silver', size: '15px', color: '#c0c0c0', glow: '8px' },
+        { key: 'gold', size: '20px', color: '#ffd700', glow: '12px' }
     ];
 
     types.forEach(t => {
         for (let i = 0; i < starCounts[t.key]; i++) {
             const star = document.createElement('div');
-            // 클래스명을 star-candy로 변경!
-            star.className = 'star-candy';
+            star.className = 'star-common';
             
-            const x = Math.random() * 90 + 3;
+            // 📍 금은동 상관없이 8각(index 0) 또는 10각(index 1) 랜덤 선택
+            const randomShape = starShapes[Math.floor(Math.random() * starShapes.length)];
+            
+            const x = Math.random() * 90 + 5;
             const y = Math.random() * 85 + 5;
-            const delay = Math.random() * 4; 
+            const delay = Math.random() * 5; 
             const duration = 4 + Math.random() * 2; 
 
             star.style.cssText = `
@@ -1023,6 +1033,7 @@ function renderStars() {
                 height: ${t.size};
                 background: ${t.color};
                 box-shadow: 0 0 ${t.glow} ${t.color};
+                clip-path: ${randomShape};
                 animation-duration: ${duration}s; 
                 animation-delay: ${delay}s;
             `;
