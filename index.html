@@ -1304,26 +1304,29 @@ let secretWordClickCount = 0;
             setTimeout(() => { secretClickCount = 0; }, 2000);
         };
     
-document.getElementById('secret-word-trigger').onclick = (e) => {
-    e.stopPropagation(); // 메뉴가 닫히는 이벤트 방해 방지
-    secretWordClickCount++;
-    
-    if (secretWordClickCount === 5) {
-        // 1단계: 기존 블러와 메뉴를 싹 다 지우기 (블러 버그 해결!)
-        const menu = document.getElementById('side-menu');
-        const overlay = document.getElementById('overlay');
-        if (menu) menu.style.display = 'none';
-        if (overlay) overlay.style.display = 'none';
+const secretTrigger = document.getElementById('secret-word-trigger');
+
+if (secretTrigger) { // 📍 요소가 진짜 있을 때만 실행!
+    secretTrigger.onclick = (e) => {
+        e.stopPropagation(); 
+        secretWordClickCount++;
         
-        // 2단계: 노란색 전용 비밀 편지창 띄우기
-        const menuSecretOverlay = document.getElementById('menu-secret-overlay');
-        menuSecretOverlay.style.display = 'flex';
+        if (secretWordClickCount === 5) {
+            const menu = document.getElementById('side-menu');
+            const overlay = document.getElementById('overlay');
+            if (menu) menu.style.display = 'none';
+            if (overlay) overlay.style.display = 'none';
+            
+            const menuSecretOverlay = document.getElementById('menu-secret-overlay');
+            if (menuSecretOverlay) menuSecretOverlay.style.display = 'flex';
+            
+            secretWordClickCount = 0;
+        }
         
-        secretWordClickCount = 0;
-    }
-    
-    setTimeout(() => { secretWordClickCount = 0; }, 2000);
-};
+        clearTimeout(window.secretTimer);
+        window.secretTimer = setTimeout(() => { secretWordClickCount = 0; }, 2000);
+    };
+}
 
 // 노란 편지창 닫을 때 블러까지 싹 치우기
 window.closeMenuSecret = () => {
