@@ -2469,27 +2469,40 @@ window.openDdayEditor = async function() {
     }
 };
 
-// ✨ 기존에 있던 saveSpecialFortune 기능은 에디터 안에 귀속되므로 
-// 함수 이름만 유지하거나 에디터 저장 버튼에 다시 연결해주면 됩니다.
+// 💌 오늘의 한마디 저장 (나우의 긴급 수리 ⚡)
 window.saveSpecialFortune = async function() {
     const textInput = document.getElementById('special-fortune-input');
-    if (!textInput || !textInput.value.trim()) return alert("메시지를 입력해줘! 🌸");
+    if (!textInput || !textInput.value.trim()) {
+        alert("메시지를 입력해주세요! 🌸");
+        return;
+    }
 
+    // 내일 날짜 계산 (기존 로직 유지)
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowKey = `${tomorrow.getFullYear()}-${tomorrow.getMonth() + 1}-${tomorrow.getDate()}`;
 
     try {
+        // [수정 포인트] 상단에서 선언된 window.db와 import된 함수들을 정확히 사용합니다.
+        const { doc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        
         await setDoc(doc(window.db, "fortune_messages", tomorrowKey), {
             specialMessage: textInput.value.trim(),
             sender: "거니",
             timestamp: serverTimestamp()
         }, { merge: true });
 
-        alert("예약 완료! ✨");
+        // ✅ 저장 성공 알림!
+        alert("예약 완료! 내일 유미에게 거니의 마음이 전달됩니다. ⚡😊");
+        
+        // 창 닫고 입력창 비우기
         document.getElementById('fortune-admin-overlay').style.display = 'none';
         textInput.value = "";
-    } catch (e) { console.error(e); }
+        
+    } catch (e) {
+        console.error("저장 중 에러 발생:", e);
+        alert("저장에 실패했습니다. 😭 콘솔창을 확인해주세요!");
+    }
 };
     
 
