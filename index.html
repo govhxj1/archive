@@ -1831,22 +1831,23 @@ window.openMap = function() {
 };    
 
 window.closeMap = () => {
+    // 1. 지도 화면 숨기기
     const mapCont = document.getElementById('map-container');
-    if (mapCont) {
-        mapCont.style.display = 'none';
-    }
+    if (mapCont) mapCont.style.display = 'none';
 
+    // 2. 비밀 메뉴 팝업도 같이 닫기
+    const sideMenu = document.getElementById('side-menu');
+    if (sideMenu) sideMenu.style.display = 'none';
+
+    // 3. 배경 어두운 효과(Overlay) 처리
     const o = document.getElementById('overlay');
     if (o) {
+        // 다이어리 모달이 열려있는 특수 상황이 아니라면 배경을 완전히 끕니다.
         const isDiaryOpen = document.getElementById('diary-modal')?.style.display === 'flex';
         if (!isDiaryOpen) {
             o.style.display = 'none';
+            o.style.zIndex = "100"; // 레이어 순서 초기화
         }
-    }
-    
-    const sideMenu = document.getElementById('side-menu');
-    if (sideMenu) {
-        sideMenu.style.display = 'flex';
     }
 };
         
