@@ -906,6 +906,35 @@
     </div>
 </div>
     
+    // ==============================================
+    // 숙소리뷰
+    // ==============================================    
+        <div id="stay-overlay" class="overlay" style="display: none; background: rgba(0,0,0,0.8); z-index: 1100; flex-direction: column; align-items: center; justify-content: center;">
+        <div style="width: 90%; max-height: 80vh; background: #fffaf0; border-radius: 20px; padding: 20px; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+            <button onclick="closeStay()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer;">✕</button>
+            
+            <h2 style="text-align: center; color: #d4a373; margin-bottom: 20px;">🛌 우리의 잠자리</h2>
+            
+            <!-- 리뷰 입력 폼 (거니 관리자 전용 혹은 공용) -->
+            <div id="stay-form" style="background: #fdf2e9; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed #d4a373;">
+                <input type="text" id="stay-name" placeholder="숙소 이름" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                <input type="text" id="stay-loc" placeholder="지역 (예: 대전 유성)" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                <input type="text" id="stay-photo" placeholder="사진 URL (없으면 기본 이미지)" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                    <input type="number" id="yumi-score" placeholder="유미 점수(0~5)" step="0.5" style="width: 50%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                    <input type="number" id="goni-score" placeholder="거니 점수(0~5)" step="0.5" style="width: 50%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                </div>
+                <textarea id="stay-review" placeholder="한줄평을 남겨줘!" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ddd; height: 60px;"></textarea>
+                <button onclick="saveStayReview()" style="width: 100%; background: #d4a373; color: white; padding: 10px; border: none; border-radius: 10px; margin-top: 10px; font-weight: bold;">리뷰 저장하기 ⚡</button>
+            </div>
+    
+            <!-- 리뷰 카드 리스트 -->
+            <div id="stay-list" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- 여기에 카드가 동적으로 생성됨 -->
+            </div>
+        </div>
+    </div>
+    
 <script type="module">
     
     
@@ -1077,34 +1106,7 @@ function renderStars() {
     });
 }
     
-// ==============================================
-// 숙소리뷰
-// ==============================================    
-    <div id="stay-overlay" class="overlay" style="display: none; background: rgba(0,0,0,0.8); z-index: 1100; flex-direction: column; align-items: center; justify-content: center;">
-    <div style="width: 90%; max-height: 80vh; background: #fffaf0; border-radius: 20px; padding: 20px; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-        <button onclick="closeStay()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer;">✕</button>
-        
-        <h2 style="text-align: center; color: #d4a373; margin-bottom: 20px;">🛌 우리의 잠자리</h2>
-        
-        <!-- 리뷰 입력 폼 (거니 관리자 전용 혹은 공용) -->
-        <div id="stay-form" style="background: #fdf2e9; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed #d4a373;">
-            <input type="text" id="stay-name" placeholder="숙소 이름" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd;">
-            <input type="text" id="stay-loc" placeholder="지역 (예: 대전 유성)" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd;">
-            <input type="text" id="stay-photo" placeholder="사진 URL (없으면 기본 이미지)" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd;">
-            <div style="display: flex; gap: 10px; margin-bottom: 8px;">
-                <input type="number" id="yumi-score" placeholder="유미 점수(0~5)" step="0.5" style="width: 50%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
-                <input type="number" id="goni-score" placeholder="거니 점수(0~5)" step="0.5" style="width: 50%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
-            </div>
-            <textarea id="stay-review" placeholder="한줄평을 남겨줘!" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ddd; height: 60px;"></textarea>
-            <button onclick="saveStayReview()" style="width: 100%; background: #d4a373; color: white; padding: 10px; border: none; border-radius: 10px; margin-top: 10px; font-weight: bold;">리뷰 저장하기 ⚡</button>
-        </div>
 
-        <!-- 리뷰 카드 리스트 -->
-        <div id="stay-list" style="display: flex; flex-direction: column; gap: 15px;">
-            <!-- 여기에 카드가 동적으로 생성됨 -->
-        </div>
-    </div>
-</div>
     
 // ==============================================
 // 💛 비밀 메뉴 및 하트 알림 기능
