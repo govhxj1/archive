@@ -915,24 +915,30 @@
     
 <script type="module">
 
-    // 🔑 URL 파라미터를 감지해서 관리자 창을 띄우는 로직
+    // 🔑 주소창의 비밀 코드를 감지해서 관리자 창을 띄우는 로직
 function checkAdminAccess() {
     const urlParams = new URLSearchParams(window.location.search);
     
-    // URL 뒤에 ?goni=261029 를 붙여서 접속하면 실행됩니다.
-    // 예: your-site.com/archive.html?goni=261029
-    if (urlParams.get('goni') === '261029') {
+    // 주소 뒤에 ?goni=open 을 붙여서 접속하면 실행됩니다.
+    if (urlParams.get('goni') === 'open') {
         console.log("🛠️ 관리자 접속 확인됨");
         
-        // 즉시 비밀번호 창이나 관리자 창을 띄웁니다.
+        // 즉시 비밀번호 입력창(261029 입력하는 창)을 띄웁니다.
         const pwOverlay = document.getElementById('fortune-pw-overlay');
         if (pwOverlay) {
             pwOverlay.style.display = 'flex';
-            // 주소창에서 비밀 코드를 지우고 싶다면 아래 줄 주석 해제 (깔끔함)
-            // window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // 접속 후 주소창을 깔끔하게 원래대로 되돌립니다. (유미님에게 안 들키게!)
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            const pwInput = document.getElementById('admin-pw-input');
+            if (pwInput) pwInput.focus();
         }
     }
 }
+
+// 페이지 로드 시 즉시 실행하도록 설정
+checkAdminAccess();
 
 // 페이지 로드 시 즉시 확인
 checkAdminAccess();
