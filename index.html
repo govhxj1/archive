@@ -912,7 +912,31 @@
         </button>
     </div>
 </div>
+    
+<!-- 🔑 거니 전용 관리자 센터 -->
+<div id="admin-hub-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6001; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+    <div style="background: #111; width: 85%; max-width: 340px; padding: 30px 25px; border-radius: 25px; text-align: center; border: 1px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.7);">
+        
+        <div style="font-weight: 900; margin-bottom: 25px; color: #777; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase;">Goni's Admin Center</div>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
+            <!-- 메뉴 1: 오늘의 한마디 -->
+            <button onclick="openFortuneEditor()" style="width: 100%; background: #222; border: 1px solid #ff8fab; padding: 15px; border-radius: 12px; color: #ff8fab; font-weight: 900; cursor: pointer; font-size: 0.95rem;">
+                💌 오늘의 한마디 설정
+            </button>
+            
+            <!-- 메뉴 2: 데이트 D-DAY -->
+            <button onclick="openDdayEditor()" style="width: 100%; background: #222; border: 1px solid #ffde59; padding: 15px; border-radius: 12px; color: #ffde59; font-weight: 900; cursor: pointer; font-size: 0.95rem;">
+                📅 데이트 D-DAY 설정
+            </button>
+        </div>
 
+        <button onclick="document.getElementById('admin-hub-overlay').style.display='none'" style="width: 100%; background: transparent; border: none; color: #555; font-size: 0.8rem; cursor: pointer; text-decoration: underline;">
+            나가기
+        </button>
+    </div>
+</div>
+    
 <div id="fortune-admin-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6001; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div style="background: #111; width: 85%; max-width: 320px; padding: 30px 25px; border-radius: 20px; text-align: center; border: 1px solid #333; box-shadow: 0 0 25px rgba(0,0,0,0.6);">
         
@@ -2401,85 +2425,73 @@ const adminGate = document.getElementById('admin-secret-gate');
 if (adminGate) {
     adminGate.onclick = window.handleSecretClick;
 }
-    // ==============================================
-// 🔑 관리자 비밀번호 및 메시지 저장 로직 복구
-// ==============================================
-
-// 1. 비밀번호 확인 함수를 window에 직접 연결
-window.checkAdminPassword = async function() {
+    
+    // 🔑 관리자 비밀번호 확인 및 허브(Hub) 진입
+window.checkAdminPassword = function() {
     const pwInput = document.getElementById('admin-pw-input');
     if (!pwInput) return;
-    
-    const pw = pwInput.value;
-    
-    if (pw === "261029") { // 거니님만의 비밀번호
+
+    if (pwInput.value === "261029") {
+        // 비밀번호 입력창 닫기
         document.getElementById('fortune-pw-overlay').style.display = 'none';
-        pwInput.value = ""; // 입력창 비우기
-
-        // 내일 날짜 계산
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowKey = `${tomorrow.getFullYear()}-${tomorrow.getMonth() + 1}-${tomorrow.getDate()}`;
-        
-        const titleArea = document.querySelector('#fortune-admin-overlay div div:first-child');
-        const inputArea = document.getElementById('special-fortune-input');
-        if (inputArea) inputArea.value = ""; 
-
-        try {
-            // 파이어베이스에서 내일 메시지가 이미 있는지 확인
-            const docRef = doc(db, "fortune_messages", tomorrowKey);
-            const snap = await getDoc(docRef);
-            
-            if (snap.exists() && snap.data().specialMessage) {
-                if (titleArea) {
-                    titleArea.innerText = "🔒 MESSAGE SECURED FOR TOMORROW";
-                    titleArea.style.color = "#ff6f91"; 
-                }
-            } else {
-                if (titleArea) {
-                    titleArea.innerText = "ENCRYPT MESSAGE FOR TOMORROW";
-                    titleArea.style.color = "#777";
-                }
-            }
-        } catch (e) {
-            console.error("메시지 확인 에러:", e);
-        }
-
-        document.getElementById('fortune-admin-overlay').style.display = 'flex';
+        // 관리자 전용 메뉴판(Hub) 열기
+        document.getElementById('admin-hub-overlay').style.display = 'flex';
+        pwInput.value = "";
     } else {
         alert("비밀번호가 틀렸습니다! ⚡");
     }
 };
 
-// 2. 메시지 저장 함수도 window에 연결 (이것도 안 될 수 있으니 미리 방지!)
+// 💌 메뉴 1: 오늘의 한마디 에디터 열기
+window.openFortuneEditor = function() {
+    document.getElementById('admin-hub-overlay').style.display = 'none';
+    document.getElementById('fortune-admin-overlay').style.display = 'flex';
+};
+
+// 📅 메뉴 2: 데이트 D-DAY 설정 (Prompt)
+window.openDdayEditor = async function() {
+    document.getElementById('admin-hub-overlay').style.display = 'none';
+    
+    // dateMission이 정의되어 있어야 합니다.
+    const newDate = prompt("새로운 데이트 날짜 (예: 2026-05-20)", dateMission.targetDate || "");
+    const newMsg = prompt("D-DAY 당일에 보여줄 서프라이즈 문구!", dateMission.message || "");
+    
+    if (newDate && newMsg) {
+        // 이미 상단에 import된 doc, setDoc 사용
+        await setDoc(doc(window.db, "settings", "date_mission"), { 
+            targetDate: newDate, 
+            message: newMsg 
+        });
+        alert("데이트 예약 완료! ⚡");
+        document.getElementById('admin-hub-overlay').style.display = 'flex';
+    } else {
+        document.getElementById('admin-hub-overlay').style.display = 'flex';
+    }
+};
+
+// ✨ 기존에 있던 saveSpecialFortune 기능은 에디터 안에 귀속되므로 
+// 함수 이름만 유지하거나 에디터 저장 버튼에 다시 연결해주면 됩니다.
 window.saveSpecialFortune = async function() {
     const textInput = document.getElementById('special-fortune-input');
-    if (!textInput) return;
-    
-    const text = textInput.value.trim();
-    if (!text) return alert("메시지를 입력해주세요! 🌸");
+    if (!textInput || !textInput.value.trim()) return alert("메시지를 입력해줘! 🌸");
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowKey = `${tomorrow.getFullYear()}-${tomorrow.getMonth() + 1}-${tomorrow.getDate()}`;
 
     try {
-        const docRef = doc(db, "fortune_messages", tomorrowKey);
-        
-        await setDoc(docRef, {
-            specialMessage: text,
+        await setDoc(doc(window.db, "fortune_messages", tomorrowKey), {
+            specialMessage: textInput.value.trim(),
             sender: "거니",
             timestamp: serverTimestamp()
         }, { merge: true });
 
-        alert("예약 완료! 내일 유미에게 거니의 마음이 전달됩니다. ⚡😊");
+        alert("예약 완료! ✨");
         document.getElementById('fortune-admin-overlay').style.display = 'none';
         textInput.value = "";
-    } catch (e) {
-        console.error("저장 에러:", e);
-        alert("저장에 실패했습니다. 😭");
-    }
+    } catch (e) { console.error(e); }
 };
+    
 
     // 🛌 [잠자리] 관련 최종 함수들 (사진X, 2열 그리드, 상호 입력 방식)
 
