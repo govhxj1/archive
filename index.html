@@ -906,41 +906,38 @@
     </div>
 </div>
   
-        <div id="stay-overlay" class="overlay" style="display: none; background: rgba(0,0,0,0.8); z-index: 1100; flex-direction: column; align-items: center; justify-content: center;">
-        <div style="width: 90%; max-height: 80vh; background: #fffaf0; border-radius: 20px; padding: 20px; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-            <button onclick="closeStay()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer;">✕</button>
-            
-            <h2 style="text-align: center; color: #d4a373; margin-bottom: 20px;">🛌 우리의 잠자리</h2>
-            
-            <!-- 리뷰 입력 폼 (거니 관리자 전용 혹은 공용) -->
-            <div id="stay-form" style="background: #fdf2e9; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed #d4a373;">
-                <input type="text" id="stay-name" placeholder="숙소 이름" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd;">
-                <input type="text" id="stay-loc" placeholder="지역 (예: 대전 유성)" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd;">
-                <input type="text" id="stay-photo" placeholder="사진 URL (없으면 기본 이미지)" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd;">
-                <div style="display: flex; gap: 10px; margin-bottom: 8px;">
-                    <input type="number" id="yumi-score" placeholder="유미 점수(0~5)" step="0.5" style="width: 50%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
-                    <input type="number" id="goni-score" placeholder="거니 점수(0~5)" step="0.5" style="width: 50%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
-                </div>
-                <textarea id="stay-review" placeholder="한줄평을 남겨줘!" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ddd; height: 60px;"></textarea>
-                <button onclick="saveStayReview()" style="width: 100%; background: #d4a373; color: white; padding: 10px; border: none; border-radius: 10px; margin-top: 10px; font-weight: bold;">리뷰 저장하기 ⚡</button>
-            </div>
-    
-            <!-- 리뷰 카드 리스트 -->
-            <div id="stay-list" style="display: flex; flex-direction: column; gap: 15px;">
-                <!-- 여기에 카드가 동적으로 생성됨 -->
-            </div>
+        <!-- 🛌 숙소 리뷰 전체 컨테이너 (비밀 메뉴 내) -->
+<div id="stay-overlay" class="overlay" style="display: none; background: rgba(0,0,0,0.8); z-index: 1100; flex-direction: column; align-items: center; justify-content: center;">
+    <div style="width: 95%; max-height: 85vh; background: #fffaf0; border-radius: 20px; padding: 15px; overflow-y: auto; position: relative;">
+        <button onclick="closeStay()" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px;">✕</button>
+        
+        <h2 style="text-align: center; color: #d4a373; margin-bottom: 15px;">🛌 우리의 잠자리 기록</h2>
+        
+        <!-- 신규 등록 폼 -->
+        <div style="background: #fdf2e9; padding: 12px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed #d4a373;">
+            <input type="text" id="stay-name" placeholder="숙소 이름" style="width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #ddd;">
+            <input type="text" id="stay-loc" placeholder="지역" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd;">
+            <button onclick="createNewStay()" style="width: 100%; background: #d4a373; color: white; padding: 12px; border: none; border-radius: 10px; font-weight: bold;">새 숙소 등록하기 ⚡</button>
+        </div>
+
+        <!-- 📍 한 줄에 2개씩 나오는 리스트 레이아웃 -->
+        <div id="stay-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <!-- 카드들이 여기에 생성됨 -->
         </div>
     </div>
+</div>
 
-    <div id="yumi-edit-overlay" class="overlay" style="display: none; background: rgba(0,0,0,0.7); z-index: 1200; align-items: center; justify-content: center;">
-    <div style="width: 85%; background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-        <h3 style="text-align: center; color: #ff6b6b; margin-bottom: 15px;">💖 유미의 한줄평</h3>
+<!-- ✍️ 공용 수정 모달 (클릭 시 등장) -->
+<div id="edit-overlay" class="overlay" style="display: none; background: rgba(0,0,0,0.7); z-index: 1200; align-items: center; justify-content: center;">
+    <div style="width: 85%; background: #fff; border-radius: 20px; padding: 20px;">
+        <h3 id="edit-title" style="text-align: center; margin-bottom: 15px;">✍️ 리뷰 작성</h3>
         <input type="hidden" id="edit-doc-id">
-        <input type="number" id="edit-yumi-score" placeholder="유미 점수(0~5)" step="0.5" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd;">
-        <textarea id="edit-yumi-review" placeholder="유미의 생각을 알려줘!" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; height: 80px; margin-bottom: 15px;"></textarea>
+        <input type="hidden" id="edit-target"> <!-- 'goni' 또는 'yumi' 저장 -->
+        <input type="number" id="edit-score" placeholder="별점(0~5)" step="0.5" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd;">
+        <textarea id="edit-review" placeholder="한줄평을 남겨줘!" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; height: 80px; margin-bottom: 15px;"></textarea>
         <div style="display: flex; gap: 10px;">
-            <button onclick="closeYumiEdit()" style="flex: 1; padding: 10px; border-radius: 10px; border: none; background: #eee;">취소</button>
-            <button onclick="updateYumiReview()" style="flex: 2; padding: 10px; border-radius: 10px; border: none; background: #ff6b6b; color: white; font-weight: bold;">입력 완료! ✨</button>
+            <button onclick="closeEdit()" style="flex: 1; padding: 10px; border-radius: 10px; border: none; background: #eee;">취소</button>
+            <button onclick="updateReview()" style="flex: 2; padding: 10px; border-radius: 10px; border: none; background: #d4a373; color: white; font-weight: bold;">저장하기</button>
         </div>
     </div>
 </div>
@@ -2387,35 +2384,29 @@ window.saveSpecialFortune = async function() {
     }
 };
 
-    // 🛌 [잠자리] 관련 함수들
+    // 🛌 [잠자리] 관련 최종 함수들 (사진X, 2열 그리드, 상호 입력 방식)
+
+// 1. 숙소 리스트 창 열기
 window.openStayReview = function() {
     const stayOverlay = document.getElementById('stay-overlay');
     if (stayOverlay) {
         stayOverlay.style.display = 'flex';
-        // 사이드 메뉴 닫기
         const sideMenu = document.getElementById('side-menu');
         if (sideMenu) sideMenu.style.display = 'none';
-        
         window.loadStayReviews();
     }
 };
 
 window.closeStay = () => {
-    const stayOverlay = document.getElementById('stay-overlay');
-    if (stayOverlay) stayOverlay.style.display = 'none';
+    document.getElementById('stay-overlay').style.display = 'none';
     const overlay = document.getElementById('overlay');
     if (overlay) overlay.style.display = 'none';
 };
 
-// 리뷰 저장
-// 1. 리뷰 저장 (거니 버전)
-window.saveStayReview = async function() {
+// 2. 새로운 숙소 뼈대 등록 (이름과 지역만)
+window.createNewStay = async function() {
     const name = document.getElementById('stay-name').value;
     const loc = document.getElementById('stay-loc').value;
-    const gScore = document.getElementById('goni-score').value || 0;
-    const gReview = document.getElementById('stay-review').value; // 거니 한줄평
-    const photo = document.getElementById('stay-photo').value || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300";
-
     if (!name) return alert("숙소 이름을 적어줘! ⚡");
 
     try {
@@ -2423,49 +2414,57 @@ window.saveStayReview = async function() {
         await addDoc(collection(window.db, "stay_reviews"), {
             hotelName: name,
             location: loc,
-            goniScore: parseFloat(gScore),
-            goniReview: gReview,
-            yumiScore: 0,      // 초기값
-            yumiReview: "",    // 초기값
-            photoUrl: photo,
+            goniScore: 0, goniReview: "",
+            yumiScore: 0, yumiReview: "",
             timestamp: serverTimestamp()
         });
-        alert("거니 리뷰 저장 완료! 이제 유미 차례! 🛌");
-        location.reload(); // 깔끔하게 새로고침
+        document.getElementById('stay-name').value = "";
+        document.getElementById('stay-loc').value = "";
+        alert("새 숙소가 등록되었어! 이제 리뷰를 써보자 🛌");
     } catch (e) { console.error(e); }
 };
 
-// 2. 유미 리뷰 입력창 열기
-window.openYumiEdit = function(id, score, review) {
+// 3. 수정창 열기 (거니/유미 칸 클릭 시 호출)
+window.openEdit = function(id, target, score, review) {
     document.getElementById('edit-doc-id').value = id;
-    document.getElementById('edit-yumi-score').value = score || "";
-    document.getElementById('edit-yumi-review').value = review || "";
-    document.getElementById('yumi-edit-overlay').style.display = 'flex';
+    document.getElementById('edit-target').value = target; // 'goni' 또는 'yumi'
+    document.getElementById('edit-title').innerText = (target === 'goni' ? "⚡ 거니의 리뷰" : "💖 유미의 리뷰");
+    document.getElementById('edit-score').value = score || "";
+    document.getElementById('edit-review').value = review || "";
+    document.getElementById('edit-overlay').style.display = 'flex';
 };
 
-window.closeYumiEdit = () => document.getElementById('yumi-edit-overlay').style.display = 'none';
+window.closeEdit = () => document.getElementById('edit-overlay').style.display = 'none';
 
-// 3. 유미 리뷰 데이터 업데이트
-window.updateYumiReview = async function() {
+// 4. 데이터 업데이트 (개별 리뷰 저장)
+window.updateReview = async function() {
     const id = document.getElementById('edit-doc-id').value;
-    const score = document.getElementById('edit-yumi-score').value;
-    const review = document.getElementById('edit-yumi-review').value;
+    const target = document.getElementById('edit-target').value;
+    const score = document.getElementById('edit-score').value;
+    const review = document.getElementById('edit-review').value;
+
+    const updateData = {};
+    if (target === 'goni') {
+        updateData.goniScore = parseFloat(score);
+        updateData.goniReview = review;
+    } else {
+        updateData.yumiScore = parseFloat(score);
+        updateData.yumiReview = review;
+    }
 
     try {
         const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-        const docRef = doc(window.db, "stay_reviews", id);
-        await updateDoc(docRef, {
-            yumiScore: parseFloat(score),
-            yumiReview: review
-        });
-        alert("유미의 별점이 등록되었어! 💖");
-        closeYumiEdit();
+        await updateDoc(doc(window.db, "stay_reviews", id), updateData);
+        alert("리뷰 저장 완료! ✨");
+        closeEdit();
     } catch (e) { console.error(e); }
 };
 
-// 4. 목록 렌더링 (클릭 이벤트 추가)
+// 5. 목록 불러오기 (2열 배치)
 window.loadStayReviews = async function() {
     const listDiv = document.getElementById('stay-list');
+    if (!listDiv) return;
+
     const { collection, query, orderBy, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
     const q = query(collection(window.db, "stay_reviews"), orderBy("timestamp", "desc"));
     
@@ -2475,25 +2474,20 @@ window.loadStayReviews = async function() {
             const data = d.data();
             const id = d.id;
             const card = document.createElement('div');
-            card.style = "background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; cursor: pointer;";
-            // 카드 클릭 시 유미 입력창 열기
-            card.onclick = () => window.openYumiEdit(id, data.yumiScore, data.yumiReview);
+            card.style = "background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 5px; border: 1px solid #f0f0f0; min-height: 120px;";
             
             card.innerHTML = `
-                <img src="${data.photoUrl}" style="width: 100%; height: 140px; object-fit: cover;">
-                <div style="padding: 12px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <strong style="font-size: 15px;">${data.hotelName}</strong>
-                        <span style="font-size: 11px; color: #888;">📍 ${data.location}</span>
-                    </div>
-                    <div style="margin-top: 10px; font-size: 13px; display: grid; gap: 8px;">
-                        <div style="background: #f1f5f9; padding: 8px; border-radius: 8px;">
-                            <b>⚡ 거니 (${data.goniScore}):</b> ${data.goniReview || '리뷰 없음'}
-                        </div>
-                        <div style="background: #fff0f0; padding: 8px; border-radius: 8px; border: 1px dashed #ffb7b7;">
-                            <b>💖 유미 (${data.yumiScore || '?' }):</b> ${data.yumiReview || '여기를 눌러 리뷰를 써줘!'}
-                        </div>
-                    </div>
+                <div style="font-weight: bold; font-size: 14px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${data.hotelName}</div>
+                <div style="font-size: 10px; color: #aaa; margin-bottom: 5px;">📍 ${data.location}</div>
+                
+                <div onclick="openEdit('${id}', 'goni', ${data.goniScore}, '${data.goniReview}')" 
+                     style="background: #f1f5f9; padding: 6px; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                    <b>⚡ ${data.goniScore || '?'}</b>: ${data.goniReview || '리뷰 입력...'}
+                </div>
+                
+                <div onclick="openEdit('${id}', 'yumi', ${data.yumiScore}, '${data.yumiReview}')" 
+                     style="background: #fff0f0; padding: 6px; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                    <b>💖 ${data.yumiScore || '?'}</b>: ${data.yumiReview || '리뷰 입력...'}
                 </div>
             `;
             listDiv.appendChild(card);
