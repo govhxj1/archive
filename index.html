@@ -2630,61 +2630,82 @@ let dateMission = { targetDate: "", message: "" };
 window.updateDdayMissionUI = function() {
     const btn = document.getElementById('dday-mission-btn');
     const textSpan = document.getElementById('dday-mission-text');
-    if (!btn || !textSpan || !dateMission.targetDate) return;
+    if (!btn || !textSpan) return;
+
+    if (!dateMission.targetDate) {
+        textSpan.innerText = "새 데이트 예약하기 📅";
+        btn.style.background = "#eee";
+        btn.style.color = "#aaa";
+        return;
+    }
 
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const target = new Date(dateMission.targetDate);
     target.setHours(0, 0, 0, 0);
-
     const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
 
     if (diff > 0) {
         textSpan.innerText = `데이트 D-${diff} 🏃‍♂️💨`;
-        btn.style.background = "#fff0f3";
+        btn.style.background = "#fff0f3"; // 대기 중일 때 연한 핑크
         btn.style.color = "#ff8fab";
         btn.classList.remove('heart-active');
     } else if (diff === 0) {
-        textSpan.innerText = `❤️ D-DAY! (클릭해봐) ❤️`;
-        btn.style.background = "var(--main-pink)";
+        textSpan.innerText = `❤️ D-DAY! 미션 확인 ❤️`;
+        btn.style.background = "var(--main-pink)"; // 당일은 진한 핑크
         btn.style.color = "white";
         btn.classList.add('heart-active'); 
     } else {
-        textSpan.innerText = "다음 데이트를 기다려요... 💌";
-        btn.style.background = "#eee";
-        btn.style.color = "#aaa";
+        // 날짜 지남
+        textSpan.innerText = "지난 추억 정리하기 🧹";
+        btn.style.background = "#f8f9fa";
+        btn.style.color = "#ccc";
         btn.classList.remove('heart-active');
     }
 };
 
-// 2. 버튼 클릭 시 로직 (import 중복 제거 버전)
+// 💖 데이트 미션 업데이트 (나우의 스마트 로직 ⚡)
 window.handleDdayMission = async function() {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
-    const target = new Date(dateMission.targetDate);
-    const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
-
-    if (diff === 0) {
-        alert(`✨ 오늘의 데이트 미션 ✨\n\n"${dateMission.message}"`);
+    
+    // 1. 날짜가 없거나 지난 경우 -> 관리자 모드로 날짜 설정
+    const isPast = dateMission.targetDate && new Date(dateMission.targetDate) < now;
+    if (!dateMission.targetDate || isPast) {
+        const pw = prompt("새로운 데이트를 예약할까요? 🔒\n관리자 비밀번호를 입력해줘!");
+        if (pw === "261029") {
+            const newDate = prompt("데이트 날짜를 입력해줘 (예: 2026-05-20)", 
+                isPast ? "" : dateMission.targetDate);
+            const newMsg = prompt("D-DAY에 보여줄 비밀 문구는?", 
+                isPast ? "" : dateMission.message);
+            
+            if (newDate && newMsg) {
+                await setDoc(doc(window.db, "settings", "date_mission"), { 
+                    targetDate: newDate, 
+                    message: newMsg 
+                });
+                alert("데이트 예약 완료! 이제 같이 기다려보자 ⚡");
+            }
+        }
         return;
     }
+    
+// 2. 날짜가 잡혀있는 경우
+    const target = new Date(dateMission.targetDate);
+    target.setHours(0, 0, 0, 0);
+    const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
 
-    const pw = prompt("관리자 비밀번호를 입력하면 날짜를 설정할 수 있어! 🔒");
-    if (pw === "261029") {
-        const newDate = prompt("데이트 날짜를 입력해줘 (예: 2026-05-20)", dateMission.targetDate);
-        const newMsg = prompt("D-DAY에 보여줄 문구를 입력해줘!", dateMission.message);
-        
-        if (newDate && newMsg) {
-            // 위에서 이미 import된 doc, setDoc을 그대로 사용합니다.
-            await setDoc(doc(window.db, "settings", "date_mission"), { 
-                targetDate: newDate, 
-                message: newMsg 
-            });
-            alert("데이트 예약 완료! ⚡");
-        }
+    if (diff > 0) {
+        // 기다리는 중 팝업
+        alert(`💌 데이트 기다리는 중...\n\n유미야, 우리 만나기까지 딱 ${diff}일 남았어!\n조금만 더 기다려줘. 보고싶어 💛`);
+    } else if (diff === 0) {
+        // 드디어 D-DAY! 메시지 공개
+        alert(`✨ TODAY IS D-DAY! ✨\n\n"${dateMission.message}"`);
     }
 };
 
+// UI 업데이트 함수 (상태에 따라 버튼 색상 자동 변경)
+    
 // 3. 파이어베이스 실시간 감시 (파일 상단의 import를 사용하므로 여기선 import 생략)
 // 이미 상단에 onSnapshot과 doc이 정의되어 있어야 합니다.
 onSnapshot(doc(window.db, "settings", "date_mission"), (snap) => {
