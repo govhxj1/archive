@@ -915,7 +915,29 @@
     
 <script type="module">
 
-    // 📍 window.db = db; 코드 바로 아래에 넣어주세요!
+    
+    
+// [1] 파이어베이스 라이브러리 로드 (🔥 가장 맨 위에 있어야 에러가 안 납니다!)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// [2] 전역 변수 및 데이터 설정
+const firebaseConfig = {
+    apiKey: "AIzaSyB-hq1CBtux14k5zin3RlqpsnE-AOFKPoc",
+    authDomain: "archive-3e5da.firebaseapp.com",
+    projectId: "archive-3e5da",
+    storageBucket: "archive-3e5da.firebasestorage.app",
+    messagingSenderId: "585863845966",
+    appId: "1:585863845966:web:ddc811abff636222590b1f"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+window.db = db;
+
+// 📍 window.db = db; 코드 바로 아래에 넣어주세요!
 
 function checkAdminAccess() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -941,26 +963,7 @@ function checkAdminAccess() {
 }
 
 checkAdminAccess();
-    
-// [1] 파이어베이스 라이브러리 로드 (🔥 가장 맨 위에 있어야 에러가 안 납니다!)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// [2] 전역 변수 및 데이터 설정
-const firebaseConfig = {
-    apiKey: "AIzaSyB-hq1CBtux14k5zin3RlqpsnE-AOFKPoc",
-    authDomain: "archive-3e5da.firebaseapp.com",
-    projectId: "archive-3e5da",
-    storageBucket: "archive-3e5da.firebasestorage.app",
-    messagingSenderId: "585863845966",
-    appId: "1:585863845966:web:ddc811abff636222590b1f"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-window.db = db;
 const appId = 'shared-gomi-diary-app';
 
 const todayDate = new Date();
