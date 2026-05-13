@@ -554,32 +554,32 @@
         ✨ 우리들의 <span id="secret-word-trigger" style="cursor: pointer;">비밀</span> 메뉴 ✨
     </span>
 
-    <div style="display:flex; flex-direction:column; gap:15px; width:100%; box-sizing:border-box;">
-        <!-- 1. 추억지도 -->
-        <button class="confirm-btn" style="width:100%; height:60px; background:var(--main-pink); color:white; border:none; border-radius:20px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="openMap()">
-            🗺️ 추억지도
-        </button>
+    <div style="display:flex; flex-direction:column; gap:12px; width:100%; box-sizing:border-box; padding:0 10px;">
+    <!-- 1. 추억지도 -->
+    <button class="confirm-btn" style="width:100%; height:55px; background:var(--main-pink); color:white; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="openMap()">
+        🗺️ 추억지도
+    </button>
 
-        <!-- 2. 랜덤질문 -->
-        <button class="confirm-btn" style="width:100%; height:60px; background:#ffc107; color:white; border:none; border-radius:20px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="showRandomQuestion()">
-            💌 랜덤질문
-        </button>
-        
-        <!-- 3. 밤하늘별 -->
-        <button class="confirm-btn" style="width:100%; height:60px; background:#0f172a; color:#facc15; border:none; border-radius:20px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 0 10px rgba(250, 204, 21, 0.3);" onclick="openSky()">
-            🌌 밤하늘별
-        </button>
+    <!-- 2. 랜덤질문 -->
+    <button class="confirm-btn" style="width:100%; height:55px; background:#ffc107; color:white; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="showRandomQuestion()">
+        📩 랜덤질문
+    </button>
+    
+    <!-- 3. 밤하늘별 -->
+    <button class="confirm-btn" style="width:100%; height:55px; background:#0f172a; color:#facc15; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 0 10px rgba(250, 204, 21, 0.3);" onclick="openSky()">
+        🌌 밤하늘별
+    </button>
 
-        <!-- 4. 여기어때 (잠자리 리뷰) -->
-        <button class="stay-btn" style="width:100%; height:60px; background:#fdf2e9; color:#d4a373; border:2px solid #d4a373; border-radius:20px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 10px rgba(212, 163, 115, 0.2);" onclick="openStayReview()">
-            🛌 여기어때
-        </button>
+    <!-- 4. 여기어때 (문제의 버튼 수정 완료!) -->
+    <button class="stay-btn" style="width:100%; height:55px; background:#fdf2e9; color:#d4a373; border:2px solid #d4a373; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="openStayReview()">
+        🛌 여기어때
+    </button>
 
-        <!-- 닫기 버튼 -->
-        <button onclick="closeSecretMenu()" style="width:100%; height:50px; background:#eee; color:#666; border:none; border-radius:15px; font-weight:700; margin-top:10px; cursor:pointer;">
-            닫기
-        </button>
-    </div>
+    <!-- 닫기 버튼 -->
+    <button onclick="closeSecretMenu()" style="width:100%; height:50px; background:#eee; color:#666; border:none; border-radius:15px; font-weight:700; margin-top:5px; cursor:pointer; box-sizing:border-box;">
+        닫기
+    </button>
+</div>
 </div>
     
 <div id="map-container" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; flex-direction: column;">
