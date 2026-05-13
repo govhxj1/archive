@@ -575,9 +575,9 @@
     </button>
 
     <!-- 닫기 버튼 -->
-    <button onclick="closeSecretMenu()" style="width:100%; height:50px; background:#eee; color:#666; border:none; border-radius:15px; font-weight:700; margin-top:5px; cursor:pointer; box-sizing:border-box;">
+    <button onclick="document.getElementById('side-menu').style.display='none'"style="width:100%; height:50px; background:#eee; color:#666; border:none; border-radius:15px; font-weight:700; margin-top:5px; cursor:pointer; box-sizing:border-box;">
         닫기
-    </button>
+</button>
 </div>
 </div>
     
@@ -1148,12 +1148,6 @@ function renderStars() {
     });
 }
     
-window.closeSecretMenu = function() {
-    const sideMenu = document.getElementById('side-menu');
-    if (sideMenu) {
-        sideMenu.style.display = 'none';
-    }
-};
     
 // ==============================================
 // 💛 비밀 메뉴 및 하트 알림 기능
