@@ -585,12 +585,21 @@
         <h3 style="margin:0; font-weight: 900;">📍 우리들의 추억 지도</h3>
         <button onclick="closeMap()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">✕</button>
     </div>
-    <div id="map-tabs" style="display: flex; background: #fff0f3; padding: 10px; gap: 8px; justify-content: center; align-items: center;">
+    <div id="map-tabs" style="display: flex; background: #fff0f3; padding: 10px; gap: 8px; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(255, 175, 204, 0.2); z-index: 2001; position: relative;">
+    <!-- 날짜 선택 -->
     <input type="date" id="date-selector" 
-        style="flex: 2; padding: 8px; border: 1px solid #ffafcc; border-radius: 10px; font-family: inherit; font-size: 0.9rem; color: #555; outline: none;">
+        style="flex: 1.5; padding: 10px; border: 2px solid #ffafcc; border-radius: 12px; font-family: inherit; font-size: 0.9rem; color: #555; outline: none;">
+    
+    <!-- 특정 날짜 보기 -->
     <button onclick="loadMemoriesByDate()" 
-        style="flex: 1; padding: 8px; border: none; border-radius: 10px; background: var(--point-pink); color: white; font-weight: 900; font-size: 0.8rem; cursor: pointer;">
-        보기 ✨
+        style="flex: 1; padding: 10px; border: none; border-radius: 12px; background: var(--point-pink); color: white; font-weight: 900; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 5px rgba(255, 143, 171, 0.3);">
+        하루 보기 🔍
+    </button>
+    
+    <!-- ✨ 새로 추가: 전체 추억 보기 -->
+    <button onclick="loadAllMemories()" 
+        style="flex: 1.2; padding: 10px; border: none; border-radius: 12px; background: #ffde59; color: #856404; font-weight: 900; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 5px rgba(255, 222, 89, 0.3);">
+        전체 보기 🗺️
     </button>
 </div>
     <div id="map" style="flex: 1; width: 100%;"></div>
@@ -1935,9 +1944,11 @@ function showRecordView() {
 
 window.showRecordView = showRecordView;
     
-function renderMapPath(pathData) {
+// 📍 [업그레이드] 마커 렌더링 함수 (디자인 강화 버전)
+function renderMapPath(pathData, drawLine = true) {
     if (!kakaoMap || !pathData || pathData.length === 0) return;
 
+    // 기존 마커 및 선 지우기
     kakaoMarkers.forEach(m => m.setMap(null));
     kakaoMarkers = [];
     if (kakaoPolyline) kakaoPolyline.setMap(null);
@@ -1946,16 +1957,22 @@ function renderMapPath(pathData) {
 
     pathData.forEach((loc) => {
         const position = new kakao.maps.LatLng(loc.lat, loc.lng);
-        linePath.push(position);
+        if (drawLine) linePath.push(position);
 
+        // ✨ 핀 디자인 업그레이드 (귀여운 말풍선 형태)
         const content = `
-            <div style="cursor: pointer; text-align: center; transform: translateY(-15px);">
-                <div style="font-size: 32px; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));">
+            <div style="cursor: pointer; text-align: center; transform: translateY(-20px); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                <!-- 동그란 아이콘 배지 -->
+                <div style="width: 40px; height: 40px; background: white; border: 3px solid #ff8fab; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto; box-shadow: 0 4px 8px rgba(0,0,0,0.15); position: relative; z-index: 2;">
                     ${loc.icon || '💖'}
                 </div>
-                <div style="background: white; border: 1px solid #ff8fab; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 900; color: #444; margin-top: -5px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <!-- 꼬리표 (말풍선 아래 뾰족한 부분) -->
+                <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #ff8fab; margin: -2px auto 0; position: relative; z-index: 1;"></div>
+                
+                <!-- 장소 이름 라벨 -->
+                <div style="background: rgba(255, 255, 255, 0.95); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 900; color: #333; margin-top: 5px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border: 1px solid #ffe5ec;">
                     ${loc.name}
-                    ${loc.memo ? `<div style="font-weight:normal; font-size:9px; color:#ff8fab; border-top:1px dashed #ffe5ec; margin-top:2px;">${loc.memo}</div>` : ''}
+                    ${loc.memo ? `<div style="font-weight:700; font-size:9px; color:#ff8fab; border-top:1px dashed #ffe5ec; margin-top:3px; padding-top:2px;">${loc.memo}</div>` : ''}
                 </div>
             </div>`;
 
@@ -1969,22 +1986,64 @@ function renderMapPath(pathData) {
         kakaoMarkers.push(customOverlay);
     });
 
-    if (linePath.length > 1) {
+    // 하루 코스일 때만 선(Polyline) 그리기
+    if (drawLine && linePath.length > 1) {
         kakaoPolyline = new kakao.maps.Polyline({
             path: linePath,
             strokeWeight: 4,
-            strokeColor: '#ff8fab',
-            strokeOpacity: 0.8,
-            strokeStyle: 'dashed'
+            strokeColor: '#ffafcc', // 선 색상을 더 예쁜 핑크로
+            strokeOpacity: 0.9,
+            strokeStyle: 'shortdash' // 점선 스타일 변경
         });
         kakaoPolyline.setMap(kakaoMap);
     }
 
+    // 모든 마커가 보이도록 지도 범위 재설정
     const bounds = new kakao.maps.LatLngBounds();
-    linePath.forEach(pos => bounds.extend(pos));
+    pathData.forEach(loc => bounds.extend(new kakao.maps.LatLng(loc.lat, loc.lng)));
     kakaoMap.setBounds(bounds);
 }
 
+    window.loadAllMemories = function() {
+    let allLocations = [];
+    
+    // 1. 하드코딩된 예전 코스 데이터 모으기 (allPaths)
+    if (typeof allPaths !== 'undefined') {
+        Object.values(allPaths).forEach(dayPaths => {
+            allLocations.push(...dayPaths);
+        });
+    }
+
+    // 2. 파이어베이스에 저장된 데이터 모으기 (cloudRecords)
+    if (typeof cloudRecords !== 'undefined') {
+        Object.values(cloudRecords).forEach(data => {
+            if (data.comments) {
+                data.comments.forEach(comment => {
+                    if (comment.locations && comment.locations.length > 0) {
+                        comment.locations.forEach(loc => {
+                            allLocations.push({
+                                name: loc.name,
+                                lat: loc.lat,
+                                lng: loc.lng,
+                                memo: loc.memo || "",
+                                icon: loc.icon || "📍"
+                            });
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    if (allLocations.length > 0) {
+        // 전체 보기는 여러 날짜가 섞여 있으므로 선(Line)을 그리지 않음 (false)
+        renderMapPath(allLocations, false);
+        alert("우리가 함께 간 모든 곳을 모았어! 🗺️✨");
+    } else {
+        alert("아직 기록된 추억 장소가 없어요! 😭");
+    }
+};
+    
 window.showRandomQuestion = function() {
     const today = new Date();
     const dayOfWeek = today.getDay(); 
