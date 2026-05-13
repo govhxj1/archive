@@ -1148,7 +1148,12 @@ function renderStars() {
     });
 }
     
-
+window.closeSecretMenu = function() {
+    const sideMenu = document.getElementById('side-menu');
+    if (sideMenu) {
+        sideMenu.style.display = 'none';
+    }
+};
     
 // ==============================================
 // 💛 비밀 메뉴 및 하트 알림 기능
