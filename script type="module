@@ -915,32 +915,31 @@
     
 <script type="module">
 
-    // 🔑 주소창의 비밀 코드를 감지해서 관리자 창을 띄우는 로직
+    // 📍 window.db = db; 코드 바로 아래에 넣어주세요!
+
 function checkAdminAccess() {
     const urlParams = new URLSearchParams(window.location.search);
     
-    // 주소 뒤에 ?goni=open 을 붙여서 접속하면 실행됩니다.
     if (urlParams.get('goni') === 'open') {
-        console.log("🛠️ 관리자 접속 확인됨");
+        console.log("🛠️ 관리자 접속 시도됨");
         
-        // 즉시 비밀번호 입력창(261029 입력하는 창)을 띄웁니다.
-        const pwOverlay = document.getElementById('fortune-pw-overlay');
-        if (pwOverlay) {
-            pwOverlay.style.display = 'flex';
-            
-            // 접속 후 주소창을 깔끔하게 원래대로 되돌립니다. (유미님에게 안 들키게!)
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            const pwInput = document.getElementById('admin-pw-input');
-            if (pwInput) pwInput.focus();
-        }
+        // 팝업 요소가 로드될 때까지 아주 잠깐 기다렸다가 실행
+        setTimeout(() => {
+            const pwOverlay = document.getElementById('fortune-pw-overlay');
+            if (pwOverlay) {
+                pwOverlay.style.display = 'flex';
+                // 주소창 세탁 (선택 사항)
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                const pwInput = document.getElementById('admin-pw-input');
+                if (pwInput) pwInput.focus();
+            } else {
+                console.error("관리자 팝업 요소를 찾을 수 없어요! ID를 확인해 주세요.");
+            }
+        }, 300); // 0.3초 여유
     }
 }
 
-// 페이지 로드 시 즉시 실행하도록 설정
-checkAdminAccess();
-
-// 페이지 로드 시 즉시 확인
 checkAdminAccess();
     
 // [1] 파이어베이스 라이브러리 로드 (🔥 가장 맨 위에 있어야 에러가 안 납니다!)
