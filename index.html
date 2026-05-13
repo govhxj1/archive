@@ -574,6 +574,11 @@
         🛌 여기어때
     </button>
 
+        <button id="dday-mission-btn" class="confirm-btn" onclick="handleDdayMission()" 
+    style="width:100%; height:55px; background:#fff0f3; color:#ff8fab; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;">
+    <span id="dday-mission-text">데이트 기다리는 중.. 💌</span>
+</button>    
+
     <button onclick="document.getElementById('side-menu').style.display='none'; if(document.getElementById('overlay')) document.getElementById('overlay').style.display='none';"style="width:100%; height:50px; background:#eee; color:#666; border:none; border-radius:15px; font-weight:700; margin-top:5px; cursor:pointer; box-sizing:border-box;">
     닫기
     </button>
@@ -2616,6 +2621,77 @@ window.loadStayReviews = async function() {
         });
     });
 };
+
+
+    // 💖 데이트 미션 데이터 초기화
+let dateMission = { targetDate: "", message: "" };
+
+window.updateDdayMissionUI = function() {
+    const btn = document.getElementById('dday-mission-btn');
+    const textSpan = document.getElementById('dday-mission-text');
+    if (!btn || !textSpan || !dateMission.targetDate) return;
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const target = new Date(dateMission.targetDate);
+    target.setHours(0, 0, 0, 0);
+
+    const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+
+    if (diff > 0) {
+        // [대기 중] 연한 핑크색 (기존 버튼과 동일 규격)
+        textSpan.innerText = `데이트 D-${diff} 🏃‍♂️💨`;
+        btn.style.background = "#fff0f3";
+        btn.style.color = "#ff8fab";
+        btn.classList.remove('heart-active');
+    } else if (diff === 0) {
+        // [D-DAY] 진한 핑크색 + 두근두근 애니메이션
+        textSpan.innerText = `❤️ D-DAY! ❤️`;
+        btn.style.background = "var(--main-pink)";
+        btn.style.color = "white";
+        btn.classList.add('heart-active'); 
+    } else {
+        // [종료 후] 깔끔한 회색
+        textSpan.innerText = "다음 데이트를 기다려요..💌";
+        btn.style.background = "#eee";
+        btn.style.color = "#aaa";
+        btn.classList.remove('heart-active');
+    }
+};
+
+// 🔒 버튼 클릭 시 로직 (설정 및 확인)
+window.handleDdayMission = async function() {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const target = new Date(dateMission.targetDate);
+    const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+
+    if (diff === 0) {
+        alert(`✨ 오늘의 데이트 미션 ✨\n\n"${dateMission.message}"`);
+        return;
+    }
+
+    const pw = prompt("관리자 비밀번호를 입력하면 날짜를 설정할 수 있어! 🔒");
+    if (pw === "261029") { // 거니 팀장님 비밀번호
+        const newDate = prompt("데이트 날짜를 입력해줘 (예: 2026-05-20)", dateMission.targetDate);
+        const newMsg = prompt("D-DAY에 보여줄 문구를 입력해줘!", dateMission.message);
+        
+        if (newDate && newMsg) {
+            const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+            await setDoc(doc(window.db, "settings", "date_mission"), { targetDate: newDate, message: newMsg });
+            alert("데이트 예약 완료! ⚡");
+        }
+    }
+};
+
+// 🛰️ 파이어베이스 실시간 감시
+import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+onSnapshot(doc(window.db, "settings", "date_mission"), (snap) => {
+    if (snap.exists()) {
+        dateMission = snap.data();
+        updateDdayMissionUI();
+    }
+});
     
 </script>       
 </body>
