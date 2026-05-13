@@ -936,15 +936,26 @@
 
 <!-- ✍️ 공용 수정 모달 (클릭 시 등장) -->
 <div id="edit-overlay" class="overlay" style="display: none; background: rgba(0,0,0,0.7); z-index: 1200; align-items: center; justify-content: center;">
-    <div style="width: 85%; background: #fff; border-radius: 20px; padding: 20px;">
-        <h3 id="edit-title" style="text-align: center; margin-bottom: 15px;">✍️ 리뷰 작성</h3>
+    <div style="width: 90%; max-width: 400px; background: #fff; border-radius: 20px; padding: 20px; box-sizing: border-box;">
+        <h3 id="edit-title" style="text-align: center; margin-bottom: 20px; font-weight: 900;">✍️ 리뷰 작성</h3>
+        
         <input type="hidden" id="edit-doc-id">
-        <input type="hidden" id="edit-target"> <!-- 'goni' 또는 'yumi' 저장 -->
-        <input type="number" id="edit-score" placeholder="별점(0~5)" step="0.5" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd;">
-        <textarea id="edit-review" placeholder="한줄평을 남겨줘!" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; height: 80px; margin-bottom: 15px;"></textarea>
-        <div style="display: flex; gap: 10px;">
-            <button onclick="closeEdit()" style="flex: 1; padding: 10px; border-radius: 10px; border: none; background: #eee;">취소</button>
-            <button onclick="updateReview()" style="flex: 2; padding: 10px; border-radius: 10px; border: none; background: #d4a373; color: white; font-weight: bold;">저장하기</button>
+        <input type="hidden" id="edit-target">
+
+        <!-- 별점 입력창 -->
+        <input type="number" id="edit-score" placeholder="별점(0~5)" step="0.5" 
+               style="width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px;">
+        
+        <!-- 한줄평 입력창 (Textarea도 삐져나가지 않게 처리!) -->
+        <textarea id="edit-review" placeholder="한줄평을 남겨줘!" 
+                  style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; height: 100px; margin-bottom: 20px; box-sizing: border-box; font-size: 14px; font-family: sans-serif; resize: none;"></textarea>
+        
+        <!-- 버튼 영역 -->
+        <div style="display: flex; gap: 10px; width: 100%; box-sizing: border-box;">
+            <button onclick="closeEdit()" 
+                    style="flex: 1; padding: 15px; border-radius: 12px; border: none; background: #eee; font-weight: bold; cursor: pointer; box-sizing: border-box;">취소</button>
+            <button onclick="updateReview()" 
+                    style="flex: 2; padding: 15px; border-radius: 12px; border: none; background: #d4a373; color: white; font-weight: bold; cursor: pointer; box-sizing: border-box;">저장하기</button>
         </div>
     </div>
 </div>
