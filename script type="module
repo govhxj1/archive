@@ -937,31 +937,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 window.db = db;
 
-function checkAdminAccess() {
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    if (urlParams.get('goni') === 'open') {
-        console.log("🛠️ 관리자 접속 시도됨");
-        
-        // 팝업 요소가 로드될 때까지 아주 잠깐 기다렸다가 실행
-        setTimeout(() => {
-            const pwOverlay = document.getElementById('fortune-pw-overlay');
-            if (pwOverlay) {
-                pwOverlay.style.display = 'flex';
-                // 주소창 세탁 (선택 사항)
-                window.history.replaceState({}, document.title, window.location.pathname);
-                
-                const pwInput = document.getElementById('admin-pw-input');
-                if (pwInput) pwInput.focus();
-            } else {
-                console.error("관리자 팝업 요소를 찾을 수 없어요! ID를 확인해 주세요.");
-            }
-        }, 300); // 0.3초 여유
-    }
-}
-
-checkAdminAccess();
-
 const appId = 'shared-gomi-diary-app';
 
 const todayDate = new Date();
