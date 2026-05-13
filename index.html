@@ -548,21 +548,38 @@
     <button class="menu-trigger" onclick="toggleMenu()">≡</button>
 </div>
 
-<div id="side-menu" class="surprise-box" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:1000; width:85%;">
-    <span class="surprise-title">✨ 우리들의 <span id="secret-word-trigger" style="cursor: pointer;">비밀</span> 메뉴 ✨</span>
-    <div style="display:flex; flex-direction:column; gap:12px; padding:10px;">
-        <button class="confirm-btn" style="background:var(--main-pink); color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="openMap()">🗺️ 추억지도</button>
-        <button class="confirm-btn" style="background:#ffc107; color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="showRandomQuestion()">💌 랜덤질문</button>
+<div id="side-menu" class="surprise-box" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:1000; width:85%; max-width:400px; padding:25px; border-radius:30px; box-sizing:border-box;">
+    
+    <span class="surprise-title" style="display:block; text-align:center; margin-bottom:20px;">
+        ✨ 우리들의 <span id="secret-word-trigger" style="cursor: pointer;">비밀</span> 메뉴 ✨
+    </span>
+
+    <div style="display:flex; flex-direction:column; gap:15px; width:100%; box-sizing:border-box;">
+        <!-- 1. 추억지도 -->
+        <button class="confirm-btn" style="width:100%; height:60px; background:var(--main-pink); color:white; border:none; border-radius:20px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="openMap()">
+            🗺️ 추억지도
+        </button>
+
+        <!-- 2. 랜덤질문 -->
+        <button class="confirm-btn" style="width:100%; height:60px; background:#ffc107; color:white; border:none; border-radius:20px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="showRandomQuestion()">
+            💌 랜덤질문
+        </button>
         
-        <button class="confirm-btn" style="background:#0f172a; color:#facc15; border:none; padding:15px; border-radius:15px; font-weight:900; box-shadow: 0 0 10px rgba(250, 204, 21, 0.3);" onclick="openSky()">🌌 밤하늘별</button>
-        <button class="stay-btn" 
-        style="background:#fdf2e9; color:#d4a373; border:2px solid #d4a373; padding:15px; border-radius:15px; font-weight:900; margin-top:10px; width:100%; box-shadow: 0 4px 10px rgba(212, 163, 115, 0.2);" 
-        onclick="openStayReview()">  🛌 여기어때 
-</button>
-</button>
-        
+        <!-- 3. 밤하늘별 -->
+        <button class="confirm-btn" style="width:100%; height:60px; background:#0f172a; color:#facc15; border:none; border-radius:20px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 0 10px rgba(250, 204, 21, 0.3);" onclick="openSky()">
+            🌌 밤하늘별
+        </button>
+
+        <!-- 4. 여기어때 (잠자리 리뷰) -->
+        <button class="stay-btn" style="width:100%; height:60px; background:#fdf2e9; color:#d4a373; border:2px solid #d4a373; border-radius:20px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 10px rgba(212, 163, 115, 0.2);" onclick="openStayReview()">
+            🛌 여기어때
+        </button>
+
+        <!-- 닫기 버튼 -->
+        <button onclick="closeSecretMenu()" style="width:100%; height:50px; background:#eee; color:#666; border:none; border-radius:15px; font-weight:700; margin-top:10px; cursor:pointer;">
+            닫기
+        </button>
     </div>
-    <button class="confirm-btn btn-cancel" style="margin-top:10px;" onclick="toggleMenu()">닫기</button>
 </div>
     
 <div id="map-container" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; flex-direction: column;">
