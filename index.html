@@ -574,10 +574,9 @@
         🛌 여기어때
     </button>
 
-    <!-- 닫기 버튼 -->
-    <button onclick="document.getElementById('side-menu').style.display='none'"style="width:100%; height:50px; background:#eee; color:#666; border:none; border-radius:15px; font-weight:700; margin-top:5px; cursor:pointer; box-sizing:border-box;">
-        닫기
-</button>
+    <button onclick="document.getElementById('side-menu').style.display='none'; if(document.getElementById('overlay')) document.getElementById('overlay').style.display='none';"style="width:100%; height:50px; background:#eee; color:#666; border:none; border-radius:15px; font-weight:700; margin-top:5px; cursor:pointer; box-sizing:border-box;">
+    닫기
+    </button>
 </div>
 </div>
     
