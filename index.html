@@ -2428,7 +2428,7 @@ window.createNewStay = async function() {
 window.openEdit = function(id, target, score, review) {
     document.getElementById('edit-doc-id').value = id;
     document.getElementById('edit-target').value = target; // 'goni' 또는 'yumi'
-    document.getElementById('edit-title').innerText = (target === 'goni' ? "⚡ 거니의 리뷰" : "💖 유미의 리뷰");
+    document.getElementById('edit-title').innerText = (target === 'goni' ? "💛 거니의 리뷰" : "💖 유미의 리뷰");
     document.getElementById('edit-score').value = score || "";
     document.getElementById('edit-review').value = review || "";
     document.getElementById('edit-overlay').style.display = 'flex';
@@ -2474,20 +2474,31 @@ window.loadStayReviews = async function() {
             const data = d.data();
             const id = d.id;
             const card = document.createElement('div');
-            card.style = "background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 5px; border: 1px solid #f0f0f0; min-height: 120px;";
+            // 세로 폭을 키우기 위해 padding을 늘리고 min-height를 넉넉히 줬습니다.
+            card.style = "background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 10px; border: 1px solid #f0f0f0; min-height: 180px; justify-content: space-between;";
             
             card.innerHTML = `
-                <div style="font-weight: bold; font-size: 14px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${data.hotelName}</div>
-                <div style="font-size: 10px; color: #aaa; margin-bottom: 5px;">📍 ${data.location}</div>
-                
-                <div onclick="openEdit('${id}', 'goni', ${data.goniScore}, '${data.goniReview}')" 
-                     style="background: #f1f5f9; padding: 6px; border-radius: 6px; font-size: 11px; cursor: pointer;">
-                    <b>⚡ ${data.goniScore || '?'}</b>: ${data.goniReview || '리뷰 입력...'}
+                <div>
+                    <!-- 숙소명 크기 UP -->
+                    <div style="font-weight: 900; font-size: 16px; color: #333; line-height: 1.2; word-break: keep-all;">${data.hotelName}</div>
+                    <!-- 지역명 크기 UP -->
+                    <div style="font-size: 12px; color: #aaa; margin-top: 4px;">📍 ${data.location}</div>
                 </div>
                 
-                <div onclick="openEdit('${id}', 'yumi', ${data.yumiScore}, '${data.yumiReview}')" 
-                     style="background: #fff0f0; padding: 6px; border-radius: 6px; font-size: 11px; cursor: pointer;">
-                    <b>💖 ${data.yumiScore || '?'}</b>: ${data.yumiReview || '리뷰 입력...'}
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- 거니 칸 (💛 으로 변경 및 터치 영역 확대) -->
+                    <div onclick="openEdit('${id}', 'goni', ${data.goniScore}, '${data.goniReview}')" 
+                         style="background: #fdfae6; padding: 10px; border-radius: 10px; font-size: 12px; cursor: pointer; border: 1px solid #fef3c7; line-height: 1.4;">
+                        <b style="color: #d97706;">💛 ${data.goniScore || '?'}</b><br>
+                        <span style="color: #4b5563;">${data.goniReview || '리뷰 입력...'}</span>
+                    </div>
+                    
+                    <!-- 유미 칸 (터치 영역 확대) -->
+                    <div onclick="openEdit('${id}', 'yumi', ${data.yumiScore}, '${data.yumiReview}')" 
+                         style="background: #fff5f5; padding: 10px; border-radius: 10px; font-size: 12px; cursor: pointer; border: 1px solid #ffe4e4; line-height: 1.4;">
+                        <b style="color: #e11d48;">💖 ${data.yumiScore || '?'}</b><br>
+                        <span style="color: #4b5563;">${data.yumiReview || '리뷰 입력...'}</span>
+                    </div>
                 </div>
             `;
             listDiv.appendChild(card);
