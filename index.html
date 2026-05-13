@@ -907,87 +907,6 @@
 </div>
     
 <script type="module">
-// 🛌 [잠자리] 관련 함수들
-window.openStayReview = function() {
-    document.getElementById('stay-overlay').style.display = 'flex';
-    document.getElementById('side-menu').style.display = 'none';
-    loadStayReviews();
-};
-
-window.closeStay = () => {
-    document.getElementById('stay-overlay').style.display = 'none';
-    const overlay = document.getElementById('overlay');
-    if (overlay) overlay.style.display = 'none';
-};
-
-// 리뷰 저장
-window.saveStayReview = async function() {
-    const name = document.getElementById('stay-name').value;
-    const loc = document.getElementById('stay-loc').value;
-    const yScore = document.getElementById('yumi-score').value || 0;
-    const gScore = document.getElementById('goni-score').value || 0;
-    const reviewText = document.getElementById('stay-review').value;
-    const photo = document.getElementById('stay-photo').value || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=300&q=80";
-
-    if (!name) return alert("숙소 이름을 적어줘! ⚡");
-
-    try {
-        const { collection, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-        await addDoc(collection(window.db, "stay_reviews"), {
-            hotelName: name,
-            location: loc,
-            yumiScore: parseFloat(yScore),
-            goniScore: parseFloat(gScore),
-            review: reviewText,
-            photoUrl: photo,
-            timestamp: serverTimestamp()
-        });
-        alert("리뷰 저장 완료! 🛌");
-        // 입력창 초기화
-        document.getElementById('stay-name').value = "";
-        document.getElementById('stay-loc').value = "";
-        document.getElementById('stay-photo').value = "";
-        document.getElementById('yumi-score').value = "";
-        document.getElementById('goni-score').value = "";
-        document.getElementById('stay-review').value = "";
-    } catch (e) {
-        console.error("저장 실패:", e);
-    }
-};
-
-// 리뷰 불러오기 및 렌더링
-window.loadStayReviews = function() {
-    const listDiv = document.getElementById('stay-list');
-    const { collection, query, orderBy, onSnapshot } = firebaseFirestore; // 기존 import 사용
-
-    const q = query(collection(window.db, "stay_reviews"), orderBy("timestamp", "desc"));
-    
-    onSnapshot(q, (snapshot) => {
-        listDiv.innerHTML = "";
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const card = document.createElement('div');
-            card.style = "background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #eee;";
-            card.innerHTML = `
-                <img src="${data.photoUrl}" style="width: 100%; height: 150px; object-fit: cover;">
-                <div style="padding: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong style="font-size: 16px; color: #333;">${data.hotelName}</strong>
-                        <span style="font-size: 12px; color: #888;">📍 ${data.location}</span>
-                    </div>
-                    <div style="margin: 8px 0; font-size: 14px;">
-                        <span>💖 유미: ${data.yumiScore}</span> | <span>⚡ 거니: ${data.goniScore}</span>
-                    </div>
-                    <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.4; background: #f9f9f9; padding: 8px; border-radius: 8px;">
-                        ${data.review}
-                    </p>
-                </div>
-            `;
-            listDiv.appendChild(card);
-        });
-    });
-};
-
     
     
 // [1] 파이어베이스 라이브러리 로드 (🔥 가장 맨 위에 있어야 에러가 안 납니다!)
@@ -2454,6 +2373,103 @@ window.saveSpecialFortune = async function() {
         alert("저장에 실패했습니다. 😭");
     }
 };
+
+    // 🛌 [잠자리] 관련 함수들
+window.openStayReview = function() {
+    const stayOverlay = document.getElementById('stay-overlay');
+    if (stayOverlay) {
+        stayOverlay.style.display = 'flex';
+        // 사이드 메뉴 닫기
+        const sideMenu = document.getElementById('side-menu');
+        if (sideMenu) sideMenu.style.display = 'none';
+        
+        window.loadStayReviews();
+    }
+};
+
+window.closeStay = () => {
+    const stayOverlay = document.getElementById('stay-overlay');
+    if (stayOverlay) stayOverlay.style.display = 'none';
+    const overlay = document.getElementById('overlay');
+    if (overlay) overlay.style.display = 'none';
+};
+
+// 리뷰 저장
+window.saveStayReview = async function() {
+    const nameInput = document.getElementById('stay-name');
+    const locInput = document.getElementById('stay-loc');
+    const yScoreInput = document.getElementById('yumi-score');
+    const gScoreInput = document.getElementById('goni-score');
+    const reviewInput = document.getElementById('stay-review');
+    const photoInput = document.getElementById('stay-photo');
+
+    if (!nameInput || !nameInput.value) return alert("숙소 이름을 적어줘! ⚡");
+
+    try {
+        // 직접 파이어스토어 기능을 가져와서 사용 (에러 방지)
+        const { collection, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        
+        await addDoc(collection(window.db, "stay_reviews"), {
+            hotelName: nameInput.value,
+            location: locInput.value || "장소 미정",
+            yumiScore: parseFloat(yScoreInput.value) || 0,
+            goniScore: parseFloat(gScoreInput.value) || 0,
+            review: reviewInput.value || "",
+            photoUrl: photoInput.value || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=300&q=80",
+            timestamp: serverTimestamp()
+        });
+        
+        alert("리뷰 저장 완료! 🛌");
+        
+        // 입력창 초기화
+        [nameInput, locInput, photoInput, yScoreInput, gScoreInput, reviewInput].forEach(el => { if(el) el.value = ""; });
+        
+    } catch (e) {
+        console.error("저장 실패:", e);
+        alert("저장에 실패했어요. 콘솔을 확인해주세요!");
+    }
+};
+
+// 리뷰 불러오기 및 렌더링
+window.loadStayReviews = async function() {
+    const listDiv = document.getElementById('stay-list');
+    if (!listDiv) return;
+
+    try {
+        // 필요한 기능들 다시 한번 명확히 가져오기
+        const { collection, query, orderBy, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+
+        const q = query(collection(window.db, "stay_reviews"), orderBy("timestamp", "desc"));
+        
+        onSnapshot(q, (snapshot) => {
+            listDiv.innerHTML = "";
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const card = document.createElement('div');
+                card.style = "background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #eee; margin-bottom: 15px;";
+                card.innerHTML = `
+                    <img src="${data.photoUrl}" style="width: 100%; height: 150px; object-fit: cover;" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300'">
+                    <div style="padding: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="font-size: 16px; color: #333;">${data.hotelName}</strong>
+                            <span style="font-size: 12px; color: #888;">📍 ${data.location}</span>
+                        </div>
+                        <div style="margin: 8px 0; font-size: 14px;">
+                            <span>💖 유미: ${data.yumiScore}</span> | <span>⚡ 거니: ${data.goniScore}</span>
+                        </div>
+                        <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.4; background: #f9f9f9; padding: 8px; border-radius: 8px;">
+                            ${data.review}
+                        </p>
+                    </div>
+                `;
+                listDiv.appendChild(card);
+            });
+        });
+    } catch (e) {
+        console.error("불러오기 실패:", e);
+    }
+};
+    
 </script>       
 </body>
 </html>
