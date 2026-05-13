@@ -937,8 +937,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 window.db = db;
 
-// 📍 window.db = db; 코드 바로 아래에 넣어주세요!
-
 function checkAdminAccess() {
     const urlParams = new URLSearchParams(window.location.search);
     
