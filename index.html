@@ -551,10 +551,16 @@
 <div id="side-menu" class="surprise-box" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:1000; width:85%;">
     <span class="surprise-title">✨ 우리들의 <span id="secret-word-trigger" style="cursor: pointer;">비밀</span> 메뉴 ✨</span>
     <div style="display:flex; flex-direction:column; gap:12px; padding:10px;">
-        <button class="confirm-btn" style="background:var(--main-pink); color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="openMap()">🗺️ 추억 지도</button>
-        <button class="confirm-btn" style="background:#ffc107; color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="showRandomQuestion()">💌 랜덤 질문</button>
+        <button class="confirm-btn" style="background:var(--main-pink); color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="openMap()">🗺️ 추억지도</button>
+        <button class="confirm-btn" style="background:#ffc107; color:white; border:none; padding:15px; border-radius:15px; font-weight:900;" onclick="showRandomQuestion()">💌 랜덤질문</button>
         
-        <button class="confirm-btn" style="background:#0f172a; color:#facc15; border:none; padding:15px; border-radius:15px; font-weight:900; box-shadow: 0 0 10px rgba(250, 204, 21, 0.3);" onclick="openSky()">🌌 은하수</button>
+        <button class="confirm-btn" style="background:#0f172a; color:#facc15; border:none; padding:15px; border-radius:15px; font-weight:900; box-shadow: 0 0 10px rgba(250, 204, 21, 0.3);" onclick="openSky()">🌌 밤하늘별</button>
+        <button class="stay-btn" 
+        style="background:#fdf2e9; color:#d4a373; border:2px solid #d4a373; padding:15px; border-radius:15px; font-weight:900; margin-top:10px; width:100%; box-shadow: 0 4px 10px rgba(212, 163, 115, 0.2);" 
+        onclick="openStayReview()">  🛌 여기어때 
+</button>
+</button>
+        
     </div>
     <button class="confirm-btn btn-cancel" style="margin-top:10px;" onclick="toggleMenu()">닫기</button>
 </div>
@@ -901,6 +907,86 @@
 </div>
     
 <script type="module">
+// 🛌 [잠자리] 관련 함수들
+window.openStayReview = function() {
+    document.getElementById('stay-overlay').style.display = 'flex';
+    document.getElementById('side-menu').style.display = 'none';
+    loadStayReviews();
+};
+
+window.closeStay = () => {
+    document.getElementById('stay-overlay').style.display = 'none';
+    const overlay = document.getElementById('overlay');
+    if (overlay) overlay.style.display = 'none';
+};
+
+// 리뷰 저장
+window.saveStayReview = async function() {
+    const name = document.getElementById('stay-name').value;
+    const loc = document.getElementById('stay-loc').value;
+    const yScore = document.getElementById('yumi-score').value || 0;
+    const gScore = document.getElementById('goni-score').value || 0;
+    const reviewText = document.getElementById('stay-review').value;
+    const photo = document.getElementById('stay-photo').value || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=300&q=80";
+
+    if (!name) return alert("숙소 이름을 적어줘! ⚡");
+
+    try {
+        const { collection, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        await addDoc(collection(window.db, "stay_reviews"), {
+            hotelName: name,
+            location: loc,
+            yumiScore: parseFloat(yScore),
+            goniScore: parseFloat(gScore),
+            review: reviewText,
+            photoUrl: photo,
+            timestamp: serverTimestamp()
+        });
+        alert("리뷰 저장 완료! 🛌");
+        // 입력창 초기화
+        document.getElementById('stay-name').value = "";
+        document.getElementById('stay-loc').value = "";
+        document.getElementById('stay-photo').value = "";
+        document.getElementById('yumi-score').value = "";
+        document.getElementById('goni-score').value = "";
+        document.getElementById('stay-review').value = "";
+    } catch (e) {
+        console.error("저장 실패:", e);
+    }
+};
+
+// 리뷰 불러오기 및 렌더링
+window.loadStayReviews = function() {
+    const listDiv = document.getElementById('stay-list');
+    const { collection, query, orderBy, onSnapshot } = firebaseFirestore; // 기존 import 사용
+
+    const q = query(collection(window.db, "stay_reviews"), orderBy("timestamp", "desc"));
+    
+    onSnapshot(q, (snapshot) => {
+        listDiv.innerHTML = "";
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const card = document.createElement('div');
+            card.style = "background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #eee;";
+            card.innerHTML = `
+                <img src="${data.photoUrl}" style="width: 100%; height: 150px; object-fit: cover;">
+                <div style="padding: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="font-size: 16px; color: #333;">${data.hotelName}</strong>
+                        <span style="font-size: 12px; color: #888;">📍 ${data.location}</span>
+                    </div>
+                    <div style="margin: 8px 0; font-size: 14px;">
+                        <span>💖 유미: ${data.yumiScore}</span> | <span>⚡ 거니: ${data.goniScore}</span>
+                    </div>
+                    <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.4; background: #f9f9f9; padding: 8px; border-radius: 8px;">
+                        ${data.review}
+                    </p>
+                </div>
+            `;
+            listDiv.appendChild(card);
+        });
+    });
+};
 
     
     
@@ -1071,7 +1157,36 @@ function renderStars() {
         }
     });
 }
+    
+// ==============================================
+// 숙소리뷰
+// ==============================================    
+    <div id="stay-overlay" class="overlay" style="display: none; background: rgba(0,0,0,0.8); z-index: 1100; flex-direction: column; align-items: center; justify-content: center;">
+    <div style="width: 90%; max-height: 80vh; background: #fffaf0; border-radius: 20px; padding: 20px; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+        <button onclick="closeStay()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer;">✕</button>
+        
+        <h2 style="text-align: center; color: #d4a373; margin-bottom: 20px;">🛌 우리의 잠자리</h2>
+        
+        <!-- 리뷰 입력 폼 (거니 관리자 전용 혹은 공용) -->
+        <div id="stay-form" style="background: #fdf2e9; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed #d4a373;">
+            <input type="text" id="stay-name" placeholder="숙소 이름" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd;">
+            <input type="text" id="stay-loc" placeholder="지역 (예: 대전 유성)" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd;">
+            <input type="text" id="stay-photo" placeholder="사진 URL (없으면 기본 이미지)" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd;">
+            <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                <input type="number" id="yumi-score" placeholder="유미 점수(0~5)" step="0.5" style="width: 50%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                <input type="number" id="goni-score" placeholder="거니 점수(0~5)" step="0.5" style="width: 50%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+            </div>
+            <textarea id="stay-review" placeholder="한줄평을 남겨줘!" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ddd; height: 60px;"></textarea>
+            <button onclick="saveStayReview()" style="width: 100%; background: #d4a373; color: white; padding: 10px; border: none; border-radius: 10px; margin-top: 10px; font-weight: bold;">리뷰 저장하기 ⚡</button>
+        </div>
 
+        <!-- 리뷰 카드 리스트 -->
+        <div id="stay-list" style="display: flex; flex-direction: column; gap: 15px;">
+            <!-- 여기에 카드가 동적으로 생성됨 -->
+        </div>
+    </div>
+</div>
+    
 // ==============================================
 // 💛 비밀 메뉴 및 하트 알림 기능
 // ==============================================
