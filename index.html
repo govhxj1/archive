@@ -914,11 +914,18 @@
         <h2 style="text-align: center; color: #d4a373; margin-bottom: 15px;">🛌 우리의 잠자리 기록</h2>
         
         <!-- 신규 등록 폼 -->
-        <div style="background: #fdf2e9; padding: 12px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed #d4a373;">
-            <input type="text" id="stay-name" placeholder="숙소 이름" style="width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #ddd;">
-            <input type="text" id="stay-loc" placeholder="지역" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd;">
-            <button onclick="createNewStay()" style="width: 100%; background: #d4a373; color: white; padding: 12px; border: none; border-radius: 10px; font-weight: bold;">새 숙소 등록하기 ⚡</button>
-        </div>
+        <div style="background: #fdf2e9; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed #d4a373; box-sizing: border-box; width: 100%;">
+    <input type="text" id="stay-name" placeholder="숙소 이름" 
+           style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px;">
+    
+    <input type="text" id="stay-loc" placeholder="지역" 
+           style="width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px;">
+    
+    <button onclick="createNewStay()" 
+            style="width: 100%; background: #d4a373; color: white; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; box-sizing: border-box; font-size: 15px;">
+        새 숙소 등록하기 ✨
+    </button>
+</div>
 
         <!-- 📍 한 줄에 2개씩 나오는 리스트 레이아웃 -->
         <div id="stay-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -2460,7 +2467,7 @@ window.updateReview = async function() {
     } catch (e) { console.error(e); }
 };
 
-// 5. 목록 불러오기 (2열 배치)
+    // 5. 목록 불러오기 (박스 모델 수정 버전)
 window.loadStayReviews = async function() {
     const listDiv = document.getElementById('stay-list');
     if (!listDiv) return;
@@ -2474,30 +2481,27 @@ window.loadStayReviews = async function() {
             const data = d.data();
             const id = d.id;
             const card = document.createElement('div');
-            // 세로 폭을 키우기 위해 padding을 늘리고 min-height를 넉넉히 줬습니다.
-            card.style = "background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 10px; border: 1px solid #f0f0f0; min-height: 180px; justify-content: space-between;";
+            
+            // 📍 핵심 수정: width: 100%와 box-sizing: border-box를 추가하여 부모 너비를 넘지 않게 합니다.
+            card.style = "background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 10px; border: 1px solid #f0f0f0; min-height: 180px; justify-content: space-between; box-sizing: border-box; width: 100%;";
             
             card.innerHTML = `
-                <div>
-                    <!-- 숙소명 크기 UP -->
-                    <div style="font-weight: 900; font-size: 16px; color: #333; line-height: 1.2; word-break: keep-all;">${data.hotelName}</div>
-                    <!-- 지역명 크기 UP -->
+                <div style="overflow: hidden;">
+                    <div style="font-weight: 900; font-size: 16px; color: #333; line-height: 1.2; word-break: break-all; white-space: normal;">${data.hotelName}</div>
                     <div style="font-size: 12px; color: #aaa; margin-top: 4px;">📍 ${data.location}</div>
                 </div>
                 
                 <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <!-- 거니 칸 (💛 으로 변경 및 터치 영역 확대) -->
                     <div onclick="openEdit('${id}', 'goni', ${data.goniScore}, '${data.goniReview}')" 
-                         style="background: #fdfae6; padding: 10px; border-radius: 10px; font-size: 12px; cursor: pointer; border: 1px solid #fef3c7; line-height: 1.4;">
+                         style="background: #fdfae6; padding: 10px; border-radius: 10px; font-size: 12px; cursor: pointer; border: 1px solid #fef3c7; line-height: 1.4; box-sizing: border-box; width: 100%;">
                         <b style="color: #d97706;">💛 ${data.goniScore || '?'}</b><br>
-                        <span style="color: #4b5563;">${data.goniReview || '리뷰 입력...'}</span>
+                        <span style="color: #4b5563; word-break: break-all;">${data.goniReview || '리뷰 입력...'}</span>
                     </div>
                     
-                    <!-- 유미 칸 (터치 영역 확대) -->
                     <div onclick="openEdit('${id}', 'yumi', ${data.yumiScore}, '${data.yumiReview}')" 
-                         style="background: #fff5f5; padding: 10px; border-radius: 10px; font-size: 12px; cursor: pointer; border: 1px solid #ffe4e4; line-height: 1.4;">
+                         style="background: #fff5f5; padding: 10px; border-radius: 10px; font-size: 12px; cursor: pointer; border: 1px solid #ffe4e4; line-height: 1.4; box-sizing: border-box; width: 100%;">
                         <b style="color: #e11d48;">💖 ${data.yumiScore || '?'}</b><br>
-                        <span style="color: #4b5563;">${data.yumiReview || '리뷰 입력...'}</span>
+                        <span style="color: #4b5563; word-break: break-all;">${data.yumiReview || '리뷰 입력...'}</span>
                     </div>
                 </div>
             `;
