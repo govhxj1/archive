@@ -2591,6 +2591,7 @@ onSnapshot(doc(window.db, "settings", "attack_times"), (snap) => {
 });
 
 // 🕵️ 상시 감시 타이머 (수정 버전)
+// 🕵️ 1초마다 체크하는 상시 감시 타이머
 setInterval(() => {
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -2598,12 +2599,11 @@ setInterval(() => {
     
     if (!btn) return;
 
-    // 관리자가 설정한 시간에 포함되어 있고 + 아직 이번 분에 수집하지 않았다면!
+    // 조건: 1.설정된 시간인가? 2.이미 이번 분에 얻지 않았는가?
     if (window.attackTimes && window.attackTimes.includes(currentTime) && lastCollectedMinute !== currentTime) {
         btn.style.display = 'block';
     } else {
-        // 시간이 지났거나 이미 수집했다면 숨김
-        btn.style.display = 'none';
+        btn.style.display = 'none'; // 시간이 지났거나 이미 얻었으면 숨김
     }
 }, 1000);
 
@@ -2882,22 +2882,24 @@ onSnapshot(doc(window.db, "settings", "date_mission"), (snap) => {
 });
 
  
-// 🔒 이번 분에 이미 수집했는지 체크하는 변수
-let lastCollectedMinute = "";
+// 🔒 [중요] 함수 바깥(맨 위쪽)에 선언되어 있어야 합니다!
+let lastCollectedMinute = ""; 
 
 window.collectItem = async function() {
-    const now = new Date();
-    const currentMinKey = `${now.getHours()}:${now.getMinutes()}`;
     const btn = document.getElementById('time-attack-btn');
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    // 1. 방어 로직: 이미 이번 분에 수집했다면 실행 안 함
-    if (lastCollectedMinute === currentMinKey) return;
+    // 1. [방어] 이미 이번 분에 얻었다면 즉시 함수 종료 (중복 방지)
+    if (lastCollectedMinute === currentTime) return;
 
-    // 2. 누르자마자 버튼 숨기기 (연타 방지)
+    // 2. [선조치] 누르자마자 버튼부터 숨기기! (연타 원천 봉쇄)
     if (btn) btn.style.display = 'none';
-    lastCollectedMinute = currentMinKey; // 수집한 시간 기록
+    
+    // 3. [기억] 이번 분은 끝났다고 기록
+    lastCollectedMinute = currentTime; 
 
-    // 3. 아이템 선정 로직
+    // 4. 아이템 선정 및 저장 로직
     const icons = Object.keys(collectionData);
     const picked = icons[Math.floor(Math.random() * icons.length)];
 
@@ -2912,8 +2914,8 @@ window.collectItem = async function() {
         alert(`✨ 축하해! ✨\n\n새로운 상징 [ ${picked} ] 을(를) 발견했어!\n도감에서 확인해봐! 📖`);
     } catch (e) {
         console.error("수집 에러:", e);
-        // 에러나면 다시 기회를 주기 위해 초기화
-        lastCollectedMinute = ""; 
+        // 저장 실패 시에만 다시 기회를 주려면 아래 주석 해제 (보통은 그냥 둠)
+        // lastCollectedMinute = ""; 
     }
 };
 
