@@ -940,15 +940,17 @@
 <div id="fortune-admin-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6001; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div style="background: #111; width: 85%; max-width: 320px; padding: 30px 25px; border-radius: 20px; text-align: center; border: 1px solid #333; box-shadow: 0 0 25px rgba(0,0,0,0.6);">
         
-        <div style="font-weight: 900; margin-bottom: 20px; color: #777; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">Encrypt Message for Tomorrow</div>
+        <div id="fortune-admin-title" style="font-weight: 900; margin-bottom: 20px; color: #777; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">
+            Encrypt Message for Tomorrow
+        </div>
         
         <textarea id="special-fortune-input" 
                   placeholder="내일 유미에게 닿을 첫 번째 진심을 적어주세요..." 
-                  style="width: 100%; height: 100px; border-radius: 10px; padding: 15px; border: 1px solid #222; background: #000; color: #eee; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; resize: none; box-sizing: border-box; outline: none;"></textarea>
+                  style="width: 100%; height: 100px; border-radius: 10px; padding: 15px; border: 1px solid #222; background: #000; color: #eee; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; resize: none; box-sizing: border-box; outline: none; display: block;"></textarea>
         
         <div style="display: flex; gap: 12px;">
             <button onclick="saveSpecialFortune()" 
-                    style="flex: 1.5; background: #eee; border: none; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; color: #000; font-size: 0.9rem; transition: 0.3s;">
+                    style="flex: 1.5; background: #eee; border: none; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; color: #000; font-size: 0.9rem;">
                 DEPOSIT
             </button>
             <button onclick="document.getElementById('fortune-admin-overlay').style.display='none'" 
