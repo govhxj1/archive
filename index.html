@@ -2880,23 +2880,39 @@ onSnapshot(doc(window.db, "settings", "date_mission"), (snap) => {
 });
 
  
-// 3. 아이템 수집 함수
+// 🔒 이번 분에 이미 수집했는지 체크하는 변수
+let lastCollectedMinute = "";
+
 window.collectItem = async function() {
+    const now = new Date();
+    const currentMinKey = `${now.getHours()}:${now.getMinutes()}`;
     const btn = document.getElementById('time-attack-btn');
-    btn.style.display = 'none'; // 누르면 즉시 사라짐
 
-    // 랜덤 아이템 선정 (아이콘 리스트)
-    const items = ["🧸", "🍭", "🌸", "👑", "💎", "🎀", "⭐", "🦄"];
-    const picked = items[Math.floor(Math.random() * items.length)];
+    // 1. 방어 로직: 이미 이번 분에 수집했다면 실행 안 함
+    if (lastCollectedMinute === currentMinKey) return;
 
-    // 파이어베이스 저장 (사용자별 컬렉션)
-    const user = "유미"; // 혹은 현재 로그인 유저
-    await setDoc(doc(window.db, "collections", picked), {
-        owner: user,
-        collectedAt: serverTimestamp()
-    }, { merge: true });
+    // 2. 누르자마자 버튼 숨기기 (연타 방지)
+    if (btn) btn.style.display = 'none';
+    lastCollectedMinute = currentMinKey; // 수집한 시간 기록
 
-    alert(`✨ 축하해! ✨\n\n새로운 상징 [ ${picked} ] 을(를) 획득했어!\n도감에서 확인해봐!`);
+    // 3. 아이템 선정 로직
+    const icons = Object.keys(collectionData);
+    const picked = icons[Math.floor(Math.random() * icons.length)];
+
+    try {
+        const { doc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        
+        await setDoc(doc(window.db, "collections", picked), {
+            owner: "유미",
+            collectedAt: serverTimestamp()
+        }, { merge: true });
+
+        alert(`✨ 축하해! ✨\n\n새로운 상징 [ ${picked} ] 을(를) 발견했어!\n도감에서 확인해봐! 📖`);
+    } catch (e) {
+        console.error("수집 에러:", e);
+        // 에러나면 다시 기회를 주기 위해 초기화
+        lastCollectedMinute = ""; 
+    }
 };
 
     // 💎 고미 컬렉션 30개 데이터 세트
