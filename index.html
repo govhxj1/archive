@@ -2589,6 +2589,20 @@ setInterval(() => {
         btn.style.display = 'none'; 
     }
 }, 1000);
+
+    <button id="time-attack-btn" onclick="collectItem()" 
+    style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:100px; height:100px; border-radius:50%; background:var(--main-pink); border:none; box-shadow:0 0 30px rgba(255,143,171,0.6); z-index:9999; cursor:pointer; animation: pulse-center 1s infinite;">
+    <span style="font-size:45px;">🎁</span>
+</button>
+
+<style>
+/* 📍 중앙 전용 두근두근 애니메이션 (transform 유지용) */
+@keyframes pulse-center {
+    0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(255, 175, 204, 0.7); }
+    70% { transform: translate(-50%, -50%) scale(1.15); box-shadow: 0 0 0 25px rgba(255, 175, 204, 0); }
+    100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(255, 175, 204, 0); }
+}
+</style>
     
 
 // 💌 오늘의 한마디 저장 (나우의 긴급 수리 ⚡)
