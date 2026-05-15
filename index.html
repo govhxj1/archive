@@ -2443,36 +2443,36 @@ window.checkAdminPassword = function() {
 };
 
 // 💌 메뉴 1: 오늘의 한마디 에디터 열기 (체크 로직 강화 버전)
+// 💌 메뉴 1: 오늘의 한마디 에디터 열기 (입력창 강제 노출 ⚡)
 window.openFortuneEditor = async function() {
     // 1. 내일 날짜 계산
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowKey = `${tomorrow.getFullYear()}-${tomorrow.getMonth() + 1}-${tomorrow.getDate()}`;
 
-    // 2. 제목(Title) 요소와 입력창 요소 정확히 찾기
-    // 팀장님 HTML 구조상 fortune-admin-overlay 안의 첫 번째 div의 첫 번째 div가 제목입니다.
-    const adminOverlay = document.getElementById('fortune-admin-overlay');
-    const titleArea = adminOverlay ? adminOverlay.querySelector('div div:first-child') : null;
+    // 2. 요소들 가져오기
+    const adminHub = document.getElementById('admin-hub-overlay'); // 관리자 메뉴판
+    const fortuneEditor = document.getElementById('fortune-admin-overlay'); // 오늘의 한마디 입력창
+    const titleArea = fortuneEditor ? fortuneEditor.querySelector('div div:first-child') : null;
     const inputArea = document.getElementById('special-fortune-input');
-    
-    if (inputArea) inputArea.value = ""; // 일단 비우기
+
+    // 입력창 초기화
+    if (inputArea) inputArea.value = ""; 
 
     try {
-        // 파이어베이스에서 내일 데이터 가져오기
         const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         const docRef = doc(window.db, "fortune_messages", tomorrowKey);
         const snap = await getDoc(docRef);
 
         if (snap.exists() && snap.data().specialMessage) {
-            // ✅ 데이터가 있을 때: 제목 변경 + 핑크색 적용
+            // 이미 메시지가 있는 경우
             if (titleArea) {
                 titleArea.innerText = "🔒 MESSAGE SECURED FOR TOMORROW";
                 titleArea.style.color = "#ff6f91"; 
-                titleArea.style.fontWeight = "900";
             }
-            if (inputArea) inputArea.value = snap.data().specialMessage; // 적어둔 내용 보여주기
+            if (inputArea) inputArea.value = snap.data().specialMessage; 
         } else {
-            // ❌ 데이터가 없을 때: 기본 제목 + 회색 적용
+            // 메시지가 없는 경우
             if (titleArea) {
                 titleArea.innerText = "ENCRYPT MESSAGE FOR TOMORROW";
                 titleArea.style.color = "#777";
@@ -2482,9 +2482,11 @@ window.openFortuneEditor = async function() {
         console.error("데이터 체크 중 에러:", e);
     }
 
-    // 3. 관리자 허브 닫고 에디터 창 띄우기
-    document.getElementById('admin-hub-overlay').style.display = 'none';
-    document.getElementById('fortune-admin-overlay').style.display = 'flex';
+    // 3. [핵심] 관리자 메뉴판은 숨기고, 에디터 창은 확실하게 보여주기
+    if (adminHub) adminHub.style.display = 'none';
+    if (fortuneEditor) {
+        fortuneEditor.style.display = 'flex'; // 'none'으로 되어있던 창을 'flex'로 강제 노출!
+    }
 };
     
 
