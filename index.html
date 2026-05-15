@@ -2590,7 +2590,6 @@ onSnapshot(doc(window.db, "settings", "attack_times"), (snap) => {
     }
 });
 
-// 🕵️ 상시 감시 타이머 (수정 버전)
 // 🕵️ 1초마다 체크하는 상시 감시 타이머
 setInterval(() => {
     const now = new Date();
@@ -2599,11 +2598,14 @@ setInterval(() => {
     
     if (!btn) return;
 
-    // 조건: 1.설정된 시간인가? 2.이미 이번 분에 얻지 않았는가?
-    if (window.attackTimes && window.attackTimes.includes(currentTime) && lastCollectedMinute !== currentTime) {
+    // 브라우저 저장소에서 '이미 수집한 시간'을 꺼내옵니다.
+    const lastDone = localStorage.getItem('lastCollectedTime');
+
+    // 조건: 1.설정된 시간인가? 2.이미 이번 분에 얻지 않았는가? (새로고침해도 체크!)
+    if (window.attackTimes && window.attackTimes.includes(currentTime) && lastDone !== currentTime) {
         btn.style.display = 'block';
     } else {
-        btn.style.display = 'none'; // 시간이 지났거나 이미 얻었으면 숨김
+        btn.style.display = 'none'; 
     }
 }, 1000);
 
@@ -2882,30 +2884,26 @@ onSnapshot(doc(window.db, "settings", "date_mission"), (snap) => {
 });
 
  
-// 🔒 [중요] 함수 바깥(맨 위쪽)에 선언되어 있어야 합니다!
-let lastCollectedMinute = ""; 
-
+// 🎁 2. 아이템 수집 함수 (영구 기억 주입)
 window.collectItem = async function() {
     const btn = document.getElementById('time-attack-btn');
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    // 1. [방어] 이미 이번 분에 얻었다면 즉시 함수 종료 (중복 방지)
-    if (lastCollectedMinute === currentTime) return;
+    // [방어] 혹시 모르니 한 번 더 체크
+    if (localStorage.getItem('lastCollectedTime') === currentTime) return;
 
-    // 2. [선조치] 누르자마자 버튼부터 숨기기! (연타 원천 봉쇄)
+    // 누르자마자 즉시 숨김
     if (btn) btn.style.display = 'none';
     
-    // 3. [기억] 이번 분은 끝났다고 기록
-    lastCollectedMinute = currentTime; 
+    // 🪄 [핵심] 브라우저에 영구 기록! "나 13:56분에 이미 받았어!"
+    localStorage.setItem('lastCollectedTime', currentTime);
 
-    // 4. 아이템 선정 및 저장 로직
     const icons = Object.keys(collectionData);
     const picked = icons[Math.floor(Math.random() * icons.length)];
 
     try {
         const { doc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-        
         await setDoc(doc(window.db, "collections", picked), {
             owner: "유미",
             collectedAt: serverTimestamp()
@@ -2914,8 +2912,8 @@ window.collectItem = async function() {
         alert(`✨ 축하해! ✨\n\n새로운 상징 [ ${picked} ] 을(를) 발견했어!\n도감에서 확인해봐! 📖`);
     } catch (e) {
         console.error("수집 에러:", e);
-        // 저장 실패 시에만 다시 기회를 주려면 아래 주석 해제 (보통은 그냥 둠)
-        // lastCollectedMinute = ""; 
+        // 에러 시 다시 기회를 주려면 기록 삭제
+        localStorage.removeItem('lastCollectedTime');
     }
 };
 
