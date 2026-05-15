@@ -2590,7 +2590,7 @@ onSnapshot(doc(window.db, "settings", "attack_times"), (snap) => {
     }
 });
 
-// 🕵️ 4. 상시 감시 타이머 (1초마다 체크)
+// 🕵️ 상시 감시 타이머 (수정 버전)
 setInterval(() => {
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -2598,10 +2598,12 @@ setInterval(() => {
     
     if (!btn) return;
 
-    if (window.attackTimes.includes(currentTime)) {
-        btn.style.display = 'block'; 
+    // 관리자가 설정한 시간에 포함되어 있고 + 아직 이번 분에 수집하지 않았다면!
+    if (window.attackTimes && window.attackTimes.includes(currentTime) && lastCollectedMinute !== currentTime) {
+        btn.style.display = 'block';
     } else {
-        btn.style.display = 'none'; 
+        // 시간이 지났거나 이미 수집했다면 숨김
+        btn.style.display = 'none';
     }
 }, 1000);
 
