@@ -574,11 +574,23 @@
         🛌 여기어때
     </button>
 
-        <button class="confirm-btn" onclick="openCollection()" style="width:100%; height:55px; background:#e8f4fd; color:#3498db; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px;">
+    <button class="confirm-btn" onclick="openCollection()" style="width:100%; height:55px; background:#e8f4fd; color:#3498db; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px;">
     💎 아카이브
-</button>
+    </button>
 
-<div id="collection-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:7000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+
+        <button id="dday-mission-btn" class="confirm-btn" onclick="handleDdayMission()" 
+    style="width:100%; height:55px; background:#fff0f3; color:#ff8fab; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;">
+    <span id="dday-mission-text">데이트 기다리는 중.. 💌</span>
+</button>    
+
+    <button onclick="document.getElementById('side-menu').style.display='none'; if(document.getElementById('overlay')) document.getElementById('overlay').style.display='none';"style="width:100%; height:50px; background:#eee; color:#666; border:none; border-radius:15px; font-weight:700; margin-top:5px; cursor:pointer; box-sizing:border-box;">
+    닫기
+    </button>
+</div>
+</div>
+    
+    <div id="collection-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:7000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
     <div style="background:#5D4037; width:90%; max-width:360px; padding:30px 25px; border-radius:20px; text-align:center; border:4px solid #3E2723; box-shadow: 0 15px 40px rgba(0,0,0,0.6);">
         
         <div style="color:#FFD54F; font-weight:900; font-size:1.3rem; margin-bottom:5px; letter-spacing:2px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">📖 GOMI'S LIBRARY 📖</div>
@@ -591,17 +603,6 @@
             도서관 문 닫기
         </button>
     </div>
-</div>
-
-        <button id="dday-mission-btn" class="confirm-btn" onclick="handleDdayMission()" 
-    style="width:100%; height:55px; background:#fff0f3; color:#ff8fab; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;">
-    <span id="dday-mission-text">데이트 기다리는 중.. 💌</span>
-</button>    
-
-    <button onclick="document.getElementById('side-menu').style.display='none'; if(document.getElementById('overlay')) document.getElementById('overlay').style.display='none';"style="width:100%; height:50px; background:#eee; color:#666; border:none; border-radius:15px; font-weight:700; margin-top:5px; cursor:pointer; box-sizing:border-box;">
-    닫기
-    </button>
-</div>
 </div>
     
 <div id="map-container" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; flex-direction: column;">
@@ -2105,6 +2106,12 @@ window.showRandomQuestion = function() {
     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
     const dateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     
+    // 🪄 [수정] 랜덤질문이 켜지기 전에 뒤에 있는 비밀 메뉴 닫기!
+    const sideMenu = document.getElementById('side-menu');
+    const overlay = document.getElementById('overlay');
+    if (sideMenu) sideMenu.style.display = 'none';
+    if (overlay) overlay.style.display = 'none';
+
     const modalTitle = document.getElementById('q-modal-title');
     const weekendBox = document.getElementById('weekend-old-record');
     const oldText = document.getElementById('old-answers-text');
