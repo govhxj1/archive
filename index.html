@@ -579,16 +579,16 @@
 </button>
 
 <div id="collection-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:7000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
-    <div style="background:#5D4037; width:90%; max-width:360px; padding:30px 20px; border-radius:15px; text-align:center; border:4px solid #3E2723; box-shadow: 0 15px 30px rgba(0,0,0,0.5);">
+    <div style="background:#5D4037; width:90%; max-width:360px; padding:30px 25px; border-radius:20px; text-align:center; border:4px solid #3E2723; box-shadow: 0 15px 40px rgba(0,0,0,0.6);">
         
         <div style="color:#FFD54F; font-weight:900; font-size:1.3rem; margin-bottom:5px; letter-spacing:2px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">📖 GOMI'S LIBRARY 📖</div>
-        <div style="color:#D7CCC8; font-size:0.8rem; margin-bottom:20px;">우리의 소중한 상징 도감</div>
+        <div style="color:#D7CCC8; font-size:0.85rem; margin-bottom:20px;">우리의 소중한 기록 도감</div>
         
-        <div id="collection-grid" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-bottom:25px; padding:15px; max-height:400px; overflow-y:auto; background:#4E342E; border-radius:10px; border:inset 3px #3E2723;">
+        <div id="collection-grid" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-bottom:25px; padding:15px; max-height:400px; overflow-y:auto; background:#4E342E; border-radius:12px; border:inset 3px #3E2723;">
             </div>
 
-        <button onclick="document.getElementById('collection-overlay').style.display='none'" style="width:100%; padding:15px; background:#8D6E63; border:2px solid #3E2723; border-radius:10px; color:#FFF; font-weight:900; font-size:1rem; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-            책장 닫기
+        <button onclick="document.getElementById('collection-overlay').style.display='none'" style="width:100%; padding:15px; background:#8D6E63; border:2px solid #3E2723; border-radius:12px; color:#FFF; font-weight:900; font-size:1rem; cursor:pointer;">
+            도서관 문 닫기
         </button>
     </div>
 </div>
@@ -2897,27 +2897,33 @@ const collectionData = {
     "🎮": "게임기: 같이 게임 한 판? 져줄게!",
     "🌋": "화산: 유미를 향한 내 마음은 열정 폭발!"
 };
-    window.openCollection = async function() {
-    // 1. [핵심] 뒤에 남아있는 비밀 메뉴 창 숨기기!
+   window.openCollection = async function() {
+    // 1. 뒤에 있는 메뉴와 배경 블러(overlay)부터 확실히 닫기
     const sideMenu = document.getElementById('side-menu');
+    const mainOverlay = document.getElementById('overlay');
     if (sideMenu) sideMenu.style.display = 'none';
+    if (mainOverlay) mainOverlay.style.display = 'none';
 
+    // 2. 도감 상자부터 먼저 띄우기 (사용자 대기 방지 ⚡)
+    const collectionOverlay = document.getElementById('collection-overlay');
     const grid = document.getElementById('collection-grid');
-    if (!grid) return;
-    grid.innerHTML = ""; 
+    
+    if (collectionOverlay) collectionOverlay.style.display = 'flex';
+    if (grid) grid.innerHTML = '<div style="grid-column: span 5; color:#D7CCC8; padding:20px;">책장에서 기록을 꺼내오는 중... 📖</div>';
 
     try {
+        // 3. 파이어베이스 데이터 가져오기
         const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         const querySnapshot = await getDocs(collection(window.db, "collections"));
         const ownedItems = [];
         querySnapshot.forEach((doc) => ownedItems.push(doc.id));
 
-        // 30개 아이템 생성 (도서관 나무 컨셉 스타일 적용)
+        // 4. 도감 채우기
+        grid.innerHTML = ""; // 로딩 문구 제거
         Object.entries(collectionData).forEach(([icon, message]) => {
             const itemBox = document.createElement('div');
             const isOwned = ownedItems.includes(icon);
             
-            // 🎨 책장 칸 디자인: 얻은 건 밝은 종이색, 못 얻은 건 빈 나무칸 색
             itemBox.style.cssText = `
                 aspect-ratio: 1/1;
                 display: flex;
@@ -2925,26 +2931,22 @@ const collectionData = {
                 justify-content: center;
                 font-size: 1.4rem;
                 background: ${isOwned ? '#FFF8E1' : '#3E2723'}; 
-                border-radius: 8px;
+                border-radius: 10px;
                 border: 2px solid ${isOwned ? '#FFB300' : '#2D1A11'};
-                filter: ${isOwned ? 'none' : 'grayscale(1) opacity(0.4)'};
+                filter: ${isOwned ? 'none' : 'grayscale(1) opacity(0.3)'};
                 cursor: ${isOwned ? 'pointer' : 'default'};
-                box-shadow: ${isOwned ? 'inset 0 0 10px rgba(255,179,0,0.2), 0 2px 4px rgba(0,0,0,0.3)' : 'inset 0 0 5px rgba(0,0,0,0.5)'};
             `;
             
             itemBox.innerText = isOwned ? icon : "?";
 
-            // 획득한 아이템 클릭 시 팝업
             if (isOwned) {
-                itemBox.onclick = () => alert(`📖 [${icon}] 도감 기록 📖\n\n${message}`);
+                itemBox.onclick = () => alert(`📖 [${icon}] 도감 정보 📖\n\n${message}`);
             }
-            
             grid.appendChild(itemBox);
         });
-
-        document.getElementById('collection-overlay').style.display = 'flex';
     } catch (e) { 
-        console.error("도감 로드 에러:", e); 
+        console.error("도감 로딩 에러:", e);
+        if (grid) grid.innerHTML = '<div style="grid-column: span 5; color:#ff8fab;">기록을 불러오지 못했어요. 😢</div>';
     }
 };
     
