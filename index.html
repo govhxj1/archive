@@ -711,6 +711,7 @@
     </div>
 </div>
 
+    
 <script>
     const secretLetters = {
         1: `귀염둥이 곰돌이 거니야💛 <br><br>
@@ -912,6 +913,14 @@
         </button>
     </div>
 </div>
+
+    <button id="time-attack-btn" onclick="collectItem()" style="display:none; position:fixed; bottom:100px; right:20px; width:70px; height:70px; border-radius:50%; background:var(--main-pink); border:none; box-shadow:0 0 15px rgba(255,143,171,0.5); z-index:9999; cursor:pointer; animation: pulse 1s infinite;">
+    <span style="font-size:30px;">🎁</span>
+</button>
+
+<button class="confirm-btn" onclick="openCollection()" style="width:100%; height:55px; background:#e8f4fd; color:#3498db; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+    💎 고미 컬렉션 도감
+</button>
     
 <!-- 🔑 거니 전용 관리자 센터 -->
 <div id="admin-hub-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6001; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
@@ -930,6 +939,7 @@
                 📅 데이트 D-DAY 설정
             </button>
         </div>
+        
 
         <button onclick="document.getElementById('admin-hub-overlay').style.display='none'" style="width: 100%; background: transparent; border: none; color: #555; font-size: 0.8rem; cursor: pointer; text-decoration: underline;">
             나가기
@@ -2502,6 +2512,18 @@ window.openDdayEditor = async function() {
     }
 };
 
+    // 📅 메뉴 3: 타임어택 시간 설정 (관리자 허브용)
+window.openTimeSetting = async function() {
+    document.getElementById('admin-hub-overlay').style.display = 'none';
+    const times = prompt("오늘 버튼이 뜰 시간 3개를 적어줘! (쉼표구분)", "11:30, 15:45, 22:00");
+    if (times) {
+        await setDoc(doc(window.db, "settings", "attack_times"), { times: times.split(',') });
+        alert("타임어택 설정 완료! ⚡");
+    }
+    document.getElementById('admin-hub-overlay').style.display = 'flex';
+};
+    
+
 // 💌 오늘의 한마디 저장 (나우의 긴급 수리 ⚡)
 window.saveSpecialFortune = async function() {
     const textInput = document.getElementById('special-fortune-input');
@@ -2772,6 +2794,43 @@ onSnapshot(doc(window.db, "settings", "date_mission"), (snap) => {
         updateDdayMissionUI();
     }
 });
+
+    // 1. 오늘의 랜덤 시간 생성 (예: 오전 1회, 오후 1회, 저녁 1회)
+// 팀장님이 직접 관리자 페이지에서 시간을 입력해두는 방식이 더 서프라이즈하기 좋습니다!
+let attackTimes = ["11:30", "15:45", "22:10"]; // 예시 시간
+
+// 2. 1초마다 체크하는 타이머
+setInterval(() => {
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const btn = document.getElementById('time-attack-btn');
+
+    if (attackTimes.includes(currentTime)) {
+        // 정해진 시간이면 버튼 표시 (1분간 유지)
+        btn.style.display = 'block';
+    } else {
+        btn.style.display = 'none';
+    }
+}, 1000);
+
+// 3. 아이템 수집 함수
+window.collectItem = async function() {
+    const btn = document.getElementById('time-attack-btn');
+    btn.style.display = 'none'; // 누르면 즉시 사라짐
+
+    // 랜덤 아이템 선정 (아이콘 리스트)
+    const items = ["🧸", "🍭", "🌸", "👑", "💎", "🎀", "⭐", "🦄"];
+    const picked = items[Math.floor(Math.random() * items.length)];
+
+    // 파이어베이스 저장 (사용자별 컬렉션)
+    const user = "유미"; // 혹은 현재 로그인 유저
+    await setDoc(doc(window.db, "collections", picked), {
+        owner: user,
+        collectedAt: serverTimestamp()
+    }, { merge: true });
+
+    alert(`✨ 축하해! ✨\n\n새로운 상징 [ ${picked} ] 을(를) 획득했어!\n도감에서 확인해봐!`);
+};
     
 </script>       
 </body>
