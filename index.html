@@ -2531,51 +2531,46 @@ window.openDdayEditor = async function() {
 window.openTimeSetting = async function() {
     document.getElementById('admin-hub-overlay').style.display = 'none';
     
-    // 현재 설정된 시간들을 미리 보여줍니다.
     const currentTimes = attackTimes.join(", ");
     const times = prompt("오늘 버튼이 뜰 시간들을 적어줘! (24시간제, 쉼표구분)\n예: 11:30, 15:45, 22:00", currentTimes);
     
     if (times) {
         try {
-            const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-            // 입력받은 문자열을 배열로 변환 (공백 제거)
             const timeArray = times.split(',').map(t => t.trim());
-            
+            // 이미 위쪽에서 선언된 doc, setDoc을 그대로 사용합니다.
             await setDoc(doc(window.db, "settings", "attack_times"), { times: timeArray });
             alert("타임어택 예약 완료! 유미가 깜짝 놀라겠네요 ⚡");
         } catch (e) {
             console.error("시간 설정 저장 에러:", e);
-            alert("저장에 실패했습니다. 😭");
         }
     }
     document.getElementById('admin-hub-overlay').style.display = 'flex';
 };
 
-// 🛰️ 2. 파이어베이스 실시간 감시 (이게 있어야 팀장님이 수정하면 유미 화면에도 바로 반영돼요!)
-let attackTimes = []; // 전역 변수로 관리
-const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+// 🛰️ 2. 파이어베이스 실시간 감시 (전역 변수 활용)
+let attackTimes = []; 
 
+// 이미 상단에 doc, onSnapshot이 import 되어 있다면 아래처럼 바로 사용하세요.
+// 만약 안 되어 있다면 파일 가장 맨 윗줄의 import 문에 doc, onSnapshot을 추가하세요!
 onSnapshot(doc(window.db, "settings", "attack_times"), (snap) => {
     if (snap.exists()) {
         attackTimes = snap.data().times;
-        console.log("새로운 타임어택 시간 로드 완료:", attackTimes);
+        console.log("새로운 타임어택 시간 로드:", attackTimes);
     }
 });
 
 // 🕵️ 3. 상시 감시 타이머 (1초마다 체크)
 setInterval(() => {
     const now = new Date();
-    // 현재 시간을 "HH:mm" 포맷으로 생성
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     const btn = document.getElementById('time-attack-btn');
     
     if (!btn) return;
 
-    // 만약 현재 시간이 팀장님이 정한 시간 리스트에 들어있다면?
     if (attackTimes.includes(currentTime)) {
-        btn.style.display = 'block'; // 버튼 등장! (딱 1분간 노출)
+        btn.style.display = 'block'; 
     } else {
-        btn.style.display = 'none'; // 그 외 시간엔 철저히 숨김
+        btn.style.display = 'none'; 
     }
 }, 1000);
     
