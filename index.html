@@ -574,6 +574,21 @@
         🛌 여기어때
     </button>
 
+        <button class="confirm-btn" onclick="openCollection()" style="width:100%; height:55px; background:#e8f4fd; color:#3498db; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px;">
+    💎 아카이브
+</button>
+
+<div id="collection-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:7000; align-items:center; justify-content:center; backdrop-filter:blur(10px);">
+    <div style="background:#111; width:90%; max-width:350px; padding:30px 20px; border-radius:25px; text-align:center; border:1px solid #333;">
+        <div style="color:#3498db; font-weight:900; font-size:1.2rem; margin-bottom:20px; letter-spacing:2px;">COLLECTION</div>
+        
+        <div id="collection-grid" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-bottom:25px; padding:5px; max-height:400px; overflow-y:auto;">
+    </div>
+
+        <button onclick="document.getElementById('collection-overlay').style.display='none'" style="width:100%; padding:15px; background:#222; border:none; border-radius:12px; color:#666; font-weight:bold; cursor:pointer;">닫기</button>
+    </div>
+</div>
+
         <button id="dday-mission-btn" class="confirm-btn" onclick="handleDdayMission()" 
     style="width:100%; height:55px; background:#fff0f3; color:#ff8fab; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;">
     <span id="dday-mission-text">데이트 기다리는 중.. 💌</span>
@@ -2830,6 +2845,83 @@ window.collectItem = async function() {
     }, { merge: true });
 
     alert(`✨ 축하해! ✨\n\n새로운 상징 [ ${picked} ] 을(를) 획득했어!\n도감에서 확인해봐!`);
+};
+
+    // 💎 고미 컬렉션 30개 데이터 세트
+const collectionData = {
+    "🧸": "곰탱이: 언제나 유미 편이야!",
+    "🍭": "달콤한 사탕: 기분 안 좋을 땐 당 충전!",
+    "🌸": "벚꽃: 우리 함께 앉아있던 봄날 생각나?",
+    "👑": "왕관: 유미는 언제나 내 마음속 여왕님!",
+    "💎": "다이아: 변치 않는 우리 사이!",
+    "🎀": "리본: 선물 같은 유미가 내게 왔네.",
+    "⭐": "별: 밤하늘에 반짝이는 별똥별 기억나?!",
+    "🦄": "유니콘: 꿈처럼 신비로운 우리 사랑.",
+    "🍦": "아이스크림: 사르르 녹는 달콤한 하루!",
+    "🍎": "사과: 상큼한 유미 미소에 비타민 충전!",
+    "🎈": "풍선: 마음이 둥둥 뜨는 행복한 데이트!",
+    "🍀": "네잎클로버: 유미를 만난 게 내 최고의 행운!",
+    "🌙": "초승달: 잠들기 전 유미 생각 한 스푼.",
+    "🚀": "로켓: 우리 행복, 우주 끝까지 가보자!",
+    "🐳": "고래: 넓은 바다처럼 깊은 내 마음.",
+    "🎸": "기타: 유미를 위한 세레나데 연주 중!",
+    "🎨": "팔레트: 유미와 그리는 다채로운 추억.",
+    "🍰": "조각케이크: 달콤한 디저트 데이트 어때?",
+    "🥑": "아보카도: 건강하고 든든한 우리 사랑!",
+    "🎡": "관람차: 우리만의 로맨틱한 순간.",
+    "💌": "편지: 말로 다 못할 만큼 사랑해.",
+    "📸": "카메라: 유미의 모든 순간을 담고 싶어.",
+    "🥂": "짠!: 오늘도 수고한 우리를 위해!",
+    "🏰": "성: 유미를 지키는 든든한 성벽이 될게.",
+    "🥨": "프레첼: 꼬인 일도 유미랑 있으면 술술!",
+    "🐚": "조개껍데기: 바다 냄새 나는 여행 가고 싶다!",
+    "🪐": "토성: 나만의 행성, 유미 전용이야.",
+    "🌻": "해바라기: 오직 유미만 바라보는 해바라기!",
+    "🎮": "게임기: 같이 게임 한 판? 져줄게!",
+    "🌋": "화산: 유미를 향한 내 마음은 열정 폭발!"
+};
+    window.openCollection = async function() {
+    const grid = document.getElementById('collection-grid');
+    if (!grid) return;
+    grid.innerHTML = ""; 
+
+    try {
+        const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        const querySnapshot = await getDocs(collection(window.db, "collections"));
+        const ownedItems = [];
+        querySnapshot.forEach((doc) => ownedItems.push(doc.id));
+
+        // 30개 아이템 생성
+        Object.entries(collectionData).forEach(([icon, message]) => {
+            const itemBox = document.createElement('div');
+            const isOwned = ownedItems.includes(icon);
+            
+            itemBox.style.cssText = `
+                aspect-ratio: 1/1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.4rem;
+                background: ${isOwned ? '#1a1a1a' : '#050505'};
+                border-radius: 12px;
+                border: 1px solid ${isOwned ? '#3498db' : '#111'};
+                filter: ${isOwned ? 'none' : 'grayscale(1) opacity(0.2)'};
+                cursor: ${isOwned ? 'pointer' : 'default'};
+            `;
+            
+            itemBox.innerText = isOwned ? icon : "?";
+
+            // 획득한 아이템 클릭 시 팝업!
+            if (isOwned) {
+                itemBox.onclick = () => alert(`✨ [${icon}] 컬렉션 정보 ✨\n\n${message}`);
+                itemBox.style.boxShadow = "0 0 10px rgba(52,152,219,0.2)";
+            }
+            
+            grid.appendChild(itemBox);
+        });
+
+        document.getElementById('collection-overlay').style.display = 'flex';
+    } catch (e) { console.error(e); }
 };
     
 </script>       
