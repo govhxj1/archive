@@ -2540,23 +2540,30 @@ window.openDdayEditor = async function() {
 window.attackTimes = window.attackTimes || [];
 
 // ⏰ 2. 타임어택 시간 설정 (관리자 허브용)
+// ⏰ 타임어택 시간 설정 (Prompt 창 띄우기)
 window.openTimeSetting = async function() {
+    // 1. 관리자 메인 메뉴 숨기기
     document.getElementById('admin-hub-overlay').style.display = 'none';
     
-    const currentTimes = window.attackTimes.join(", ");
+    // 2. 현재 설정된 시간 리스트를 힌트로 보여주기
+    const currentTimes = (window.attackTimes || []).join(", ");
     const times = prompt("오늘 버튼이 뜰 시간들을 적어줘! (24시간제, 쉼표구분)\n예: 11:30, 15:45, 22:00", currentTimes);
     
-    if (times) {
+    if (times !== null) { // '취소'를 누르지 않았을 때만 실행
         try {
-            const timeArray = times.split(',').map(t => t.trim());
-            // 파일 상단에 이미 있는 doc, setDoc을 편하게 바로 사용합니다.
+            const timeArray = times.split(',').map(t => t.trim()).filter(t => t !== "");
+            
+            // 3. 파이어베이스에 즉시 저장
+            const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
             await setDoc(doc(window.db, "settings", "attack_times"), { times: timeArray });
-            alert("타임어택 예약 완료! 유미가 깜짝 놀라겠네요 ⚡");
+            
+            alert("타임어택 예약 완료! ⚡ 유미 모르게 잘 숨겨둘게요.");
         } catch (e) {
             console.error("저장 에러:", e);
             alert("저장에 실패했습니다. 😭");
         }
     }
+    // 4. 다시 관리자 메뉴 보여주기
     document.getElementById('admin-hub-overlay').style.display = 'flex';
 };
 
