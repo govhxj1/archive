@@ -2904,6 +2904,10 @@ const collectionData = {
     "🌋": "화산: 유미를 향한 내 마음은 열정 폭발!"
 };
     window.openCollection = async function() {
+    // 1. [핵심] 뒤에 남아있는 비밀 메뉴 창 숨기기!
+    const sideMenu = document.getElementById('side-menu');
+    if (sideMenu) sideMenu.style.display = 'none';
+
     const grid = document.getElementById('collection-grid');
     if (!grid) return;
     grid.innerHTML = ""; 
@@ -2914,37 +2918,40 @@ const collectionData = {
         const ownedItems = [];
         querySnapshot.forEach((doc) => ownedItems.push(doc.id));
 
-        // 30개 아이템 생성
+        // 30개 아이템 생성 (도서관 나무 컨셉 스타일 적용)
         Object.entries(collectionData).forEach(([icon, message]) => {
             const itemBox = document.createElement('div');
             const isOwned = ownedItems.includes(icon);
             
+            // 🎨 책장 칸 디자인: 얻은 건 밝은 종이색, 못 얻은 건 빈 나무칸 색
             itemBox.style.cssText = `
                 aspect-ratio: 1/1;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-size: 1.4rem;
-                background: ${isOwned ? '#1a1a1a' : '#050505'};
-                border-radius: 12px;
-                border: 1px solid ${isOwned ? '#3498db' : '#111'};
-                filter: ${isOwned ? 'none' : 'grayscale(1) opacity(0.2)'};
+                background: ${isOwned ? '#FFF8E1' : '#3E2723'}; 
+                border-radius: 8px;
+                border: 2px solid ${isOwned ? '#FFB300' : '#2D1A11'};
+                filter: ${isOwned ? 'none' : 'grayscale(1) opacity(0.4)'};
                 cursor: ${isOwned ? 'pointer' : 'default'};
+                box-shadow: ${isOwned ? 'inset 0 0 10px rgba(255,179,0,0.2), 0 2px 4px rgba(0,0,0,0.3)' : 'inset 0 0 5px rgba(0,0,0,0.5)'};
             `;
             
             itemBox.innerText = isOwned ? icon : "?";
 
-            // 획득한 아이템 클릭 시 팝업!
+            // 획득한 아이템 클릭 시 팝업
             if (isOwned) {
-                itemBox.onclick = () => alert(`✨ [${icon}] 컬렉션 정보 ✨\n\n${message}`);
-                itemBox.style.boxShadow = "0 0 10px rgba(52,152,219,0.2)";
+                itemBox.onclick = () => alert(`📖 [${icon}] 도감 기록 📖\n\n${message}`);
             }
             
             grid.appendChild(itemBox);
         });
 
         document.getElementById('collection-overlay').style.display = 'flex';
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error("도감 로드 에러:", e); 
+    }
 };
     
 </script>       
