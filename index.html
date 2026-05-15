@@ -2527,39 +2527,42 @@ window.openDdayEditor = async function() {
     }
 };
 
-    // ⏰ 1. 타임어택 시간 설정 (관리자 허브용)
+    // 1. [체크] 이 선언문이 코드 어딘가에 이미 있다면, 아래 한 줄은 지우세요!
+// 만약 없다면 이대로 두시면 됩니다.
+if (typeof attackTimes === 'undefined') {
+    window.attackTimes = []; 
+}
+
+// ⏰ 2. 타임어택 시간 설정 (함수 앞의 let/const를 빼고 이름만 사용)
 window.openTimeSetting = async function() {
     document.getElementById('admin-hub-overlay').style.display = 'none';
     
-    const currentTimes = attackTimes.join(", ");
+    // 전역 변수 attackTimes를 그대로 사용
+    const currentTimes = (window.attackTimes || []).join(", ");
     const times = prompt("오늘 버튼이 뜰 시간들을 적어줘! (24시간제, 쉼표구분)\n예: 11:30, 15:45, 22:00", currentTimes);
     
     if (times) {
         try {
             const timeArray = times.split(',').map(t => t.trim());
-            // 이미 위쪽에서 선언된 doc, setDoc을 그대로 사용합니다.
+            // 상단에 선언된 doc, setDoc 사용
             await setDoc(doc(window.db, "settings", "attack_times"), { times: timeArray });
-            alert("타임어택 예약 완료! 유미가 깜짝 놀라겠네요 ⚡");
+            alert("타임어택 예약 완료! ⚡");
         } catch (e) {
-            console.error("시간 설정 저장 에러:", e);
+            console.error("저장 에러:", e);
         }
     }
     document.getElementById('admin-hub-overlay').style.display = 'flex';
 };
 
-// 🛰️ 2. 파이어베이스 실시간 감시 (전역 변수 활용)
-let attackTimes = []; 
-
-// 이미 상단에 doc, onSnapshot이 import 되어 있다면 아래처럼 바로 사용하세요.
-// 만약 안 되어 있다면 파일 가장 맨 윗줄의 import 문에 doc, onSnapshot을 추가하세요!
+// 🛰️ 3. 실시간 감시 로직 (이미 선언된 변수에 값만 할당)
 onSnapshot(doc(window.db, "settings", "attack_times"), (snap) => {
     if (snap.exists()) {
-        attackTimes = snap.data().times;
-        console.log("새로운 타임어택 시간 로드:", attackTimes);
+        window.attackTimes = snap.data().times;
+        console.log("타임어택 시간 로드 완료:", window.attackTimes);
     }
 });
 
-// 🕵️ 3. 상시 감시 타이머 (1초마다 체크)
+// 🕵️ 4. 상시 감시 타이머
 setInterval(() => {
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -2567,7 +2570,8 @@ setInterval(() => {
     
     if (!btn) return;
 
-    if (attackTimes.includes(currentTime)) {
+    // window.attackTimes에 현재 시간이 포함되어 있는지 확인
+    if (window.attackTimes && window.attackTimes.includes(currentTime)) {
         btn.style.display = 'block'; 
     } else {
         btn.style.display = 'none'; 
