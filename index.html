@@ -2527,42 +2527,39 @@ window.openDdayEditor = async function() {
     }
 };
 
-    // 1. [체크] 이 선언문이 코드 어딘가에 이미 있다면, 아래 한 줄은 지우세요!
-// 만약 없다면 이대로 두시면 됩니다.
-if (typeof attackTimes === 'undefined') {
-    window.attackTimes = []; 
-}
+    // ⏰ 1. 타임어택 전역 변수 초기화 (에러 방지)
+window.attackTimes = window.attackTimes || [];
 
-// ⏰ 2. 타임어택 시간 설정 (함수 앞의 let/const를 빼고 이름만 사용)
+// ⏰ 2. 타임어택 시간 설정 (관리자 허브용)
 window.openTimeSetting = async function() {
     document.getElementById('admin-hub-overlay').style.display = 'none';
     
-    // 전역 변수 attackTimes를 그대로 사용
-    const currentTimes = (window.attackTimes || []).join(", ");
+    const currentTimes = window.attackTimes.join(", ");
     const times = prompt("오늘 버튼이 뜰 시간들을 적어줘! (24시간제, 쉼표구분)\n예: 11:30, 15:45, 22:00", currentTimes);
     
     if (times) {
         try {
             const timeArray = times.split(',').map(t => t.trim());
-            // 상단에 선언된 doc, setDoc 사용
+            // 파일 상단에 이미 있는 doc, setDoc을 편하게 바로 사용합니다.
             await setDoc(doc(window.db, "settings", "attack_times"), { times: timeArray });
-            alert("타임어택 예약 완료! ⚡");
+            alert("타임어택 예약 완료! 유미가 깜짝 놀라겠네요 ⚡");
         } catch (e) {
             console.error("저장 에러:", e);
+            alert("저장에 실패했습니다. 😭");
         }
     }
     document.getElementById('admin-hub-overlay').style.display = 'flex';
 };
 
-// 🛰️ 3. 실시간 감시 로직 (이미 선언된 변수에 값만 할당)
+// 🛰️ 3. 실시간 감시 로직
 onSnapshot(doc(window.db, "settings", "attack_times"), (snap) => {
     if (snap.exists()) {
-        window.attackTimes = snap.data().times;
+        window.attackTimes = snap.data().times || [];
         console.log("타임어택 시간 로드 완료:", window.attackTimes);
     }
 });
 
-// 🕵️ 4. 상시 감시 타이머
+// 🕵️ 4. 상시 감시 타이머 (1초마다 체크)
 setInterval(() => {
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -2570,8 +2567,7 @@ setInterval(() => {
     
     if (!btn) return;
 
-    // window.attackTimes에 현재 시간이 포함되어 있는지 확인
-    if (window.attackTimes && window.attackTimes.includes(currentTime)) {
+    if (window.attackTimes.includes(currentTime)) {
         btn.style.display = 'block'; 
     } else {
         btn.style.display = 'none'; 
@@ -2850,24 +2846,7 @@ onSnapshot(doc(window.db, "settings", "date_mission"), (snap) => {
     }
 });
 
-    // 1. 오늘의 랜덤 시간 생성 (예: 오전 1회, 오후 1회, 저녁 1회)
-// 팀장님이 직접 관리자 페이지에서 시간을 입력해두는 방식이 더 서프라이즈하기 좋습니다!
-let attackTimes = ["11:30", "15:45", "22:10"]; // 예시 시간
-
-// 2. 1초마다 체크하는 타이머
-setInterval(() => {
-    const now = new Date();
-    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const btn = document.getElementById('time-attack-btn');
-
-    if (attackTimes.includes(currentTime)) {
-        // 정해진 시간이면 버튼 표시 (1분간 유지)
-        btn.style.display = 'block';
-    } else {
-        btn.style.display = 'none';
-    }
-}, 1000);
-
+ 
 // 3. 아이템 수집 함수
 window.collectItem = async function() {
     const btn = document.getElementById('time-attack-btn');
