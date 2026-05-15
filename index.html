@@ -2897,7 +2897,14 @@ const collectionData = {
     "🎮": "게임기: 같이 게임 한 판? 져줄게!",
     "🌋": "화산: 유미를 향한 내 마음은 열정 폭발!"
 };
+    
    window.openCollection = async function() {
+    // 🪄 [마법의 1줄] 도감 상자가 비밀 메뉴 안에 갇혀있다면, 밖(body)으로 강제로 이사시킵니다!
+    const collectionOverlay = document.getElementById('collection-overlay');
+    if (collectionOverlay && collectionOverlay.parentNode.id === 'side-menu') {
+        document.body.appendChild(collectionOverlay);
+    }
+
     // 1. 뒤에 있는 메뉴와 배경 블러(overlay)부터 확실히 닫기
     const sideMenu = document.getElementById('side-menu');
     const mainOverlay = document.getElementById('overlay');
@@ -2905,11 +2912,10 @@ const collectionData = {
     if (mainOverlay) mainOverlay.style.display = 'none';
 
     // 2. 도감 상자부터 먼저 띄우기 (사용자 대기 방지 ⚡)
-    const collectionOverlay = document.getElementById('collection-overlay');
     const grid = document.getElementById('collection-grid');
     
     if (collectionOverlay) collectionOverlay.style.display = 'flex';
-    if (grid) grid.innerHTML = '<div style="grid-column: span 5; color:#D7CCC8; padding:20px;">책장에서 기록을 꺼내오는 중... 📖</div>';
+    if (grid) grid.innerHTML = '<div style="grid-column: span 5; color:#D7CCC8; padding:20px; font-weight:bold;">책장에서 기록을 꺼내오는 중... 📖</div>';
 
     try {
         // 3. 파이어베이스 데이터 가져오기
