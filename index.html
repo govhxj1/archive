@@ -578,14 +578,18 @@
     💎 아카이브
 </button>
 
-<div id="collection-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:7000; align-items:center; justify-content:center; backdrop-filter:blur(10px);">
-    <div style="background:#111; width:90%; max-width:350px; padding:30px 20px; border-radius:25px; text-align:center; border:1px solid #333;">
-        <div style="color:#3498db; font-weight:900; font-size:1.2rem; margin-bottom:20px; letter-spacing:2px;">COLLECTION</div>
+<div id="collection-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:7000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+    <div style="background:#5D4037; width:90%; max-width:360px; padding:30px 20px; border-radius:15px; text-align:center; border:4px solid #3E2723; box-shadow: 0 15px 30px rgba(0,0,0,0.5);">
         
-        <div id="collection-grid" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-bottom:25px; padding:5px; max-height:400px; overflow-y:auto;">
-    </div>
+        <div style="color:#FFD54F; font-weight:900; font-size:1.3rem; margin-bottom:5px; letter-spacing:2px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">📖 GOMI'S LIBRARY 📖</div>
+        <div style="color:#D7CCC8; font-size:0.8rem; margin-bottom:20px;">우리의 소중한 상징 도감</div>
+        
+        <div id="collection-grid" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-bottom:25px; padding:15px; max-height:400px; overflow-y:auto; background:#4E342E; border-radius:10px; border:inset 3px #3E2723;">
+            </div>
 
-        <button onclick="document.getElementById('collection-overlay').style.display='none'" style="width:100%; padding:15px; background:#222; border:none; border-radius:12px; color:#666; font-weight:bold; cursor:pointer;">닫기</button>
+        <button onclick="document.getElementById('collection-overlay').style.display='none'" style="width:100%; padding:15px; background:#8D6E63; border:2px solid #3E2723; border-radius:10px; color:#FFF; font-weight:900; font-size:1rem; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            책장 닫기
+        </button>
     </div>
 </div>
 
@@ -933,6 +937,9 @@
     <span style="font-size:30px;">🎁</span>
 </button>
 
+    <button class="confirm-btn" onclick="openCollection()" style="width:100%; height:55px; background:#e8f4fd; color:#3498db; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+    💎 고미 컬렉션 도감
+</button>
     
 <!-- 🔑 거니 전용 관리자 센터 -->
 <div id="admin-hub-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6001; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
