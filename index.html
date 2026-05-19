@@ -1065,7 +1065,7 @@
 // [1] 파이어베이스 라이브러리 로드 (🔥 가장 맨 위에 있어야 에러가 안 납니다!)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, collection, , serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // [2] 전역 변수 및 데이터 설정
 const firebaseConfig = {
@@ -2153,29 +2153,33 @@ window.showRandomQuestion = function() {
 
     document.getElementById('question-content').innerText = selectedQuestion;
 
-    onSnapshot(doc(db, "daily_answers", dateKey), (snap) => {
-        const d = snap.exists() ? snap.data() : {};
-        if (d.question) document.getElementById('question-content').innerText = d.question;
+        onSnapshot(doc(db, "daily_answers", dateKey), (snap) => {
+            const d = snap.exists() ? snap.data() : {};
+            if (d.question) document.getElementById('question-content').innerText = d.question;
 
-        if (isWeekend && (d.유미_old || d.거니_old)) {
-            weekendBox.style.display = 'block';
-            oldText.innerHTML = `
-                ${d.유미_old ? `<b>유미:</b> ${d.유미_old}<br>` : ''}
-                ${d.거니_old ? `<b>거니:</b> ${d.거니_old}` : ''}
-            `;
-        } else {
-            weekendBox.style.display = 'none';
-        }
+            // 🪄 [마법의 2줄] 주말에 꺼내온 과거 데이터를 언제든 쓸 수 있게 메모리에 박아둡니다!
+            window.yumiOldAnswer = d.유미_old || "";
+            window.goniOldAnswer = d.거니_old || "";
 
-        const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
-        if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
-        if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
-    });
+            if (isWeekend && (d.유미_old || d.거니_old)) {
+                weekendBox.style.display = 'block';
+                oldText.innerHTML = `
+                    ${d.유미_old ? `<b>유미:</b> ${d.유미_old}<br>` : ''}
+                    ${d.거니_old ? `<b>거니:</b> ${d.거니_old}` : ''}
+                `;
+            } else {
+                weekendBox.style.display = 'none';
+            }
 
-    document.getElementById('q-input-area').style.display = 'none'; 
-    document.getElementById('writer-selector').style.display = 'flex'; 
-    document.getElementById('question-overlay').style.display = 'flex';
-};
+            const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
+            if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
+            if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
+        });
+
+        document.getElementById('q-input-area').style.display = 'none'; 
+        document.getElementById('writer-selector').style.display = 'flex'; 
+        document.getElementById('question-overlay').style.display = 'flex';
+    };
 
 window.openInput = (name) => { 
     currentWriter = name; 
