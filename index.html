@@ -2185,8 +2185,27 @@ window.openInput = (name) => {
     currentWriter = name; 
     document.getElementById('writer-selector').style.display = 'none'; 
     document.getElementById('q-input-area').style.display = 'flex'; 
-    document.getElementById('q-answer-input').placeholder = name + "의 고민시간..."; 
-    document.getElementById('q-answer-input').focus(); 
+    
+    const inputTextArea = document.getElementById('q-answer-input');
+    inputTextArea.placeholder = name + "의 고민시간..."; 
+    
+    // 🪄 [핵심 기능] 주말이고, 과거에 썼던 답변이 존재한다면 입력창에 자동으로 채워줍니다!
+    const today = new Date();
+    const isWeekend = (today.getDay() === 0 || today.getDay() === 6);
+
+    if (isWeekend) {
+        if (name === '유미' && window.yumiOldAnswer) {
+            inputTextArea.value = window.yumiOldAnswer;
+        } else if (name === '거니' && window.goniOldAnswer) {
+            inputTextArea.value = window.goniOldAnswer;
+        } else {
+            inputTextArea.value = ""; // 과거 기록 없으면 깔끔하게 비우기
+        }
+    } else {
+        inputTextArea.value = ""; // 평일에는 무조건 빈 창으로 시작
+    }
+
+    inputTextArea.focus(); 
 };
 
 window.submitDailyAnswer = async () => {
