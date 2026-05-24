@@ -2122,7 +2122,7 @@ function renderMapPath(pathData, drawLine = true) {
 window.showRandomQuestion = function() {
     const today = new Date();
     const dayOfWeek = today.getDay(); 
-    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6 || dayOfWeek === 1);
     const dateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     
     // 🪄 [수정] 랜덤질문이 켜지기 전에 뒤에 있는 비밀 메뉴 닫기!
@@ -2198,7 +2198,7 @@ window.openInput = (name) => {
     
     // 🪄 [핵심 기능] 주말이고, 과거에 썼던 답변이 존재한다면 입력창에 자동으로 채워줍니다!
     const today = new Date();
-    const isWeekend = (today.getDay() === 0 || today.getDay() === 6);
+    const isWeekend = (today.getDay() === 0 || today.getDay() === 6 || today.getDay() === 1);
 
     if (isWeekend) {
         if (name === '유미' && window.yumiOldAnswer) {
