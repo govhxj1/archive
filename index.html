@@ -2157,16 +2157,23 @@ window.showRandomQuestion = function() {
             const d = snap.exists() ? snap.data() : {};
             if (d.question) document.getElementById('question-content').innerText = d.question;
 
-            // 🪄 [마법의 2줄] 주말에 꺼내온 과거 데이터를 언제든 쓸 수 있게 메모리에 박아둡니다!
-            window.yumiOldAnswer = d.유미_old || "";
-            window.goniOldAnswer = d.거니_old || "";
-
+            // 1. 주말 과거 기록 상자 보여주기 로직
             if (isWeekend && (d.유미_old || d.거니_old)) {
                 weekendBox.style.display = 'block';
                 oldText.innerHTML = `
                     ${d.유미_old ? `<b>유미:</b> ${d.유미_old}<br>` : ''}
                     ${d.거니_old ? `<b>거니:</b> ${d.거니_old}` : ''}
                 `;
+
+                // 🪄 [강제 주입 마법] 주말이고 과거 기록이 있다면, 작성 창에 미리 글을 채워둡니다!
+                const inputTextArea = document.getElementById('q-answer-input');
+                if (inputTextArea) {
+                    // 유미 전용 앱이라면 d.유미_old를, 거니 전용 앱이라면 d.거니_old를 넣도록 분기 처리해도 좋습니다.
+                    // 우선은 유미님이 작성할 때 바로 볼 수 있도록 d.유미_old를 기본으로 셋팅해 둡니다!
+                    if (d.유미_old && (!inputTextArea.value || inputTextArea.value === "오늘의 생각을 적어줘! ✨")) {
+                        inputTextArea.value = d.유미_old;
+                    }
+                }
             } else {
                 weekendBox.style.display = 'none';
             }
