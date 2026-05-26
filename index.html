@@ -2124,10 +2124,10 @@ function renderMapPath(pathData, drawLine = true) {
                     window.showRandomQuestion = function() {
     const today = new Date();
     
-    // 🔒 오늘 날짜 키
+    // 🔒 오늘 날짜 키 포맷 일치시키기 (0 빼기: 예 2026-5-26)
     const todayDateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
 
-    // 🎲 2026-4-1 ~ 2026-4-30 중 무작위 날짜 하나 뽑기 (4월 추억 소환)
+    // 🎲 [매칭 핵심] 4월의 무작위 날짜 키 생성 (파이어베이스 주소와 똑같이 '2026-4-X' 형태로 고정)
     const randomDay = Math.floor(Math.random() * 30) + 1; 
     const targetPastDateKey = `2026-4-${randomDay}`; 
 
@@ -2137,8 +2137,7 @@ function renderMapPath(pathData, drawLine = true) {
     const oldText = document.getElementById('old-text');
     const questionContent = document.getElementById('question-content');
 
-    // ⚡ [해결 1] 다른 순정 스크립트들이 타이틀을 '오늘의 질문'으로 덮어쓰지 못하도록 
-    // 비동기 타이머(setTimeout)를 써서 가장 마지막에 타이틀을 타임머신으로 강제 고정합니다!
+    // ⚡ 타이틀 덮어쓰기 방어막 (0.03초 뒤 타임머신 제목 강제 고정)
     setTimeout(() => {
         const mTitle = document.getElementById('modal-title');
         const sBtn = document.getElementById('submit-thought-btn');
@@ -2151,23 +2150,22 @@ function renderMapPath(pathData, drawLine = true) {
         }
     }, 30);
 
-    // 🛰️ [파이어베이스 실시간 감시] 4월의 무작위 날짜 문서를 똑똑 두드립니다.
+    // 🛰️ [파이어베이스 실시간 감시] '2026-4-X' 주소로 정확하게 조준 사격!
     onSnapshot(doc(db, "daily_answers", targetPastDateKey), (pastSnap) => {
         if (!pastSnap.exists()) {
-            if (questionContent) questionContent.innerText = `4월 ${randomDay}일에는 등록된 질문이 없어요! 😭 (다시 새로고침 해주세요)`;
+            if (questionContent) questionContent.innerText = `4월 ${randomDay}일에는 등록된 질문이 없어요! 😭 (다시 눌러서 다른 날짜 소환하기)`;
             if (weekendBox) weekendBox.style.display = 'none';
             return;
         }
 
         const pastData = pastSnap.data(); 
 
-        // 1. 4월 질문 소환
+        // 1. 4월의 진짜 리얼 질문 화면에 바인딩
         if (questionContent && pastData.question) {
             questionContent.innerText = pastData.question;
         }
 
-        // ⚡ [해결 2] 필드명 매칭 수정! 
-        // 4월 파이어베이스 스크린샷 기준 순정 필드명인 'pastData.유미', 'pastData.거니'를 직접 매칭합니다!
+        // 2. 4월 스크린샷 기준 순정 필드명인 '유미', '거니' 매칭 완료!
         if (pastData.유미 || pastData.거니) {
             if (weekendBox) weekendBox.style.display = 'block';
             if (oldText) {
@@ -2177,7 +2175,7 @@ function renderMapPath(pathData, drawLine = true) {
                 `;
             }
 
-            // 입력창(textarea)에 유미의 4월 답변을 최초 1회 자동으로 셋팅
+            // 입력창(textarea)에 유미의 4월 답변 자동 대입
             const inputTextArea = document.getElementById('q-answer-input');
             if (inputTextArea && pastData.유미) {
                 if (!inputTextArea.value || inputTextArea.value === "오늘의 생각을 적어줘! ✨") {
@@ -2187,18 +2185,9 @@ function renderMapPath(pathData, drawLine = true) {
         } else {
             if (weekendBox) weekendBox.style.display = 'none';
         }
-        
-        // 실시간 감시 도중에도 타이틀이 변하지 않도록 한 번 더 방어막
-        setTimeout(() => {
-            const mTitle = document.getElementById('modal-title');
-            if (mTitle) {
-                mTitle.innerText = "🕰️ 생각의 타임머신";
-                mTitle.style.color = "#ffde59";
-            }
-        }, 30);
     });
 
-    // 현재 작성된 답변 실시간 반영 영역 (오늘 날짜의 답변을 띄워주는 곳)
+    // 🛰️ 오늘 새로 쓸 답변 영역 실시간 반영 (오늘 날짜도 포맷을 2026-5-26 형태로 똑같이 맞췄습니다)
     onSnapshot(doc(db, "daily_answers", todayDateKey), (todaySnap) => {
         const d = todaySnap.exists() ? todaySnap.data() : {};
         const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
@@ -2212,10 +2201,9 @@ function renderMapPath(pathData, drawLine = true) {
     if (document.getElementById('writer-selector')) document.getElementById('writer-selector').style.display = 'flex'; 
     if (document.getElementById('question-overlay')) document.getElementById('question-overlay').style.display = 'flex';
 
-    // 저장 함수와 연동할 전역 명찰 세팅
+    // 저장 함수와 공유할 전역 주소 명찰 배정
     window.currentPastDateKey = targetPastDateKey; 
 };
-
     
 
 window.openInput = (name) => { 
