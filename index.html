@@ -2128,8 +2128,7 @@ function renderMapPath(pathData, drawLine = true) {
     
                     window.showRandomQuestion = function() {
     const today = new Date();
-    // 🔒 오늘 날짜 키 (예: "2026-5-26")
-    const todayDateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    const currentDay = today.getDay(); // 0(일) ~ 6(토) 구하기
 
     const modalTitle = document.getElementById('q-modal-title');
     const submitBtn = document.getElementById('q-submit-btn');
@@ -2137,62 +2136,78 @@ function renderMapPath(pathData, drawLine = true) {
     const oldText = document.getElementById('old-answers-text');     
     const questionContent = document.getElementById('question-content');
 
-    // 타이틀 강제 고정
+    // 🚨 [요일 제어] 화요일(2)과 토요일(6)이 아니라면? 평일 순정 모드로 유턴!!
+    if (currentDay !== 2 && currentDay !== 6) {
+        console.log("📅 평일 모드: 순정 오늘의 질문으로 진입합니다.");
+        
+        if (modalTitle) {
+            modalTitle.innerText = "📅 오늘의 질문";
+            modalTitle.style.color = "#ffb7c5"; // 원조 핑크색
+        }
+        if (submitBtn) {
+            submitBtn.innerText = "기록 완료 ✨";
+        }
+        if (weekendBox) {
+            weekendBox.style.display = 'none'; // 귀여운 노랑 타임머신 상자 숨기기
+        }
+        
+        // 평일용 껍데기 오픈! (원래 파이어베이스 평일 실시간 리스너가 질문을 채워줄 겁니다)
+        if (document.getElementById('question-overlay')) {
+            document.getElementById('question-overlay').style.display = 'flex';
+        }
+        return; // ⛔ 평일은 여기서 끝! 아래 타임머신 코드로 못 내려가게 막습니다.
+    }
+
+    // =================================================================
+    // 🕰️ 여기서부터는 오직 [화요일, 토요일]에만 작동하는 타임머신 영역!
+    // =================================================================
+    console.log("🕰️ 타임머신 가동: 4월의 추억을 소환합니다.");
+
     if (modalTitle) {
         modalTitle.innerText = "🕰️ 생각의 타임머신";
-        modalTitle.style.color = "#ffde59"; 
+        modalTitle.style.color = "#ffde59"; // 노란색 고정
     }
     if (submitBtn) {
         submitBtn.innerText = "과거 생각 업데이트하기 ✨";
     }
 
-    // 🪄 [하루 고정 수첩] 오늘 이미 결정된 타임머신 주소가 있는지 확인
+    setTimeout(() => {
+        if (modalTitle) {
+            modalTitle.innerText = "🕰️ 생각의 타임머신";
+            modalTitle.style.color = "#ffde59";
+        }
+    }, 50);
+
+    const todayDateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     const savedPastKeyName = `time_machine_target_${todayDateKey}`; 
     let targetPastDateKey = localStorage.getItem(savedPastKeyName);
 
-    // 🚨 [핵심 수정] 오늘 처음 켜서 새로 날짜를 뽑아야 하는 상황이라면? (중복 체크 발동!)
+    // 🪄 [하루 고정 + 중복 방지 수첩 가동]
     if (!targetPastDateKey) {
-        // 이미 유미님과 방문했던 과거 날짜 목록을 수첩에서 꺼내옵니다.
         let visitedDates = JSON.parse(localStorage.getItem('visited_past_dates')) || [];
-        
-        // 아직 방문하지 않은 '남은 4월 날짜들'만 골라서 바구니에 담습니다.
         let availableDays = [];
         for (let i = 1; i <= 30; i++) {
             const checkKey = `2026-4-${i}`;
-            if (!visitedDates.includes(checkKey)) {
-                availableDays.push(checkKey);
-            }
+            if (!visitedDates.includes(checkKey)) availableDays.push(checkKey);
         }
 
-        // 💡 만약 4월 30일치를 전부 다 방문해서 더 이상 남은 날짜가 없다면? 
-        // 자동으로 수첩을 깨끗하게 리셋하고 다시 4월 1일부터 처음부터 시작하게 만듭니다!
         if (availableDays.length === 0) {
-            console.log("🎉 4월의 모든 추억 여행 완료! 중복 장부를 리셋합니다.");
             visitedDates = [];
-            for (let i = 1; i <= 30; i++) {
-                availableDays.push(`2026-4-${i}`);
-            }
+            for (let i = 1; i <= 30; i++) availableDays.push(`2026-4-${i}`);
         }
 
-        // 🎲 남은 날짜 바구니(availableDays) 속에서만 무작위로 하나 추출! (100% 중복 방지)
         const randomIdx = Math.floor(Math.random() * availableDays.length);
         targetPastDateKey = availableDays[randomIdx];
 
-        // 방금 뽑힌 새로운 주소를 '방문 완료 리스트'에 추가하고 수첩에 저장합니다.
         visitedDates.push(targetPastDateKey);
         localStorage.setItem('visited_past_dates', JSON.stringify(visitedDates));
-
-        // 오늘 하루 동안은 이 날짜로 고정하도록 세팅!
         localStorage.setItem(savedPastKeyName, targetPastDateKey);
     }
 
-    console.log("🧭 [타임머신 가동] 오늘 고정 주소:", targetPastDateKey);
-    console.log("📚 [여정 기록] 지금까지 방문 완료한 4월 목록:", localStorage.getItem('visited_past_dates'));
-
-    // 🛰️ [파이어베이스 실시간 감시] 중복 없는 날짜로 저격 가동
+    // 🛰️ [파이어베이스 실시간 감시] 4월 과거 데이터 화면에 바인딩
     onSnapshot(doc(db, "daily_answers", targetPastDateKey), (pastSnap) => {
         if (!pastSnap.exists()) {
-            if (questionContent) questionContent.innerText = "오늘의 타임머신 통로가 비어있어요! 😭 (다른 날짜가 걸릴 수 있게 콘솔에서 리셋을 해볼까요?)";
+            if (questionContent) questionContent.innerText = "오늘의 타임머신 통로가 비어있어요! 😭";
             if (weekendBox) weekendBox.style.display = 'none';
             return;
         }
@@ -2203,6 +2218,7 @@ function renderMapPath(pathData, drawLine = true) {
             questionContent.innerText = pastData.question;
         }
 
+        // 귀여운 노란색 파스텔톤 다이어리 상자에 4월 원본 답변 꽂기
         if (pastData.유미 || pastData.거니) {
             if (weekendBox) weekendBox.style.display = 'block'; 
             if (oldText) {
@@ -2223,7 +2239,7 @@ function renderMapPath(pathData, drawLine = true) {
         }
     });
 
-    // 오늘 실시간 답변 영역 반영
+    // 오늘 새로 작성 중인 대답 실시간 반영
     onSnapshot(doc(db, "daily_answers", todayDateKey), (todaySnap) => {
         const d = todaySnap.exists() ? todaySnap.data() : {};
         const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
@@ -2273,56 +2289,51 @@ window.submitDailyAnswer = async () => {
     if (!input.value.trim()) return alert("내용을 입력해주세요! 🌸");
     
     const today = new Date();
+    const currentDay = today.getDay(); // 오늘 요일 구하기
     
-    // 🪄 [테스트 전용] 매일 테스트 모드니까 무조건 true로 인지하게 만듭니다.
-    // (나중에 테스트 끝나면 원래 요일 체크 코드로 복구하시면 됩니다!)
-    const isWeekend = true; 
+    // 🎯 오늘이 화요일(2) 또는 토요일(6)일 때만 주말 타임머신 저장 모드 ON!
+    const isWeekend = (currentDay === 2 || currentDay === 6); 
     
     const dateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     const docRef = doc(db, 'daily_answers', dateKey);
     const currentQuestion = document.getElementById('question-content').innerText;
 
-    // ⚡ [1단계] 기본 오늘 날짜에 들어갈 데이터 상자 준비
     let updateData = { 
         question: currentQuestion,
-        [currentWriter]: input.value, // 오늘 유미나 거니가 새로 작성한 답변!
+        [currentWriter]: input.value, // 오늘 새로 쓴 답변
         timestamp: serverTimestamp() 
     };
 
-    // 🪄 [2단계 핵심] 주말 타임머신 모드일 때 작동할 마법
+    // 🕰️ 화요일, 토요일일 때 작동하는 4월 원본 이사 로직
     if (isWeekend) {
         try {
-            // 아까 showRandomQuestion에서 전역에 박아둔 4월 문서 키(예: 2026-4-29)를 보고 달려갑니다!
             if (window.currentPastDateKey) {
                 const pastDocRef = doc(db, 'daily_answers', window.currentPastDateKey);
                 const pastSnap = await getDoc(pastDocRef);
                 
                 if (pastSnap.exists()) {
                     const pastData = pastSnap.data();
-                    
-                    // 4월 장부에 들어있던 순정 '유미', '거니' 답변을 
-                    // 오늘 저장할 상자에 '_old'라는 이름표를 붙여서 싹 이사시킵니다! ⭐
+                    // 4월 답변을 '_old'로 안전하게 복사
                     if (pastData.유미) updateData["유미_old"] = pastData.유미;
                     if (pastData.거니) updateData["거니_old"] = pastData.거니;
                 }
             }
         } catch (e) {
-            console.error("4월 과거 답변 땡겨오다 에러남 😭:", e);
+            console.error("4월 데이터 이사 중 오류 발생 😭:", e);
         }
     }
 
-    // 🚀 [3단계] 오늘 날짜(dateKey) 장부에 4월 데이터 + 오늘 새 답변 합본 전송!
+    // 🚀 합본 데이터 파이어베이스 전송!
     await setDoc(docRef, updateData, { merge: true });
 
-    // UI 초기화 및 모달 닫기
+    // UI 및 입력창 초기화
     input.value = ""; 
     if (document.getElementById('q-input-area')) document.getElementById('q-input-area').style.display = 'none'; 
     if (document.getElementById('writer-selector')) document.getElementById('writer-selector').style.display = 'flex';
-    
-    // 모달 오버레이 닫기 (추가)
     if (document.getElementById('question-overlay')) document.getElementById('question-overlay').style.display = 'none';
 
-    alert(isWeekend ? "우리의 바뀐 생각이 저장되었어! 🕰️" : "오늘도 많이 사랑해💛");
+    // 요일에 알맞은 팝업 메시지 송출
+    alert(isWeekend ? "우리의 과거 생각 위에 새로운 추억이 업데이트되었어! 🕰️" : "오늘도 많이 사랑해💛");
 };
 
 window.closeQuestion = () => {
