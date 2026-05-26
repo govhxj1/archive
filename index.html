@@ -2137,7 +2137,7 @@ function renderMapPath(pathData, drawLine = true) {
     const oldText = document.getElementById('old-answers-text');     
     const questionContent = document.getElementById('question-content');
 
-    // 🔒 1. 타이틀 'q-modal-title' 타임머신 고정
+    // 타이틀 강제 고정
     if (modalTitle) {
         modalTitle.innerText = "🕰️ 생각의 타임머신";
         modalTitle.style.color = "#ffde59"; 
@@ -2146,45 +2146,64 @@ function renderMapPath(pathData, drawLine = true) {
         submitBtn.innerText = "과거 생각 업데이트하기 ✨";
     }
 
-    setTimeout(() => {
-        const mTitle = document.getElementById('q-modal-title');
-        if (mTitle) {
-            mTitle.innerText = "🕰️ 생각의 타임머신";
-            mTitle.style.color = "#ffde59";
-        }
-    }, 50);
-
-    // 🪄 [수첩 로직 도입] 새로고침해도 하루 동안 질문 고정하기!
-    const savedPastKeyName = `time_machine_target_${todayDateKey}`; // 오늘 날짜 전용 수첩 비밀번호
+    // 🪄 [하루 고정 수첩] 오늘 이미 결정된 타임머신 주소가 있는지 확인
+    const savedPastKeyName = `time_machine_target_${todayDateKey}`; 
     let targetPastDateKey = localStorage.getItem(savedPastKeyName);
 
-    // 수첩에 오늘 뽑아둔 과거 날짜가 없다면, 최초 1회만 무작위로 뽑아서 저장합니다!
+    // 🚨 [핵심 수정] 오늘 처음 켜서 새로 날짜를 뽑아야 하는 상황이라면? (중복 체크 발동!)
     if (!targetPastDateKey) {
-        const randomDay = Math.floor(Math.random() * 30) + 1; 
-        targetPastDateKey = `2026-4-${randomDay}`; 
-        localStorage.setItem(savedPastKeyName, targetPastDateKey); // 수첩에 챡 적어서 보관!
+        // 이미 유미님과 방문했던 과거 날짜 목록을 수첩에서 꺼내옵니다.
+        let visitedDates = JSON.parse(localStorage.getItem('visited_past_dates')) || [];
+        
+        // 아직 방문하지 않은 '남은 4월 날짜들'만 골라서 바구니에 담습니다.
+        let availableDays = [];
+        for (let i = 1; i <= 30; i++) {
+            const checkKey = `2026-4-${i}`;
+            if (!visitedDates.includes(checkKey)) {
+                availableDays.push(checkKey);
+            }
+        }
+
+        // 💡 만약 4월 30일치를 전부 다 방문해서 더 이상 남은 날짜가 없다면? 
+        // 자동으로 수첩을 깨끗하게 리셋하고 다시 4월 1일부터 처음부터 시작하게 만듭니다!
+        if (availableDays.length === 0) {
+            console.log("🎉 4월의 모든 추억 여행 완료! 중복 장부를 리셋합니다.");
+            visitedDates = [];
+            for (let i = 1; i <= 30; i++) {
+                availableDays.push(`2026-4-${i}`);
+            }
+        }
+
+        // 🎲 남은 날짜 바구니(availableDays) 속에서만 무작위로 하나 추출! (100% 중복 방지)
+        const randomIdx = Math.floor(Math.random() * availableDays.length);
+        targetPastDateKey = availableDays[randomIdx];
+
+        // 방금 뽑힌 새로운 주소를 '방문 완료 리스트'에 추가하고 수첩에 저장합니다.
+        visitedDates.push(targetPastDateKey);
+        localStorage.setItem('visited_past_dates', JSON.stringify(visitedDates));
+
+        // 오늘 하루 동안은 이 날짜로 고정하도록 세팅!
+        localStorage.setItem(savedPastKeyName, targetPastDateKey);
     }
 
-    console.log("[타임머신 출격] 오늘 하루 동안 고정된 4월 주소:", targetPastDateKey);
+    console.log("🧭 [타임머신 가동] 오늘 고정 주소:", targetPastDateKey);
+    console.log("📚 [여정 기록] 지금까지 방문 완료한 4월 목록:", localStorage.getItem('visited_past_dates'));
 
-    // 🛰️ [파이어베이스 실시간 감시] 오늘 하루 고정된 주소로만 저격!
+    // 🛰️ [파이어베이스 실시간 감시] 중복 없는 날짜로 저격 가동
     onSnapshot(doc(db, "daily_answers", targetPastDateKey), (pastSnap) => {
         if (!pastSnap.exists()) {
-            // 혹시나 뽑힌 4월 날짜에 장부가 아예 비어있다면, 오늘 하루 고정이 꼬이지 않게 안내 문구를 띄웁니다.
-            if (questionContent) questionContent.innerText = "오늘의 타임머신 통로가 비어있어요! 😭 (새로운 추억을 채워보거나 수첩을 리셋해봐요)";
+            if (questionContent) questionContent.innerText = "오늘의 타임머신 통로가 비어있어요! 😭 (다른 날짜가 걸릴 수 있게 콘솔에서 리셋을 해볼까요?)";
             if (weekendBox) weekendBox.style.display = 'none';
             return;
         }
 
         const pastData = pastSnap.data(); 
 
-        // 1. 4월의 진짜 리얼 질문 안착
         if (questionContent && pastData.question) {
             questionContent.innerText = pastData.question;
         }
 
-        // 2. 이쁘게 바꾼 파스텔톤 노랑 주말 상자에 4월 답변 주입!
-        if (pastData.유미 || pastData.get || pastData.거니) {
+        if (pastData.유미 || pastData.거니) {
             if (weekendBox) weekendBox.style.display = 'block'; 
             if (oldText) {
                 oldText.innerHTML = `
@@ -2193,7 +2212,6 @@ function renderMapPath(pathData, drawLine = true) {
                 `;
             }
 
-            // 입력창(textarea)에 유미의 4월 답변 자동으로 먼저 채워주기
             const inputTextArea = document.getElementById('q-answer-input');
             if (inputTextArea && pastData.유미) {
                 if (!inputTextArea.value || inputTextArea.value === "내용을 입력해주세요..." || inputTextArea.value.trim() === "") {
@@ -2205,7 +2223,7 @@ function renderMapPath(pathData, drawLine = true) {
         }
     });
 
-    // 🛰️ 오늘 새로 쓸 답변 영역 실시간 반영 (오늘 날짜)
+    // 오늘 실시간 답변 영역 반영
     onSnapshot(doc(db, "daily_answers", todayDateKey), (todaySnap) => {
         const d = todaySnap.exists() ? todaySnap.data() : {};
         const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
