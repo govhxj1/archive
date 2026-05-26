@@ -2124,7 +2124,7 @@ function renderMapPath(pathData, drawLine = true) {
         const dayOfWeek = today.getDay();
         
         // 📆 [테스트 전용] 월(1), 토(6), 일(0)을 주말 타임머신으로 인식
-        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6 || dayOfWeek === 1); 
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
     
         // 날짜별 고유 키 생성 (예: "2026-05-26")
         const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
