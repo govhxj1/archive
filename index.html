@@ -2221,7 +2221,7 @@ window.openInput = (name) => {
     
     // 🪄 [핵심 기능] 주말이고, 과거에 썼던 답변이 존재한다면 입력창에 자동으로 채워줍니다!
     const today = new Date();
-    const isWeekend = (today.getDay() === 0 || today.getDay() === 6 || today.getDay() === 1);
+    const isWeekend = (today.getDay() === 0 || today.getDay() === 6 );
 
     if (isWeekend) {
         if (name === '유미' && window.yumiOldAnswer) {
