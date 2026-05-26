@@ -2123,49 +2123,53 @@ function renderMapPath(pathData, drawLine = true) {
     
                     window.showRandomQuestion = function() {
     const today = new Date();
-    
-    // 🔒 오늘 날짜 키 포맷 일치시키기 (0 빼기: 예 2026-5-26)
     const todayDateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
 
-    // 🎲 [매칭 핵심] 4월의 무작위 날짜 키 생성 (파이어베이스 주소와 똑같이 '2026-4-X' 형태로 고정)
+    // 🎲 4월 무작위 날짜 추출 (2026-4-1 ~ 2026-4-30)
     const randomDay = Math.floor(Math.random() * 30) + 1; 
     const targetPastDateKey = `2026-4-${randomDay}`; 
 
-    const modalTitle = document.getElementById('modal-title');
+    // ⚡ [핵심 수정] ID를 'q-modal-title'로 완벽하게 일치시켰습니다! ⭐
+    const modalTitle = document.getElementById('q-modal-title');
     const submitBtn = document.getElementById('submit-thought-btn');
     const weekendBox = document.getElementById('weekend-record-box');
     const oldText = document.getElementById('old-text');
     const questionContent = document.getElementById('question-content');
 
-    // ⚡ 타이틀 덮어쓰기 방어막 (0.03초 뒤 타임머신 제목 강제 고정)
+    // 🔒 1. 타이틀 무조건 타임머신으로 즉시 변경 및 색상 셋팅!
+    if (modalTitle) {
+        modalTitle.innerText = "🕰️ 생각의 타임머신";
+        modalTitle.style.color = "#ffde59"; 
+    }
+    if (submitBtn) {
+        submitBtn.innerText = "과거 생각 업데이트하기 ✨";
+    }
+
+    // 혹시 모를 다른 스크립트의 간섭을 차단하기 위해 0.05초 뒤 한 번 더 고정 조치
     setTimeout(() => {
-        const mTitle = document.getElementById('modal-title');
-        const sBtn = document.getElementById('submit-thought-btn');
+        const mTitle = document.getElementById('q-modal-title');
         if (mTitle) {
             mTitle.innerText = "🕰️ 생각의 타임머신";
             mTitle.style.color = "#ffde59";
         }
-        if (sBtn) {
-            sBtn.innerText = "과거 생각 업데이트하기 ✨";
-        }
-    }, 30);
+    }, 50);
 
-    // 🛰️ [파이어베이스 실시간 감시] '2026-4-X' 주소로 정확하게 조준 사격!
+    // 🛰️ [파이어베이스 실시간 감시] 4월 주소 저격
     onSnapshot(doc(db, "daily_answers", targetPastDateKey), (pastSnap) => {
         if (!pastSnap.exists()) {
-            if (questionContent) questionContent.innerText = `4월 ${randomDay}일에는 등록된 질문이 없어요! 😭 (다시 눌러서 다른 날짜 소환하기)`;
+            if (questionContent) questionContent.innerText = `4월 ${randomDay}일 장부가 비어있어요! 😭 (다시 눌러서 다른 날 소환)`;
             if (weekendBox) weekendBox.style.display = 'none';
             return;
         }
 
         const pastData = pastSnap.data(); 
 
-        // 1. 4월의 진짜 리얼 질문 화면에 바인딩
+        // 1. 4월의 진짜 리얼 질문 화면에 안착
         if (questionContent && pastData.question) {
             questionContent.innerText = pastData.question;
         }
 
-        // 2. 4월 스크린샷 기준 순정 필드명인 '유미', '거니' 매칭 완료!
+        // 2. 4월 스크린샷 기준 순정 필드명인 '유미', '거니' 매칭 드디어 가동!
         if (pastData.유미 || pastData.거니) {
             if (weekendBox) weekendBox.style.display = 'block';
             if (oldText) {
@@ -2175,10 +2179,10 @@ function renderMapPath(pathData, drawLine = true) {
                 `;
             }
 
-            // 입력창(textarea)에 유미의 4월 답변 자동 대입
+            // 입력창(textarea)에 유미의 4월 답변 가이드 주입
             const inputTextArea = document.getElementById('q-answer-input');
             if (inputTextArea && pastData.유미) {
-                if (!inputTextArea.value || inputTextArea.value === "오늘의 생각을 적어줘! ✨") {
+                if (!inputTextArea.value || inputTextArea.value === "오늘의 생각을 적어줘! ✨" || inputTextArea.value.trim() === "") {
                     inputTextArea.value = pastData.유미;
                 }
             }
@@ -2187,7 +2191,7 @@ function renderMapPath(pathData, drawLine = true) {
         }
     });
 
-    // 🛰️ 오늘 새로 쓸 답변 영역 실시간 반영 (오늘 날짜도 포맷을 2026-5-26 형태로 똑같이 맞췄습니다)
+    // 🛰️ 오늘 새로 쓸 답변 영역 실시간 반영 (오늘 날짜)
     onSnapshot(doc(db, "daily_answers", todayDateKey), (todaySnap) => {
         const d = todaySnap.exists() ? todaySnap.data() : {};
         const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
@@ -2201,7 +2205,6 @@ function renderMapPath(pathData, drawLine = true) {
     if (document.getElementById('writer-selector')) document.getElementById('writer-selector').style.display = 'flex'; 
     if (document.getElementById('question-overlay')) document.getElementById('question-overlay').style.display = 'flex';
 
-    // 저장 함수와 공유할 전역 주소 명찰 배정
     window.currentPastDateKey = targetPastDateKey; 
 };
     
