@@ -2129,14 +2129,14 @@ function renderMapPath(pathData, drawLine = true) {
     const randomDay = Math.floor(Math.random() * 30) + 1; 
     const targetPastDateKey = `2026-4-${randomDay}`; 
 
-    // ⚡ [핵심 수정] ID를 'q-modal-title'로 완벽하게 일치시켰습니다! ⭐
+    // 🎯 [완벽 매칭] 팀장님의 진짜 HTML ID들로 전부 전면 수정했습니다! ⭐
     const modalTitle = document.getElementById('q-modal-title');
-    const submitBtn = document.getElementById('submit-thought-btn');
-    const weekendBox = document.getElementById('weekend-record-box');
-    const oldText = document.getElementById('old-text');
+    const submitBtn = document.getElementById('q-submit-btn');
+    const weekendBox = document.getElementById('weekend-old-record'); // ⭕ 수정
+    const oldText = document.getElementById('old-answers-text');     // ⭕ 수정
     const questionContent = document.getElementById('question-content');
 
-    // 🔒 1. 타이틀 무조건 타임머신으로 즉시 변경 및 색상 셋팅!
+    // 🔒 1. 타이틀 즉시 타임머신으로 강제 고정
     if (modalTitle) {
         modalTitle.innerText = "🕰️ 생각의 타임머신";
         modalTitle.style.color = "#ffde59"; 
@@ -2145,13 +2145,15 @@ function renderMapPath(pathData, drawLine = true) {
         submitBtn.innerText = "과거 생각 업데이트하기 ✨";
     }
 
-    // 혹시 모를 다른 스크립트의 간섭을 차단하기 위해 0.05초 뒤 한 번 더 고정 조치
+    // 다른 스크립트가 덮어쓰지 못하도록 0.05초 뒤 재방어
     setTimeout(() => {
         const mTitle = document.getElementById('q-modal-title');
+        const sBtn = document.getElementById('q-submit-btn');
         if (mTitle) {
             mTitle.innerText = "🕰️ 생각의 타임머신";
             mTitle.style.color = "#ffde59";
         }
+        if (sBtn) sBtn.innerText = "과거 생각 업데이트하기 ✨";
     }, 50);
 
     // 🛰️ [파이어베이스 실시간 감시] 4월 주소 저격
@@ -2164,14 +2166,14 @@ function renderMapPath(pathData, drawLine = true) {
 
         const pastData = pastSnap.data(); 
 
-        // 1. 4월의 진짜 리얼 질문 화면에 안착
+        // 1. 4월의 진짜 리얼 질문 안착
         if (questionContent && pastData.question) {
             questionContent.innerText = pastData.question;
         }
 
-        // 2. 4월 스크린샷 기준 순정 필드명인 '유미', '거니' 매칭 드디어 가동!
+        // 2. 4월 스크린샷 기준 순정 필드명('유미', '거니') 매칭 후 진짜 HTML 상자에 주입! ⭐
         if (pastData.유미 || pastData.거니) {
-            if (weekendBox) weekendBox.style.display = 'block';
+            if (weekendBox) weekendBox.style.display = 'block'; // 블랙 감성 과거 상자 On!
             if (oldText) {
                 oldText.innerHTML = `
                     ${pastData.유미 ? `<b>🕰️ 유미의 4월 답변:</b> <span style="color:#ff8fab;">${pastData.유미}</span><br>` : ''}
@@ -2179,10 +2181,10 @@ function renderMapPath(pathData, drawLine = true) {
                 `;
             }
 
-            // 입력창(textarea)에 유미의 4월 답변 가이드 주입
+            // 입력창(textarea)에 유미의 4월 답변 자동으로 먼저 채워주기
             const inputTextArea = document.getElementById('q-answer-input');
             if (inputTextArea && pastData.유미) {
-                if (!inputTextArea.value || inputTextArea.value === "오늘의 생각을 적어줘! ✨" || inputTextArea.value.trim() === "") {
+                if (!inputTextArea.value || inputTextArea.value === "내용을 입력해주세요..." || inputTextArea.value.trim() === "") {
                     inputTextArea.value = pastData.유미;
                 }
             }
@@ -2525,7 +2527,7 @@ window.openFortune = async function() {
     }
     
     const fortuneText = document.getElementById('fortune-text');
-    const fortuneOverlay = document.getElementById('fortune-overlay');
+        const fortuneOverlay = document.getElementById('fortune-overlay');
     
     if (fortuneText && fortuneOverlay) {
         fortuneText.innerText = message;
