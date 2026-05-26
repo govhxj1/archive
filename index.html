@@ -2120,89 +2120,88 @@ function renderMapPath(pathData, drawLine = true) {
 };
     
                     window.showRandomQuestion = function() {
-            const today = new Date();
-            const isWeekend = true; // 매일 테스트 모드
+    const today = new Date();
+    const isWeekend = true; // 🪄 매일 테스트 모드 강제 유지
+
+    const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    const modalTitle = document.getElementById('modal-title');
+    const submitBtn = document.getElementById('submit-thought-btn');
+    const weekendBox = document.getElementById('weekend-record-box');
+    const oldText = document.getElementById('old-text');
+    const questionContent = document.getElementById('question-content');
+
+    let selectedQuestion = "";
+
+    // 1. [기본 타이틀 & 세팅] 함수가 켜질 때 먼저 타임머신으로 세팅
+    if (modalTitle) {
+        modalTitle.innerText = "🕰️ 생각의 타임머신";
+        modalTitle.style.color = "#ffde59";
+    }
+    if (submitBtn) {
+        submitBtn.innerText = "과거 생각 업데이트하기 ✨";
+    }
+
+    // 2. [질문 추출] 새로고침 고정용 수첩 로직
+    const savedQuestionKey = `weekend_q_${dateKey}`;
+    let savedQuestion = localStorage.getItem(savedQuestionKey);
+    if (!savedQuestion) {
+        const randomIdx = Math.floor(Math.random() * oldQuestions.length);
+        savedQuestion = oldQuestions[randomIdx];
+        localStorage.setItem(savedQuestionKey, savedQuestion);
+    }
+    selectedQuestion = savedQuestion;
+
+    if (questionContent) {
+        questionContent.innerText = selectedQuestion;
+    }
+
+    // 3. 🛰️ [파이어베이스 실시간 감시]
+    onSnapshot(doc(db, "daily_answers", dateKey), (snap) => {
+        const d = snap.exists() ? snap.data() : {};
         
-            const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-        
-            // 🕵️ 엘리먼트들을 가져옵니다.
-            const modalTitle = document.getElementById('modal-title');
-            const submitBtn = document.getElementById('submit-thought-btn');
-            const weekendBox = document.getElementById('weekend-record-box');
-            const oldText = document.getElementById('old-text');
-            const questionContent = document.getElementById('question-content'); // ⭕ 추가
-        
-            let selectedQuestion = "";
-        
-            // [질문 선정 로직]
-            const savedQuestionKey = `weekend_q_${dateKey}`;
-            let savedQuestion = localStorage.getItem(savedQuestionKey);
-            if (!savedQuestion) {
-                const randomIdx = Math.floor(Math.random() * oldQuestions.length);
-                savedQuestion = oldQuestions[randomIdx];
-                localStorage.setItem(savedQuestionKey, savedQuestion);
+        // 파이어베이스에 저장된 질문이 있으면 그걸 쓰되, 없으면 뽑아둔 selectedQuestion 유지
+        if (d.question && questionContent) {
+            questionContent.innerText = d.question;
+        }
+
+        // ⭐ [핵심 수정] 파이어베이스가 데이터를 불러오면서 평일 모드로 오염시키는 것을 방지!
+        if (modalTitle) {
+            modalTitle.innerText = "🕰️ 생각의 타임머신";
+            modalTitle.style.color = "#ffde59";
+        }
+
+        // 4. 과거 답변 매칭 및 입력창 주입
+        if (d.유미_old || d.거니_old) {
+            if (weekendBox) weekendBox.style.display = 'block';
+            if (oldText) {
+                oldText.innerHTML = `
+                    ${d.유미_old ? `<b>🕰️ 유미의 과거 답변:</b> <span style="color:#ff8fab;">${d.유미_old}</span><br>` : ''}
+                    ${d.거니_old ? `<b>🕰️ 거니의 과거 답변:</b> <span style="color:#7ed6df;">${d.거니_old}</span>` : ''}
+                `;
             }
-            selectedQuestion = savedQuestion;
-        
-            // 🪄 [안전장치 오버홀] 태그가 존재할 때만 innerText를 세팅하도록 보호막을 칩니다!
-            if (questionContent) {
-                questionContent.innerText = selectedQuestion;
+
+            const inputTextArea = document.getElementById('q-answer-input');
+            if (inputTextArea && d.유미_old) {
+                if (!inputTextArea.value || inputTextArea.value === "오늘의 생각을 적어줘! ✨") {
+                    inputTextArea.value = d.유미_old;
+                }
             }
-        
-            if (isWeekend) {
-                if (modalTitle) {
-                    modalTitle.innerText = "🕰️ 생각의 타임머신";
-                    modalTitle.style.color = "#ffde59";
-                }
-                if (submitBtn) {
-                    submitBtn.innerText = "과거 생각 업데이트하기 ✨";
-                }
-            } else {
-                if (modalTitle) modalTitle.innerText = "📅 오늘의 질문";
-                if (submitBtn) submitBtn.innerText = "오늘의 생각 기록하기 ✨";
-            }
-        
-            // 🛰️ 파이어베이스 감시 (onSnapshot) 내부도 동일하게 태그 체크가 이미 되어 있으니 안전합니다!
-            onSnapshot(doc(db, "daily_answers", dateKey), (snap) => {
-                const d = snap.exists() ? snap.data() : {};
-                
-                // 여기도 안전장치 추가!
-                if (d.question && questionContent) {
-                    questionContent.innerText = d.question;
-                }
-        
-                if (isWeekend) {
-                    if (d.유미_old || d.거니_old) {
-                        if (weekendBox) weekendBox.style.display = 'block';
-                        if (oldText) {
-                            oldText.innerHTML = `
-                                ${d.유미_old ? `<b>🕰️ 유미의 과거 답변:</b> <span style="color:#ff8fab;">${d.유미_old}</span><br>` : ''}
-                                ${d.거니_old ? `<b>🕰️ 거니의 과거 답변:</b> <span style="color:#7ed6df;">${d.거니_old}</span>` : ''}
-                            `;
-                        }
-        
-                        const inputTextArea = document.getElementById('q-answer-input');
-                        if (inputTextArea && d.유미_old) {
-                            if (!inputTextArea.value || inputTextArea.value === "오늘의 생각을 적어줘! ✨") {
-                                inputTextArea.value = d.유미_old;
-                            }
-                        }
-                    } else {
-                        if (weekendBox) weekendBox.style.display = 'none';
-                    }
-                } else {
-                    if (weekendBox) weekendBox.style.display = 'none';
-                }
-        
-                const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
-                if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
-                if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
-            });
-        
-            if (document.getElementById('q-input-area')) document.getElementById('q-input-area').style.display = 'none'; 
-            if (document.getElementById('writer-selector')) document.getElementById('writer-selector').style.display = 'flex'; 
-            if (document.getElementById('question-overlay')) document.getElementById('question-overlay').style.display = 'flex';
-        };
+        } else {
+            // 과거 기록이 아예 파이어베이스에 없으면 상자를 숨깁니다.
+            if (weekendBox) weekendBox.style.display = 'none';
+        }
+
+        // 현재 실시간 답변 영역 반영
+        const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
+        if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
+        if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
+    });
+
+    if (document.getElementById('q-input-area')) document.getElementById('q-input-area').style.display = 'none'; 
+    if (document.getElementById('writer-selector')) document.getElementById('writer-selector').style.display = 'flex'; 
+    if (document.getElementById('question-overlay')) document.getElementById('question-overlay').style.display = 'flex';
+};
 
 window.openInput = (name) => { 
     currentWriter = name; 
