@@ -2141,8 +2141,8 @@ function renderMapPath(pathData, drawLine = true) {
                 if (submitBtn) submitBtn.innerText = "과거 생각 업데이트하기 ✨";
         
                 // 🎲 수첩 로직을 주석 처리하고 무조건 새로 뽑게 만듭니다!
-                const randomIdx = Math.floor(Math.random() * oldQuestions.length);
-                selectedQuestion = oldQuestions[randomIdx];
+                const savedQuestionKey = `weekend_q_${dateKey}`;
+                let savedQuestion = localStorage.getItem(savedQuestionKey);
         
                 if (!savedQuestion) {
                     // 오늘 처음 켠 거라면 랜덤으로 하나 뽑아서 저장
