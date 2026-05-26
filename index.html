@@ -2122,8 +2122,12 @@ function renderMapPath(pathData, drawLine = true) {
                     window.showRandomQuestion = function() {
     const today = new Date();
     
-    // 날짜별 고유 키 생성 (예: "2026-05-26")
-    const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    // 🔒 테스트 모드용 오늘 날짜 키 (데이터를 새로 저장할 장부의 위치)
+    const todayDateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    // 🎲 [기획 반영] 2026-4-1 ~ 2026-4-30 중 무작위 날짜 하나 뽑기 (테스트용 새로고침 랜덤)
+    const randomDay = Math.floor(Math.random() * 30) + 1; // 1일부터 30일까지 무작위
+    const targetPastDateKey = `2026-4-${randomDay}`; // 파이어베이스에 저장된 "2026-4-29" 형태와 일치시킵니다!
 
     const modalTitle = document.getElementById('modal-title');
     const submitBtn = document.getElementById('submit-thought-btn');
@@ -2131,7 +2135,7 @@ function renderMapPath(pathData, drawLine = true) {
     const oldText = document.getElementById('old-text');
     const questionContent = document.getElementById('question-content');
 
-    // 🔒 [UI 강제 고정] 평일/주말 검사 없이 무조건 타임머신으로 도배합니다.
+    // UI 레이아웃 타임머신으로 강제 고정
     if (modalTitle) {
         modalTitle.innerText = "🕰️ 생각의 타임머신";
         modalTitle.style.color = "#ffde59";
@@ -2140,56 +2144,51 @@ function renderMapPath(pathData, drawLine = true) {
         submitBtn.innerText = "과거 생각 업데이트하기 ✨";
     }
 
-    // 🎲 새로고침할 때마다 무조건 oldQuestions에서 랜덤으로 질문 뽑기
-    const randomIdx = Math.floor(Math.random() * oldQuestions.length);
-    const selectedQuestion = oldQuestions[randomIdx];
-
-    if (questionContent) {
-        questionContent.innerText = selectedQuestion;
-    }
-
-    // 🛰️ 파이어베이스 실시간 감시 시작
-    onSnapshot(doc(db, "daily_answers", dateKey), (snap) => {
-        // 현재는 파이어베이스에 문서가 없으므로 d는 빈 객체({})가 됩니다.
-        const d = snap.exists() ? snap.data() : {};
-        
-        // 🔒 혹시나 파이어베이스 문서가 뒤늦게 생겨도 타이틀이 오염되지 않게 재고정
-        if (modalTitle) {
-            modalTitle.innerText = "🕰️ 생각의 타임머신";
-            modalTitle.style.color = "#ffde59";
+    // 🛰️ [파이어베이스 실시간 감시] 
+    // 오늘 날짜(todayDateKey) 장부를 감시하되, 과거 데이터는 4월 무작위 문서(targetPastDateKey)에서 당겨옵니다!
+    onSnapshot(doc(db, "daily_answers", targetPastDateKey), (pastSnap) => {
+        if (!pastSnap.exists()) {
+            if (questionContent) questionContent.innerText = `4월 ${randomDay}일에는 등록된 질문이 없어요! 😭 (다시 새로고침 해주세요)`;
+            if (weekendBox) weekendBox.style.display = 'none';
+            return;
         }
 
-        // 과거 답변 매칭 (현재는 문서가 없으므로 이 if문은 건너뛰고 상자가 숨겨집니다)
-        if (d.유미_old || d.거니_old) {
+        const pastData = pastSnap.data(); // 스크린샷에 있던 4월 데이터 덩어리
+
+        // 1. 4월 문서에 들어있던 평일 질문을 타임머신 메인 질문으로 소환!
+        if (questionContent && pastData.question) {
+            questionContent.innerText = pastData.question;
+        }
+
+        // 2. 4월 당시의 '유미', '거니' 답변을 과거 기록 상자(_old)에 매칭하여 짜잔 띄우기!
+        if (pastData.유미 || pastData.거니) {
             if (weekendBox) weekendBox.style.display = 'block';
             if (oldText) {
                 oldText.innerHTML = `
-                    ${d.유미_old ? `<b>🕰️ 유미의 과거 답변:</b> <span style="color:#ff8fab;">${d.유미_old}</span><br>` : ''}
-                    ${d.거니_old ? `<b>🕰️ 거니의 과거 답변:</b> <span style="color:#7ed6df;">${d.거니_old}</span>` : ''}
+                    ${pastData.유미 ? `<b>🕰️ 유미의 4월 답변:</b> <span style="color:#ff8fab;">${pastData.유미}</span><br>` : ''}
+                    ${pastData.거니 ? `<b>🕰️ 거니의 4월 답변:</b> <span style="color:#7ed6df;">${pastData.거니}</span>` : ''}
                 `;
             }
 
-            // 입력창에 유미 과거 답변 최초 1회 주입
+            // ✍️ 타이핑 버그 방지하며 입력창에 유미의 4월 답변을 기본 가이드로 주입
             const inputTextArea = document.getElementById('q-answer-input');
-            if (inputTextArea && d.유미_old) {
+            if (inputTextArea && pastData.유미) {
                 if (!inputTextArea.value || inputTextArea.value === "오늘의 생각을 적어줘! ✨") {
-                    inputTextArea.value = d.유미_old;
+                    inputTextArea.value = pastData.유미;
                 }
             }
         } else {
-            // 파이어베이스에 오늘 데이터가 없으므로 안전하게 과거 기록 상자를 숨깁니다.
             if (weekendBox) weekendBox.style.display = 'none';
         }
-
-        // 현재 실시간 답변 영역 반영 (데이터가 없으면 둘 다 display = 'none' 처리됨)
-        const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
-        if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
-        if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
     });
 
+    // 모달 오버레이 열기 로직
     if (document.getElementById('q-input-area')) document.getElementById('q-input-area').style.display = 'none'; 
     if (document.getElementById('writer-selector')) document.getElementById('writer-selector').style.display = 'flex'; 
     if (document.getElementById('question-overlay')) document.getElementById('question-overlay').style.display = 'flex';
+
+    // 💾 [저장 버튼 꿀팁 연동] 팀장님이 생성해 두셨을 저장 함수에 주입할 전역 변수 세팅
+    window.currentPastDateKey = targetPastDateKey; 
 };
 
 window.openInput = (name) => { 
@@ -2224,30 +2223,55 @@ window.submitDailyAnswer = async () => {
     if (!input.value.trim()) return alert("내용을 입력해주세요! 🌸");
     
     const today = new Date();
-    const isWeekend = (today.getDay() === 0 || today.getDay() === 6);
+    
+    // 🪄 [테스트 전용] 매일 테스트 모드니까 무조건 true로 인지하게 만듭니다.
+    // (나중에 테스트 끝나면 원래 요일 체크 코드로 복구하시면 됩니다!)
+    const isWeekend = true; 
+    
     const dateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     const docRef = doc(db, 'daily_answers', dateKey);
     const currentQuestion = document.getElementById('question-content').innerText;
 
-    const snap = await getDoc(docRef);
+    // ⚡ [1단계] 기본 오늘 날짜에 들어갈 데이터 상자 준비
     let updateData = { 
         question: currentQuestion,
-        [currentWriter]: input.value, 
+        [currentWriter]: input.value, // 오늘 유미나 거니가 새로 작성한 답변!
         timestamp: serverTimestamp() 
     };
 
-    if (isWeekend && snap.exists()) {
-        const existingData = snap.data();
-        if (existingData[currentWriter] && existingData[currentWriter] !== input.value) {
-            updateData[currentWriter + "_old"] = existingData[currentWriter];
+    // 🪄 [2단계 핵심] 주말 타임머신 모드일 때 작동할 마법
+    if (isWeekend) {
+        try {
+            // 아까 showRandomQuestion에서 전역에 박아둔 4월 문서 키(예: 2026-4-29)를 보고 달려갑니다!
+            if (window.currentPastDateKey) {
+                const pastDocRef = doc(db, 'daily_answers', window.currentPastDateKey);
+                const pastSnap = await getDoc(pastDocRef);
+                
+                if (pastSnap.exists()) {
+                    const pastData = pastSnap.data();
+                    
+                    // 4월 장부에 들어있던 순정 '유미', '거니' 답변을 
+                    // 오늘 저장할 상자에 '_old'라는 이름표를 붙여서 싹 이사시킵니다! ⭐
+                    if (pastData.유미) updateData["유미_old"] = pastData.유미;
+                    if (pastData.거니) updateData["거니_old"] = pastData.거니;
+                }
+            }
+        } catch (e) {
+            console.error("4월 과거 답변 땡겨오다 에러남 😭:", e);
         }
     }
 
+    // 🚀 [3단계] 오늘 날짜(dateKey) 장부에 4월 데이터 + 오늘 새 답변 합본 전송!
     await setDoc(docRef, updateData, { merge: true });
 
+    // UI 초기화 및 모달 닫기
     input.value = ""; 
-    document.getElementById('q-input-area').style.display = 'none'; 
-    document.getElementById('writer-selector').style.display = 'flex';
+    if (document.getElementById('q-input-area')) document.getElementById('q-input-area').style.display = 'none'; 
+    if (document.getElementById('writer-selector')) document.getElementById('writer-selector').style.display = 'flex';
+    
+    // 모달 오버레이 닫기 (추가)
+    if (document.getElementById('question-overlay')) document.getElementById('question-overlay').style.display = 'none';
+
     alert(isWeekend ? "우리의 바뀐 생각이 저장되었어! 🕰️" : "오늘도 많이 사랑해💛");
 };
 
