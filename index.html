@@ -2131,9 +2131,7 @@ function renderMapPath(pathData, drawLine = true) {
     const oldText = document.getElementById('old-text');
     const questionContent = document.getElementById('question-content');
 
-    let selectedQuestion = "";
-
-    // 1. [기본 타이틀 & 세팅] 함수가 켜질 때 먼저 타임머신으로 세팅
+    // 1. [UI 먼저 고정] 무조건 타임머신 레이아웃으로 세팅
     if (modalTitle) {
         modalTitle.innerText = "🕰️ 생각의 타임머신";
         modalTitle.style.color = "#ffde59";
@@ -2142,7 +2140,7 @@ function renderMapPath(pathData, drawLine = true) {
         submitBtn.innerText = "과거 생각 업데이트하기 ✨";
     }
 
-    // 2. [질문 추출] 새로고침 고정용 수첩 로직
+    // 2. [질문 뽑기 및 고정] 수첩(localStorage)에서 오늘 지정된 질문 가져오기
     const savedQuestionKey = `weekend_q_${dateKey}`;
     let savedQuestion = localStorage.getItem(savedQuestionKey);
     if (!savedQuestion) {
@@ -2150,22 +2148,17 @@ function renderMapPath(pathData, drawLine = true) {
         savedQuestion = oldQuestions[randomIdx];
         localStorage.setItem(savedQuestionKey, savedQuestion);
     }
-    selectedQuestion = savedQuestion;
 
+    // 🚨 [해결 1] 파이어베이스에 어떤 질문이 있든 무조건 우리가 수첩에서 꺼낸 타임머신 질문으로 화면 고정!
     if (questionContent) {
-        questionContent.innerText = selectedQuestion;
+        questionContent.innerText = savedQuestion;
     }
 
     // 3. 🛰️ [파이어베이스 실시간 감시]
     onSnapshot(doc(db, "daily_answers", dateKey), (snap) => {
         const d = snap.exists() ? snap.data() : {};
         
-        // 파이어베이스에 저장된 질문이 있으면 그걸 쓰되, 없으면 뽑아둔 selectedQuestion 유지
-        if (d.question && questionContent) {
-            questionContent.innerText = d.question;
-        }
-
-        // ⭐ [핵심 수정] 파이어베이스가 데이터를 불러오면서 평일 모드로 오염시키는 것을 방지!
+        // 🔒 파이어베이스 d.question이 화면을 오염시키지 못하도록 철저히 무시합니다.
         if (modalTitle) {
             modalTitle.innerText = "🕰️ 생각의 타임머신";
             modalTitle.style.color = "#ffde59";
@@ -2181,18 +2174,20 @@ function renderMapPath(pathData, drawLine = true) {
                 `;
             }
 
+            // ✍️ [해결 2] 타이핑 버그 해결!
             const inputTextArea = document.getElementById('q-answer-input');
             if (inputTextArea && d.유미_old) {
+                // 완전히 비어있거나 초기 안내문구일 때 딱 "최초 1번만" 과거 답변을 채워줍니다.
+                // 이미 유미님이 글을 쓰기 시작했다면(글자수가 길어지거나 기존 데이터와 다르면) 절대 간섭하지 않습니다!
                 if (!inputTextArea.value || inputTextArea.value === "오늘의 생각을 적어줘! ✨") {
                     inputTextArea.value = d.유미_old;
                 }
             }
         } else {
-            // 과거 기록이 아예 파이어베이스에 없으면 상자를 숨깁니다.
             if (weekendBox) weekendBox.style.display = 'none';
         }
 
-        // 현재 실시간 답변 영역 반영
+        // 현재 실시간 답변 영역 반영 (기존 유지)
         const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
         if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
         if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
