@@ -2265,9 +2265,11 @@ window.openInput = (name) => {
     const inputTextArea = document.getElementById('q-answer-input');
     inputTextArea.placeholder = name + "의 고민시간..."; 
     
-    // 🪄 [핵심 기능] 주말이고, 과거에 썼던 답변이 존재한다면 입력창에 자동으로 채워줍니다!
     const today = new Date();
-    const isWeekend = (today.getDay() === 0 || today.getDay() === 6 );
+    const currentDay = today.getDay(); // 0(일) ~ 6(토) 구하기
+
+    // 🎯 [요일 동기화 완료] 진짜 화요일(2) 또는 토요일(6) 일 때만 타임머신 자동 입력 기능 작동! ⭐
+    const isWeekend = (currentDay === 2 || currentDay === 6); 
 
     if (isWeekend) {
         if (name === '유미' && window.yumiOldAnswer) {
@@ -2283,6 +2285,7 @@ window.openInput = (name) => {
 
     inputTextArea.focus(); 
 };
+    
 
 window.submitDailyAnswer = async () => {
     const input = document.getElementById('q-answer-input'); 
