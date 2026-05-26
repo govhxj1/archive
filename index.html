@@ -2119,97 +2119,92 @@ function renderMapPath(pathData, drawLine = true) {
     }
 };
     
-    window.showRandomQuestion = function() {
-        const today = new Date();
-        const dayOfWeek = today.getDay();
-        
-        // 📆 [테스트 전용] 월(1), 토(6), 일(0)을 주말 타임머신으로 인식
-        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-    
-        // 날짜별 고유 키 생성 (예: "2026-05-26")
-        const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    
-        const modalTitle = document.getElementById('modal-title');
-        const submitBtn = document.getElementById('submit-thought-btn');
-        const weekendBox = document.getElementById('weekend-record-box');
-        const oldText = document.getElementById('old-text');
-    
-        let selectedQuestion = "";
-    
-        if (isWeekend) {
-            modalTitle.innerText = "🕰️ 생각의 타임머신";
-            modalTitle.style.color = "#ffde59";
-            if (submitBtn) submitBtn.innerText = "과거 생각 업데이트하기 ✨";
-    
-            // 🪄 [수정 1] 새로고침해도 오늘 하루 동안은 같은 질문만 나오도록 고정!
-            const savedQuestionKey = `weekend_q_${dateKey}`;
-            let savedQuestion = localStorage.getItem(savedQuestionKey);
-    
-            if (!savedQuestion) {
-                // 오늘 처음 켠 거라면 랜덤으로 하나 뽑아서 저장
-                const randomIdx = Math.floor(Math.random() * oldQuestions.length);
-                savedQuestion = oldQuestions[randomIdx];
-                localStorage.setItem(savedQuestionKey, savedQuestion);
-            }
-            selectedQuestion = savedQuestion;
-    
-        } else {
-            // 평일에는 원래 날짜별 정해진 질문
-            modalTitle.innerText = "📅 오늘의 질문";
-            if (submitBtn) submitBtn.innerText = "오늘의 생각 기록하기 ✨";
-            const dayIdx = today.getDate() % dailyQuestions.length;
-            selectedQuestion = dailyQuestions[dayIdx];
-        }
-    
-        // 일단 화면에 질문 표시
-        document.getElementById('question-content').innerText = selectedQuestion;
-    
-        // 🛰️ 파이어베이스 실시간 감시 시작
-        onSnapshot(doc(db, "daily_answers", dateKey), (snap) => {
-            const d = snap.exists() ? snap.data() : {};
+            window.showRandomQuestion = function() {
+            const today = new Date();
             
-            // 만약 파이어베이스에 오늘 질문이 저장되어 있다면 그걸 쓰고, 없으면 방금 세팅한 selectedQuestion 사용
-            if (d.question) {
-                document.getElementById('question-content').innerText = d.question;
-            }
-    
-            // 🪄 [수정 2] 과거 답변 완벽하게 매칭해서 가져오기
+            // 🪄 [테스트 전용] 평일/주말 상관없이 매일 무조건 타임머신 모드로 가동!
+            const isWeekend = true; 
+        
+            // 날짜별 고유 키 생성 (예: "2026-05-26")
+            const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        
+            const modalTitle = document.getElementById('modal-title');
+            const submitBtn = document.getElementById('submit-thought-btn');
+            const weekendBox = document.getElementById('weekend-record-box');
+            const oldText = document.getElementById('old-text');
+        
+            let selectedQuestion = "";
+        
             if (isWeekend) {
-                // 파이어베이스 필드명(유미_old, 거니_old)에 과거 기록이 있는지 확인
-                if (d.유미_old || d.거니_old) {
-                    if (weekendBox) weekendBox.style.display = 'block';
-                    if (oldText) {
-                        oldText.innerHTML = `
-                            ${d.유미_old ? `<b>🕰️ 유미의 과거 답변:</b> <span style="color:#ff8fab;">${d.유미_old}</span><br>` : ''}
-                            ${d.거니_old ? `<b>🕰️ 거니의 과거 답변:</b> <span style="color:#7ed6df;">${d.거니_old}</span>` : ''}
-                        `;
-                    }
-    
-                    // ✍️ 입력창(textarea)에 유미 과거 답변 강제 주입
-                    const inputTextArea = document.getElementById('q-answer-input');
-                    if (inputTextArea && d.유미_old) {
-                        // 유미님이 아직 아무것도 안 적었을 때만 예전 답을 채워줍니다
-                        if (!inputTextArea.value || inputTextArea.value === "오늘의 생각을 적어줘! ✨") {
-                            inputTextArea.value = d.유미_old;
+                modalTitle.innerText = "🕰️ 생각의 타임머신";
+                modalTitle.style.color = "#ffde59";
+                if (submitBtn) submitBtn.innerText = "과거 생각 업데이트하기 ✨";
+        
+                // 🔒 새로고침해도 오늘 하루 동안은 같은 질문만 나오도록 고정!
+                const savedQuestionKey = `weekend_q_${dateKey}`;
+                let savedQuestion = localStorage.getItem(savedQuestionKey);
+        
+                if (!savedQuestion) {
+                    // 오늘 처음 켠 거라면 랜덤으로 하나 뽑아서 저장
+                    const randomIdx = Math.floor(Math.random() * oldQuestions.length);
+                    savedQuestion = oldQuestions[randomIdx];
+                    localStorage.setItem(savedQuestionKey, savedQuestion);
+                }
+                selectedQuestion = savedQuestion;
+        
+            } else {
+                // (isWeekend가 항상 true라 이쪽은 실행되지 않지만 코드 형태는 유지합니다)
+                modalTitle.innerText = "📅 오늘의 질문";
+                if (submitBtn) submitBtn.innerText = "오늘의 생각 기록하기 ✨";
+                const dayIdx = today.getDate() % dailyQuestions.length;
+                selectedQuestion = dailyQuestions[dayIdx];
+            }
+        
+            // 일단 화면에 질문 표시
+            document.getElementById('question-content').innerText = selectedQuestion;
+        
+            // 🛰️ 파이어베이스 실시간 감시 시작
+            onSnapshot(doc(db, "daily_answers", dateKey), (snap) => {
+                const d = snap.exists() ? snap.data() : {};
+                
+                if (d.question) {
+                    document.getElementById('question-content').innerText = d.question;
+                }
+        
+                // 🪄 과거 답변 완벽하게 매칭해서 가져오기
+                if (isWeekend) {
+                    if (d.유미_old || d.거니_old) {
+                        if (weekendBox) weekendBox.style.display = 'block';
+                        if (oldText) {
+                            oldText.innerHTML = `
+                                ${d.유미_old ? `<b>🕰️ 유미의 과거 답변:</b> <span style="color:#ff8fab;">${d.유미_old}</span><br>` : ''}
+                                ${d.거니_old ? `<b>🕰️ 거니의 과거 답변:</b> <span style="color:#7ed6df;">${d.거니_old}</span>` : ''}
+                            `;
                         }
+        
+                        // ✍️ 입력창(textarea)에 유미 과거 답변 강제 주입
+                        const inputTextArea = document.getElementById('q-answer-input');
+                        if (inputTextArea && d.유미_old) {
+                            if (!inputTextArea.value || inputTextArea.value === "오늘의 생각을 적어줘! ✨") {
+                                inputTextArea.value = d.유미_old;
+                            }
+                        }
+                    } else {
+                        if (weekendBox) weekendBox.style.display = 'none';
                     }
                 } else {
                     if (weekendBox) weekendBox.style.display = 'none';
                 }
-            } else {
-                if (weekendBox) weekendBox.style.display = 'none';
-            }
-    
-            // 현재 작성한 답변들 보여주기 로직 (기존 유지)
-            const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
-            if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
-            if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
-        });
-    
-        document.getElementById('q-input-area').style.display = 'none'; 
-        document.getElementById('writer-selector').style.display = 'flex'; 
-        document.getElementById('question-overlay').style.display = 'flex';
-    };
+        
+                const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
+                if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
+                if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
+            });
+        
+            document.getElementById('q-input-area').style.display = 'none'; 
+            document.getElementById('writer-selector').style.display = 'flex'; 
+            document.getElementById('question-overlay').style.display = 'flex';
+        };
 
 window.openInput = (name) => { 
     currentWriter = name; 
