@@ -2127,109 +2127,153 @@ function renderMapPath(pathData, drawLine = true) {
     
     
                     window.showRandomQuestion = function() {
-    const today = new Date();
-    const currentDay = today.getDay(); // 0(일) ~ 6(토) 구하기
-
-    const modalTitle = document.getElementById('q-modal-title');
-    const submitBtn = document.getElementById('q-submit-btn');
-    const weekendBox = document.getElementById('weekend-old-record'); 
-    const oldText = document.getElementById('old-answers-text');     
-    const questionContent = document.getElementById('question-content');
-
-    // 📅 1. 화요일(2)과 토요일(6)이 아니라면? 평일 순정 모드로 유턴!!
-    if (currentDay !== 2 && currentDay !== 6) {
-        console.log("📅 평일 모드: 순정 오늘의 질문으로 진입합니다.");
-        if (modalTitle) { modalTitle.innerText = "📅 오늘의 질문"; modalTitle.style.color = "#ffb7c5"; }
-        if (submitBtn) submitBtn.innerText = "기록 완료 ✨";
-        if (weekendBox) weekendBox.style.display = 'none';
-        if (document.getElementById('question-overlay')) document.getElementById('question-overlay').style.display = 'flex';
-        return; 
-    }
-
-    // =================================================================
-    // 🕰️ 여기서부터는 오직 [화요일, 토요일]에만 작동하는 타임머신 영역!
-    // =================================================================
-    console.log("🕰️ 타임머신 가동: 4월의 추억을 소환합니다.");
-
-    if (modalTitle) { modalTitle.innerText = "🕰️ 생각의 타임머신"; modalTitle.style.color = "#ffde59"; }
-    if (submitBtn) submitBtn.innerText = "과거 생각 업데이트하기 ✨";
-
-    setTimeout(() => {
-        if (modalTitle) { modalTitle.innerText = "🕰️ 생각의 타임머신"; modalTitle.style.color = "#ffde59"; }
-    }, 50);
-
-    // 🔒 [기기 독립형 우주 동기화 공식] ⭐⭐⭐
-    // 오늘 날짜의 숫자 정보(연, 월, 일)를 다 더해서 고유한 시드(Seed) 점수를 만듭니다.
-    const yearFactor = today.getFullYear();
-    const monthFactor = today.getMonth() + 1;
-    const dayFactor = today.getDate();
-    
-    // 이 숫자를 조합해 오늘 하루 동안 전 세계 모든 폰에서 똑같이 유지되는 1~30 사이의 숫자를 수학적으로 유도합니다!
-    const dailySeed = (yearFactor * 31 + monthFactor * 7 + dayFactor) % 30;
-    const randomDay = dailySeed + 1; // 0~29에 1을 더해 1~30일로 변환
-    
-    // 🎯 이렇게 하면 서버에 저장 안 해도 오늘 어떤 폰으로 열든 무조건 똑같은 4월 날짜가 뽑힙니다!
-    const targetPastDateKey = `2026-4-${randomDay}`; 
-
-    console.log("🧭 [타임머신 동기화 완료] 두 분 폰에 동시 고정된 4월 주소:", targetPastDateKey);
-
-    // 🛰️ [파이어베이스 실시간 감시] 두 폰이 똑같은 주소를 바라보며 소환!
-    onSnapshot(doc(db, "daily_answers", targetPastDateKey), (pastSnap) => {
-        if (!pastSnap.exists()) {
-            if (questionContent) questionContent.innerText = "오늘의 타임머신 통로가 비어있어요! 😭";
-            if (weekendBox) weekendBox.style.display = 'none';
-            return;
-        }
-
-        const pastData = pastSnap.data(); 
-
-        if (questionContent && pastData.question) {
-            questionContent.innerText = pastData.question;
-        }
-
-        // 전역 변수 백업 (openInput 함수에서 매칭할 때 사용)
-        window.yumiOldAnswer = pastData.유미 || "";
-        window.goniOldAnswer = pastData.거니 || "";
-
-        // 귀여운 노란색 파스텔톤 다이어리 상자에 4월 원본 답변 꽂기
-        if (pastData.유미 || pastData.거니) {
-            if (weekendBox) weekendBox.style.display = 'block'; 
-            if (oldText) {
-                oldText.innerHTML = `
-                    ${pastData.유미 ? `<b>🕰️ 유미의 4월 답변:</b> <span style="color:#ff8fab;">${pastData.유미}</span><br>` : ''}
-                    ${pastData.거니 ? `<b>🕰️ 거니의 4월 답변:</b> <span style="color:#7ed6df;">${pastData.거니}</span>` : ''}
-                `;
-            }
-
-            // 입력창(textarea) 초기 가이드 자동 채우기
-            const inputTextArea = document.getElementById('q-answer-input');
-            if (inputTextArea && pastData.유미) {
-                if (!inputTextArea.value || inputTextArea.value === "내용을 입력해주세요..." || inputTextArea.value.trim() === "") {
-                    inputTextArea.value = pastData.유미;
-                }
-            }
-        } else {
-            if (weekendBox) weekendBox.style.display = 'none';
-        }
-    });
-
-    // 오늘 날짜 장부용 실시간 리스너
-    const todayDateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-    onSnapshot(doc(db, "daily_answers", todayDateKey), (todaySnap) => {
-        const d = todaySnap.exists() ? todaySnap.data() : {};
-        const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
-        if (y && g) {
-            if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
-            if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
-        }
-    });
-
-    if (document.getElementById('q-input-area')) document.getElementById('q-input-area').style.display = 'none'; 
-    if (document.getElementById('writer-selector')) document.getElementById('writer-selector').style.display = 'flex'; 
-    if (document.getElementById('question-overlay')) document.getElementById('question-overlay').style.display = 'flex';
-
-    window.currentPastDateKey = targetPastDateKey; 
-};
+                    const today = new Date();
+                    const currentDay = today.getDay(); // 0(일) ~ 6(토) 구하기
+                
+                    const modalTitle = document.getElementById('q-modal-title');
+                    const submitBtn = document.getElementById('q-submit-btn');
+                    const weekendBox = document.getElementById('weekend-old-record'); 
+                    const oldText = document.getElementById('old-answers-text');     
+                    const questionContent = document.getElementById('question-content');
+                
+                    // 🔒 오늘 날짜 키 포맷 (파이어베이스 답변 조회용)
+                    const todayDateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+                
+                
+                    // 📅 1. [평일 모드 판정] 화요일(2)과 토요일(6)이 아니라면? 평일 장부 가동!
+                    if (currentDay !== 2 && currentDay !== 6) {
+                        console.log("📅 평일 모드: 팀장님의 순정 하드코딩 장부에서 질문을 뽑아옵니다.");
+                        
+                        if (modalTitle) {
+                            modalTitle.innerText = "📅 오늘의 질문";
+                            modalTitle.style.color = "#ffb7c5"; // 원조 핑크색 복구
+                        }
+                        if (submitBtn) {
+                            submitBtn.innerText = "기록 완료 ✨";
+                        }
+                        if (weekendBox) {
+                            weekendBox.style.display = 'none'; // 노란색 과거 상자 철저히 숨기기
+                        }
+                        
+                        // ⚡ [핵심 수정] 하드코딩 장부에서 오늘 날짜 질문 쏙 빼오기 ⭐
+                        // 🚨 팀장님이 원래 쓰시던 평일 질문 배열이나 함수 이름에 맞게 아래 'dailyQuestions' 부분을 살짝 고쳐주세요!
+                        // 예: 만약 변수명이 그냥 questions 면 => questions[today.getDate()]
+                        if (questionContent) {
+                            if (typeof dailyQuestions !== 'undefined') {
+                                // 배열 인덱스 방식 (오늘이 27일이면 27번째 질문 소환)
+                                questionContent.innerText = dailyQuestions[today.getDate()] || "오늘의 질문이 준비되지 않았어요! 🌸";
+                            } else if (typeof questions !== 'undefined') {
+                                questionContent.innerText = questions[today.getDate()] || "오늘의 질문이 준비되지 않았어요! 🌸";
+                            } else {
+                                // 💡 혹시 원래 쓰시던 수동 매칭 방식 코드가 따로 있다면 
+                                // 원래 쓰시던 코드(예: getTodayQuestion())를 여기에 쏙 넣어주시면 됩니다!
+                                questionContent.innerText = "평일 장부 변수명을 나우에게 알려주세요! 😭"; 
+                            }
+                        }
+                
+                        // 평일 입력창 초기화
+                        const inputTextArea = document.getElementById('q-answer-input');
+                        if (inputTextArea) inputTextArea.value = "";
+                
+                        // 평일 실시간 답변 영역 반영 (오늘 두 분이 쓴 답변 띄우기)
+                        onSnapshot(doc(db, "daily_answers", todayDateKey), (todaySnap) => {
+                            const d = todaySnap.exists() ? todaySnap.data() : {};
+                            const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
+                            if (y && g) {
+                                if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
+                                if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
+                            }
+                        });
+                
+                        if (document.getElementById('q-input-area')) document.getElementById('q-input-area').style.display = 'none'; 
+                        if (document.getElementById('writer-selector')) document.getElementById('writer-selector').style.display = 'flex'; 
+                        if (document.getElementById('question-overlay')) document.getElementById('question-overlay').style.display = 'flex';
+                        
+                        return; // ⛔ 평일은 여기서 완벽히 끝! 아래쪽 타임머신 로직으로 못 내려가게 차단.
+                    }
+                
+                
+                    // =================================================================
+                    // 🕰️ 여기서부터는 오직 [화요일, 토요일]에만 뚫고 내려오는 타임머신 영역!
+                    // =================================================================
+                    console.log("🕰️ 특별한 화/토요일 등장! 타임머신 모드를 시작합니다.");
+                
+                    if (modalTitle) {
+                        modalTitle.innerText = "🕰️ 생각의 타임머신";
+                        modalTitle.style.color = "#ffde59"; 
+                    }
+                    if (submitBtn) {
+                        submitBtn.innerText = "과거 생각 업데이트하기 ✨";
+                    }
+                
+                    setTimeout(() => {
+                        if (modalTitle) {
+                            modalTitle.innerText = "🕰️ 생각의 타임머신";
+                            modalTitle.style.color = "#ffde59";
+                        }
+                    }, 50);
+                
+                    // 🔒 [우주 동기화 공식] 오늘 날짜 기준으로 동일한 4월 날짜 매핑
+                    const yearFactor = today.getFullYear();
+                    const monthFactor = today.getMonth() + 1;
+                    const dayFactor = today.getDate();
+                    const dailySeed = (yearFactor * 31 + monthFactor * 7 + dayFactor) % 30;
+                    const randomDay = dailySeed + 1; 
+                    const targetPastDateKey = `2026-4-${randomDay}`; 
+                
+                    // 🛰️ [파이어베이스 실시간 감시] 고정된 4월 과거 데이터 소환 (질문+과거답변 다 파베에서 땡겨옴)
+                    onSnapshot(doc(db, "daily_answers", targetPastDateKey), (pastSnap) => {
+                        if (!pastSnap.exists()) {
+                            if (questionContent) questionContent.innerText = "오늘의 타임머신 통로가 비어있어요! 😭";
+                            if (weekendBox) weekendBox.style.display = 'none';
+                            return;
+                        }
+                
+                        const pastData = pastSnap.data(); 
+                
+                        if (questionContent && pastData.question) {
+                            questionContent.innerText = pastData.question;
+                        }
+                
+                        window.yumiOldAnswer = pastData.유미 || "";
+                        window.goniOldAnswer = pastData.거니 || "";
+                
+                        if (pastData.유미 || pastData.거니) {
+                            if (weekendBox) weekendBox.style.display = 'block'; 
+                            if (oldText) {
+                                oldText.innerHTML = `
+                                    ${pastData.유미 ? `<b>🕰️ 유미의 4월 답변:</b> <span style="color:#ff8fab;">${pastData.유미}</span><br>` : ''}
+                                    ${pastData.거니 ? `<b>🕰️ 거니의 4월 답변:</b> <span style="color:#7ed6df;">${pastData.거니}</span>` : ''}
+                                `;
+                            }
+                
+                            const inputTextArea = document.getElementById('q-answer-input');
+                            if (inputTextArea && pastData.유미) {
+                                if (!inputTextArea.value || inputTextArea.value === "내용을 입력해주세요..." || inputTextArea.value.trim() === "") {
+                                    inputTextArea.value = pastData.유미;
+                                }
+                            }
+                        } else {
+                            if (weekendBox) weekendBox.style.display = 'none';
+                        }
+                    });
+                
+                    // 주말용 오늘 실시간 답변 리스너
+                    onSnapshot(doc(db, "daily_answers", todayDateKey), (todaySnap) => {
+                        const d = todaySnap.exists() ? todaySnap.data() : {};
+                        const y = document.getElementById('yumi-answer'), g = document.getElementById('goni-answer');
+                        if (y && g) {
+                            if (d.유미) { y.style.display = 'block'; y.querySelector('.text').innerText = d.유미; } else y.style.display = 'none';
+                            if (d.거니) { g.style.display = 'block'; g.querySelector('.text').innerText = d.거니; } else g.style.display = 'none';
+                        }
+                    });
+                
+                    if (document.getElementById('q-input-area')) document.getElementById('q-input-area').style.display = 'none'; 
+                    if (document.getElementById('writer-selector')) document.getElementById('writer-selector').style.display = 'flex'; 
+                    if (document.getElementById('question-overlay')) document.getElementById('question-overlay').style.display = 'flex';
+                
+                    window.currentPastDateKey = targetPastDateKey; 
+                };
     
 
 window.openInput = (name) => { 
