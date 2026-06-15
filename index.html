@@ -3674,9 +3674,9 @@ window.runLocalLadderPhysics = function(startX, penaltyText) {
 
     const timer = setInterval(() => {
         if (moveMode === 0) {
-            currentY += 2.2; // 팀장님이 고치신 2.2 고속 튜닝 스피드!⚡
+            currentY += 2.5;
             ladderBridges.forEach(y => {
-                if (Math.abs(currentY - y) < 2.2 && crossBridgeY !== y) {
+                if (Math.abs(currentY - y) < 2.5 && crossBridgeY !== y) {
                     currentY = y; moveMode = 1; crossBridgeY = y;
                     targetX = currentX === 55 ? 165 : 55;
                 }
@@ -3901,10 +3901,8 @@ window.resetRSPMatchOnly = async function() {
     
     
 // =======================================================
-// 🎡 [실시간 멀티플레이 네트워크] 거니 💛 유미 커스텀 룰렛 엔진
+// 🎡 [각도 싱크 100% + 무한 회전 완결판] 거니 💛 유미 커스텀 룰렛 엔진
 // =======================================================
-let isWheelSpinning = false;
-let wheelDbListener = null;
 
 // ✍️ 2-1. 내 눈앞의 인풋창 문구를 룰렛 원판 조각 위에 자석 동기화해 주는 함수
 window.syncWheelText = function(index) {
@@ -3912,7 +3910,6 @@ window.syncWheelText = function(index) {
     const txtDiv = document.getElementById(`wheel-txt-${index}`);
     if (txtDiv) txtDiv.innerText = inputVal || `${index + 1}번 벌칙`;
     
-    // 내가 글자를 타이핑할 때마다 서버에 실시간 백업 전송 (상대방 판 갱신용)
     if (!isWheelSpinning) {
         setTimeout(async () => {
             const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
@@ -3939,6 +3936,7 @@ window.startWheelRealtimeListener = async function() {
             if (!docSnap.exists()) {
                 if (wheelBtn) wheelBtn.disabled = false;
                 wheelResult.innerText = "벌칙이나 내기를 입력해봐! ✍️";
+                wheelGraphic.style.transition = "none"; // 🧼 리셋할 땐 회전 애니메이션 끄기
                 wheelGraphic.style.transform = "rotate(0deg)";
                 return;
             }
@@ -3950,48 +3948,54 @@ window.startWheelRealtimeListener = async function() {
                 if (data[`text_${i}`] !== undefined) {
                     const inputField = document.getElementById(`wheel-input-${i}`);
                     const txtDiv = document.getElementById(`wheel-txt-${i}`);
-                    if (document.activeElement !== inputField) { // 내가 입력 중이 아닐 때만 덮어쓰기
+                    if (document.activeElement !== inputField) { 
                         inputField.value = data[`text_${i}`];
                     }
                     txtDiv.innerText = data[`text_${i}`] || `${i + 1}번 벌칙`;
                 }
             }
 
-            // 2. 🚀 한쪽 폰에서 돌리기를 작동시키면 양쪽 폰 원판 동시 회전 돌격!!
-            if (data.status === 'spinning' && !isWheelSpinning) {
-                window.runLocalWheelPhysics(data.targetAngle, data.winnerPrize);
+            // 2. 🚀 [강제 연출 장착] 늦게 들어오든 아니든 무조건 윙윙 도는 애니메이션 작동
+            if (data.status === 'spinning') {
+                if (!isWheelSpinning) {
+                    window.runLocalWheelPhysics(data.targetAngle, data.winnerPrize);
+                }
             }
         });
     } catch (e) { console.error("룰렛 리스너 오류:", e); }
 };
 
-// 🚀 2-3. [서버 점화기] 내가 돌리기 버튼을 누르면 당첨 각도를 서버로 번개처럼 사출
+// 🚀 2-3. [수학적 각도 완전 교정] 12시 바늘(👇) 기준 그라디언트 완벽 매칭 연산기
 window.spinWheel = function() {
     if (isWheelSpinning) return;
 
-    // 최종 당첨될 아이템 픽셀 각도 미리 계산
+    // 🪄 [conic-gradient 싱크 가이드]
+    // 12시 바늘 기준: 0~90도=하늘(야식), 90~180도=연두(소원), 180~270도=주황(뽀뽀), 270~360도=분홍(안마)
     const randomItems = [
-        { index: 0, prize: document.getElementById('wheel-input-0').value, baseAngle: 270 }, // 1시 방향 (분홍)
-        { index: 1, prize: document.getElementById('wheel-input-1').value, baseAngle: 180 }, // 4시 방향 (주황)
-        { index: 2, prize: document.getElementById('wheel-input-2').value, baseAngle: 90  }, // 7시 방향 (연두)
-        { index: 3, prize: document.getElementById('wheel-input-3').value, baseAngle: 0   }  // 10시 방향 (하늘)
+        { prize: document.getElementById('wheel-input-0').value, minA: 275, maxA: 355 }, // 1번 분홍칸 (안마)
+        { prize: document.getElementById('wheel-input-1').value, minA: 185, maxA: 265 }, // 2번 주황칸 (뽀뽀)
+        { prize: document.getElementById('wheel-input-2').value, minA: 95,  maxA: 175 }, // 3번 연두칸 (소원)
+        { prize: document.getElementById('wheel-input-3').value, minA: 5,   maxA: 85  }  // 4번 하늘칸 (야식)
     ];
     
+    // 무작위 당첨 조항 초이스
     const winner = randomItems[Math.floor(Math.random() * randomItems.length)];
-    const targetRotation = (3600 - winner.baseAngle) + Math.floor(Math.random() * 50 + 20); 
+    
+    // 해당 칸 범위 내에서 바늘 한가운데 꽂히도록 랜덤 각도 추출 후, 화려하게 7바퀴(2520도) 회전 누적!
+    const targetRandomAngle = Math.floor(Math.random() * (winner.maxA - winner.minA)) + winner.minA;
+    const finalTotalRotation = 2520 + targetRandomAngle; 
 
-    // 서버에 회전 신호 전송!
     setTimeout(async () => {
         const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         await setDoc(doc(window.db, "games", "wheelMatch"), {
             status: 'spinning',
-            targetAngle: targetRotation,
-            winnerPrize: winner.prize || `${winner.index + 1}번 벌칙`
+            targetAngle: finalTotalRotation,
+            winnerPrize: winner.prize || "벌칙 조항"
         }, { merge: true });
     }, 0);
 };
 
-// 🎡 2-4. [리얼 회전 물리 엔진] 양쪽 핸드폰 화면에서 동시에 똑같은 각도로 룰렛을 돌리는 기믹
+// 🎡 2-4. [틱- 멈춤 버그 완전 해결] 원점 워프 후 3초간 시원하게 회전하는 물리 엔진
 window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
     const wheelBtn = document.getElementById('wheel-btn');
     if (wheelBtn) wheelBtn.disabled = true;
@@ -4000,14 +4004,23 @@ window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
     const wheelGraphic = document.getElementById('wheel-graphic');
     const wheelResult = document.getElementById('wheel-result');
 
-    wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
-    wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
+    // 🚨 [진입 버그 차단] 새 경기를 돌릴 때 트랜지션을 즉시 끄고 '0도' 원점으로 순간 이동시킵니다!
+    wheelGraphic.style.transition = "none";
+    wheelGraphic.style.transform = "rotate(0deg)";
 
-    // 3초간 화려하게 도는 애니메이션 관람 후 정산
+    // 브라우저가 원점 복귀를 연산할 시간을 아주 살짝 준 뒤, 3초간 힘차게 회전 주입! 💫
+    setTimeout(() => {
+        wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
+        wheelGraphic.style.transition = "transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)";
+        wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
+    }, 20);
+
+    // 3초 회전 렌더링 관람 종료 후 최종 확정 표출
     setTimeout(() => {
         wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
         isWheelSpinning = false;
-    }, 3000);
+        if (wheelBtn) wheelBtn.disabled = false; // 연달아 또 돌릴 수 있게 락 해제
+    }, 3020);
 };
 
 // 🔄 2-5. 룰렛 전용 서버 리셋 스위치
