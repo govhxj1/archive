@@ -640,8 +640,8 @@
     <div style="flex: 1; background: #fff0f3; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-sizing: border-box;">
         
         <div style="width: 100%; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box; flex-shrink: 0; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 12px;">
-            <span style="font-size: 0.8rem; color: #ff4d6d; font-weight: bold; text-align: center;">👇 이번 판에 걸릴 운명의 벌칙/상품 🎁</span>
-            <input type="text" id="ladder-single-input" value="설거지 및 집안일 다하기🧹" placeholder="여기에 내기 조항을 적어줘!" style="width: 100%; padding: 8px; border: 1px solid #ffafcc; border-radius: 8px; font-size: 0.85rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+            <span style="font-size: 0.8rem; color: #ff4d6d; font-weight: bold; text-align: center;">👇 이번판의 상품! 🎁</span>
+            <input type="text" id="ladder-single-input" value="뽀뽀하기!" placeholder="여기에 내기 조항을 적어줘!" style="width: 100%; padding: 8px; border: 1px solid #ffafcc; border-radius: 8px; font-size: 0.85rem; font-weight: bold; text-align: center; box-sizing: border-box;">
         </div>
 
         <div style="position: relative; width: 220px; height: 180px; background: #fff; border-radius: 12px; border: 2px solid #ffafcc; box-shadow: inset 0 2px 8px rgba(0,0,0,0.05); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
@@ -649,20 +649,20 @@
         </div>
 
         <div style="width: 100%; display: flex; justify-content: space-around; font-weight: 900; color: #3E2723; font-size: 0.95rem; flex-shrink: 0; background: rgba(255,255,255,0.5); padding: 6px 0; border-radius: 10px;">
-            <div style="text-align: center; width: 50%; color: #1565c0;">👦 거니 구역</div>
-            <div style="text-align: center; width: 50%; color: #e53935;">👧 유미 구역</div>
+            <div style="text-align: center; width: 50%; color: #1565c0;">👦 거니</div>
+            <div style="text-align: center; width: 50%; color: #e53935;">👧 유미</div>
         </div>
 
-        <div id="ladder-result" style="font-weight: 900; font-size: 1.15rem; color: #ff4d6d; text-align: center; min-height: 24px; margin: 2px 0;">과연 벌칙의 주인공은 누가 될 것인가?! 🔥</div>
+        <div id="ladder-result" style="font-weight: 900; font-size: 1.15rem; color: #ff4d6d; text-align: center; min-height: 24px; margin: 2px 0;">두구두구...과면 주인공은 ?! 🔥</div>
 
         <div style="width: 100%; flex-shrink: 0;">
             <button onclick="startLadderGame()" id="ladder-btn" style="width: 100%; height: 45px; background: #ff4d6d; color: white; border: none; border-radius: 12px; font-weight: 900; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 10px rgba(255, 77, 109, 0.3);">
-                🚀 사다리 굴리기 시작!
+                🚀 사다리 타기 시작!
             </button>
         </div>
     </div>
     
-    <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; flex-shrink: 0;">🔙 게임 선택으로</button>
+    <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; flex-shrink: 0;">게임 선택으로</button>
 </div>
 
         <div id="game-rsp-view" style="display: none; flex-direction: column; height: 100%;">
@@ -697,7 +697,7 @@
         <div id="rsp-final-result" style="font-weight: 900; font-size: 1.25rem; color: #2e7d32; text-align: center; min-height: 28px; flex-shrink: 0; padding-top: 5px;"></div>
     </div>
     
-    <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; flex-shrink: 0;">🔙 게임 선택으로</button>
+    <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; flex-shrink: 0;">게임 선택으로</button>
 </div>
 
         <div id="game-wheel-view" style="display: none; flex-direction: column; height: 100%; overflow-y: auto;">
@@ -733,7 +733,7 @@
         </div>
     </div>
     
-    <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; flex-shrink: 0;">🔙 게임 선택으로</button>
+    <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; flex-shrink: 0;">게임 선택으로</button>
 </div>
 
     </div>
@@ -833,7 +833,7 @@
             </div>
             
             <button onclick="backToLetterList()" style="margin-top: 15px; width: 100%; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; font-size: 0.95rem; cursor: pointer; flex-shrink: 0; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 10px rgba(255, 143, 171, 0.2);">
-                🔙 목록으로 돌아가기
+                목록으로 돌아가기
             </button>
         </div>
     </div>
@@ -2793,7 +2793,7 @@ window.openLetterContent = function(num) {
     document.getElementById('letter-content-view').style.display = 'flex';
 };
 
-// 🔙 본문에서 다시 목록 화면으로 되돌아가는 함수
+// 본문에서 다시 목록 화면으로 되돌아가는 함수
 window.backToLetterList = function() {
     document.getElementById('letter-list-view').style.display = 'flex';
     document.getElementById('letter-content-view').style.display = 'none';
@@ -3548,9 +3548,9 @@ window.startLadderGame = function() {
     resBox.style.padding = "0";
     resBox.style.borderRadius = "0";
     
-    const penaltyText = document.getElementById('ladder-single-input').value.trim() || "운명의 벌칙";
+    const penaltyText = document.getElementById('ladder-single-input').value.trim() || "운명의 사다리";
     // 🎯 안내 멘트 옆에 붙는 원형 이모티콘도 센스 있게 초록색(🟢)으로 바인딩 완료!
-    resBox.innerHTML = `🟢 벌칙 [${penaltyText}]이(가) 하강 중...`;
+    resBox.innerHTML = `🟢 [${penaltyText}] 하강 중...`;
 
     // 랜덤 출발 기둥 선정 (55: 거니측, 165: 유미측)
     const startPositions = [55, 165];
@@ -3647,7 +3647,7 @@ window.backToGameLobby = function() {
     
     const resBox = document.getElementById('ladder-result');
     if (resBox) {
-        resBox.innerText = "과연 벌칙의 주인공은 누가 될 것인가?! 🔥";
+        resBox.innerText = "두구두구두구...! 🔥";
         resBox.style.cssText = "font-weight: 900; font-size: 1.15rem; color: #ff4d6d; text-align: center; min-height: 24px; margin: 2px 0;";
     }
     setTimeout(() => { window.drawBaseLadder(); }, 100);
