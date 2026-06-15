@@ -581,7 +581,7 @@
         🛌 여기어때
     </button>
 
-    <button class="confirm-btn" style="width: 100%; height: 55px; background: #fdf2e9; color: #d4a373; border: none; border-radius: 15px; font-weight: 900; font-size: 16px; cursor: pointer; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;" onclick="window.openGameOverlay()">
+    <button class="confirm-btn" style="width: 100%; height: 55px; background: #fdf2e9; color: #d4a373; border: none; border-radius: 15px; font-weight: 900; font-size: 16px; cursor: pointer; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="window.openGameOverlay()">
     🎮 미니게임
     </button>
 
@@ -656,19 +656,34 @@
         </div>
 
         <div id="game-rsp-view" style="display: none; flex-direction: column; height: 100%;">
-            <span style="color: #2e7d32; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px;">✌️ 거니와 가위바위보 대결!</span>
-            <div style="flex: 1; background: #f1f8e9; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; justify-content: center; gap: 20px;">
-                <div id="rsp-ai-hand" style="font-size: 3.5rem; transition: 0.3s;">🤖❔</div>
-                <div id="rsp-status" style="font-weight: bold; color: #666;">무엇을 낼까 유미야?</div>
-                <div style="display: flex; justify-content: center; gap: 15px;">
-                    <button onclick="playRSP('👊')" style="font-size: 2rem; background: white; border: 2px solid #81c784; border-radius: 50%; width: 65px; height: 65px; cursor: pointer; display: flex; align-items: center; justify-content: center;">👊</button>
-                    <button onclick="playRSP('✌️')" style="font-size: 2rem; background: white; border: 2px solid #81c784; border-radius: 50%; width: 65px; height: 65px; cursor: pointer; display: flex; align-items: center; justify-content: center;">✌️</button>
-                    <button onclick="playRSP('🖐️')" style="font-size: 2rem; background: white; border: 2px solid #81c784; border-radius: 50%; width: 65px; height: 65px; cursor: pointer; display: flex; align-items: center; justify-content: center;">🖐️</button>
-                </div>
-                <div id="rsp-result" style="font-weight: 900; font-size: 1.3rem; color: #2e7d32;"></div>
-            </div>
-            <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer;">🔙 게임 선택으로</button>
+    <span style="color: #2e7d32; font-weight: 900; font-size: 1.1rem; margin-bottom: 10px;">✌️ 거니 VS 유미 가위바위보</span>
+    
+    <div style="flex: 1; background: #f1f8e9; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
+        
+        <div style="display: flex; justify-content: center; gap: 15px; flex-shrink: 0;">
+            <button id="rsp-player-geonny" onclick="selectRSPPlayer('거니')" style="flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;">👦 거니 선택</button>
+            <button id="rsp-player-yumi" onclick="selectRSPPlayer('유미')" style="flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;">👧 유미 선택</button>
         </div>
+
+        <div style="text-align: center; margin: 15px 0; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
+            <div id="rsp-status-title" style="font-weight: 900; font-size: 1.1rem; color: #333;">먼저 플레이어를 골라줘! 👆</div>
+            <div id="rsp-readiness" style="font-size: 0.85rem; color: #666; font-weight: bold; background: rgba(255,255,255,0.6); padding: 6px 12px; border-radius: 20px;">
+                거니: ❌ 대기중 | 유미: ❌ 대기중
+            </div>
+            <div id="rsp-match-vs" style="font-size: 2.2rem; margin-top: 10px; display: none;">❔ VS ❔</div>
+        </div>
+
+        <div id="rsp-choice-panel" style="display: flex; justify-content: center; gap: 12px; pointer-events: none; opacity: 0.4; flex-shrink: 0; padding-bottom: 5px;">
+            <button onclick="submitRSPChoice('👊')" style="font-size: 1.8rem; background: white; border: 2px solid #81c784; border-radius: 50%; width: 60px; height: 60px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 6px rgba(0,0,0,0.05);">👊</button>
+            <button onclick="submitRSPChoice('✌️')" style="font-size: 1.8rem; background: white; border: 2px solid #81c784; border-radius: 50%; width: 60px; height: 60px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 6px rgba(0,0,0,0.05);">✌️</button>
+            <button onclick="submitRSPChoice('🖐️')" style="font-size: 1.8rem; background: white; border: 2px solid #81c784; border-radius: 50%; width: 60px; height: 60px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 6px rgba(0,0,0,0.05);">🖐️</button>
+        </div>
+
+        <div id="rsp-final-result" style="font-weight: 900; font-size: 1.25rem; color: #2e7d32; text-align: center; min-height: 28px; flex-shrink: 0; padding-top: 5px;"></div>
+    </div>
+    
+    <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; flex-shrink: 0;">🔙 게임 선택으로</button>
+</div>
 
         <div id="game-wheel-view" style="display: none; flex-direction: column; height: 100%;">
             <span style="color: #1565c0; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px;">🎡 두근두근 룰렛 돌림판</span>
@@ -3446,29 +3461,136 @@ window.runLadder = function(choice) {
     document.getElementById('ladder-result').innerHTML = `선택 [${choice === 'A' ? '왼쪽' : '오른쪽'}] 결과:<br><span style="font-size:0.95rem; color:#333;">${finalOutcome}</span>`;
 };
 
-// ✌️ [2번 게임] 가위바위보 대결 로직
-window.playRSP = function(userHand) {
-    const aiOptions = ['👊', '✌️', '🖐️'];
-    const aiHand = aiOptions[Math.floor(Math.random() * aiOptions.length)];
+// =======================================================
+// ✌️ [2인용 시스템 대개조] 거니 & 유미 가위바위보 엔진
+// =======================================================
+let rspCurrentPlayer = null; // 현재 버튼을 누를 사람 ('거니' 또는 '유미')
+let geonnyChoice = null;     // 거니가 낸 패
+let yumiChoice = null;       // 유미가 낸 패
+
+// 👤 1. 플레이어 선택 함수 (거니 혹은 유미 버튼 클릭 시)
+window.selectRSPPlayer = function(player) {
+    // 이미 패를 낸 사람은 다시 선택 불가 방어막
+    if (player === '거니' && geonnyChoice) { alert("거니는 이미 패를 골랐어! 유미 차례야 💛"); return; }
+    if (player === '유미' && yumiChoice) { alert("유미는 이미 패를 골랐어! 거니 차례야 👦"); return; }
+
+    rspCurrentPlayer = player;
     
-    document.getElementById('rsp-ai-hand').innerText = aiHand;
-    document.getElementById('rsp-status').innerText = `유미: ${userHand} VS 거니 AI: ${aiHand}`;
+    // UI 포커스 스타일링 🎨
+    const btnGeonny = document.getElementById('rsp-player-geonny');
+    const btnYumi = document.getElementById('rsp-player-yumi');
     
-    const resultBox = document.getElementById('rsp-result');
-    if (userHand === aiHand) {
-        resultBox.innerText = "🤝 비겼다! 한 판 더?!";
-        resultBox.style.color = "#666";
-    } else if (
-        (userHand === '👊' && aiHand === '✌️') ||
-        (userHand === '✌️' && aiHand === '🖐️') ||
-        (userHand === '🖐️' && aiHand === '👊')
-    ) {
-        resultBox.innerText = "🏆 유미가 이겼다!! 거니 소원권 당첨! 💛";
-        resultBox.style.color = "#4caf50";
+    if (player === '거니') {
+        btnGeonny.style.cssText = "flex: 1; padding: 10px; background: #e8f5e9; border: 2px solid #2e7d32; border-radius: 10px; font-weight: 900; font-size: 0.9rem; color: #2e7d32; cursor: pointer;";
+        if(!yumiChoice) btnYumi.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
+        document.getElementById('rsp-status-title').innerText = "👦 거니야, 비밀리에 패를 골라줘!";
     } else {
-        resultBox.innerText = "😜 거니 AI 승리! 유미 소원 들어줘라~ 힇히";
-        resultBox.style.color = "#e53935";
+        btnYumi.style.cssText = "flex: 1; padding: 10px; background: #e8f5e9; border: 2px solid #2e7d32; border-radius: 10px; font-weight: 900; font-size: 0.9rem; color: #2e7d32; cursor: pointer;";
+        if(!geonnyChoice) btnGeonny.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
+        document.getElementById('rsp-status-title').innerText = "👧 유미야, 비밀리에 패를 골라줘!";
     }
+
+    // 가위바위보 패널 활성화 🔓
+    const panel = document.getElementById('rsp-choice-panel');
+    panel.style.pointerEvents = "auto";
+    panel.style.opacity = "1";
+};
+
+// 👊 2. 가위바위보 패 선택 제출 함수
+window.submitRSPChoice = function(hand) {
+    if (!rspCurrentPlayer) { alert("누가 낼지 플레이어를 먼저 선택해줘! 👆"); return; }
+
+    if (rspCurrentPlayer === '거니') {
+        geonnyChoice = hand;
+        document.getElementById('rsp-player-geonny').style.cssText = "flex: 1; padding: 10px; background: #c8e6c9; border: 2px solid #81c784; border-radius: 10px; font-weight: 900; font-size: 0.9rem; color: #2e7d32; opacity: 0.6; cursor: default;";
+    } else if (rspCurrentPlayer === '유미') {
+        yumiChoice = hand;
+        document.getElementById('rsp-player-yumi').style.cssText = "flex: 1; padding: 10px; background: #c8e6c9; border: 2px solid #81c784; border-radius: 10px; font-weight: 900; font-size: 0.9rem; color: #2e7d32; opacity: 0.6; cursor: default;";
+    }
+
+    // 대기 현황판 실시간 갱신 📊
+    updateRSPReadiness();
+
+    // 패널 다시 잠그기 및 플레이어 리셋
+    rspCurrentPlayer = null;
+    const panel = document.getElementById('rsp-choice-panel');
+    panel.style.pointerEvents = "none";
+    panel.style.opacity = "0.4";
+    document.getElementById('rsp-status-title').innerText = "상대방 플레이어를 선택해줘! 👆";
+
+    // 🎯 [핵심] 두 명 다 클릭 완료했다면 즉시 결과창 오픈! ⭐
+    if (geonnyChoice && yumiChoice) {
+        calculateRSPResult();
+    }
+};
+
+// 📊 3. 대기 현황판 텍스트 업데이트 헬퍼
+function updateRSPReadiness() {
+    const gStatus = geonnyChoice ? "✅ 완료" : "❌ 대기중";
+    const yStatus = yumiChoice ? "✅ 완료" : "❌ 대기중";
+    document.getElementById('rsp-readiness').innerText = `거니: ${gStatus} | 유미: ${yStatus}`;
+}
+
+// 🏆 4. 최종 결과 판정 및 결과창 표출 엔진
+function calculateRSPResult() {
+    const title = document.getElementById('rsp-status-title');
+    const vsBox = document.getElementById('match-vs') || document.getElementById('rsp-match-vs');
+    const resultText = document.getElementById('rsp-final-result');
+
+    title.innerText = "🎉 대결 결과 오픈! 🎉";
+    
+    // 숨겨져 있던 두 사람의 패를 화면에 공개! 👀
+    if (vsBox) {
+        vsBox.innerText = `👦 ${geonnyChoice} VS ${yumiChoice} 👧`;
+        vsBox.style.display = "block";
+    }
+
+    // 승패 판정 알고리즘
+    if (geonnyChoice === yumiChoice) {
+        resultText.innerText = "🤝 서로 통했다! 무승부! 💛";
+        resultText.style.color = "#666";
+    } else if (
+        (geonnyChoice === '👊' && yumiChoice === '✌️') ||
+        (geonnyChoice === '✌️' && yumiChoice === '🖐️') ||
+        (geonnyChoice === '🖐️' && yumiChoice === '👊')
+    ) {
+        resultText.innerText = "👑 거니 승리! 유미 소원 들어주기~! 😜";
+        resultText.style.color = "#1565c0";
+    } else {
+        resultBoxText = resultText.innerText = "🏆 유미 승리!! 거니 납작 엎드려라~ 힇히 💖";
+        resultText.style.color = "#e53935";
+    }
+}
+
+// 🔄 5. 기존 로비 되돌아가기 함수 내부의 리셋 규격 확장 (덮어쓰기용)
+const originalBackToGameLobby = window.backToGameLobby;
+window.backToGameLobby = function() {
+    if (originalBackToGameLobby) originalBackToGameLobby();
+    
+    // 2인용 데이터 싹 청소하기 🧹
+    rspCurrentPlayer = null;
+    geonnyChoice = null;
+    yumiChoice = null;
+    
+    const btnGeonny = document.getElementById('rsp-player-geonny');
+    const btnYumi = document.getElementById('rsp-player-yumi');
+    const vsBox = document.getElementById('rsp-match-vs');
+    
+    if (btnGeonny) btnGeonny.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
+    if (btnYumi) btnYumi.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
+    if (vsBox) vsBox.style.display = "none";
+    
+    const panel = document.getElementById('rsp-choice-panel');
+    if (panel) { panel.style.pointerEvents = "none"; panel.style.opacity = "0.4"; }
+    
+    const readyBox = document.getElementById('rsp-readiness');
+    if (readyBox) readyBox.innerText = "거니: ❌ 대기중 | 유미: ❌ 대기중";
+    
+    const finalRes = document.getElementById('rsp-final-result');
+    if (finalRes) finalRes.innerText = "";
+    
+    const statusTitle = document.getElementById('rsp-status-title');
+    if (statusTitle) statusTitle.innerText = "먼저 플레이어를 골라줘! 👆";
 };
 
 // 🎡 [3번 게임] 돌림판 회전 애니메이션 연산 로직
