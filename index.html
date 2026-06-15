@@ -642,7 +642,7 @@
             <div style="flex: 1; background: #fff0f3; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-sizing: border-box;">
                 <div style="width: 100%; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box; flex-shrink: 0; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 12px;">
                     <span style="font-size: 0.8rem; color: #ff4d6d; font-weight: bold; text-align: center;">👇 이번판의 상품! 🎁</span>
-                    <input type="text" id="ladder-single-input" value="뽀뽀하기!" placeholder="여기에 내기 조항을 적어줘!" style="width: 100%; padding: 8px; border: 1px solid #ffafcc; border-radius: 8px; font-size: 0.85rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+                    <input type="text" id="ladder-single-input" value="뽀뽀하기!" placeholder="이번 사다리타기 상품은?!" style="width: 100%; padding: 8px; border: 1px solid #ffafcc; border-radius: 8px; font-size: 0.85rem; font-weight: bold; text-align: center; box-sizing: border-box;">
                 </div>
                 <div style="position: relative; width: 220px; height: 180px; background: #fff; border-radius: 12px; border: 2px solid #ffafcc; box-shadow: inset 0 2px 8px rgba(0,0,0,0.05); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                     <canvas id="ladder-canvas" width="220" height="180" style="display: block;"></canvas>
@@ -692,14 +692,14 @@
                     <div id="wheel-graphic" style="width: 100%; height: 100%; border-radius: 50%; border: 6px solid #64b5f6; background: conic-gradient(#ffadad 0% 25%, #ffd6a5 25% 50%, #caffbf 50% 75%, #9bf6ff 75% 100%); transition: transform 3s cubic-bezier(0.15, 0.85, 0.35, 1); position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1); box-sizing: border-box;">
                         <div style="position: absolute; top: 12px; left: 68%; transform: rotate(45deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-0">안마</div>
                         <div style="position: absolute; top: 68%; left: 88%; transform: rotate(135deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-1">뽀뽀</div>
-                        <div style="position: absolute; top: 88%; left: 32%; transform: rotate(225deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-2">소원권</div>
+                        <div style="position: absolute; top: 88%; left: 32%; transform: rotate(225deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-2">소원</div>
                         <div style="position: absolute; top: 32%; left: 12%; transform: rotate(315deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-3">야식</div>
                     </div>
                 </div>
                 <div id="wheel-result" style="font-weight: 900; font-size: 1.15rem; color: #0d47a1; text-align: center; min-height: 24px; margin: 2px 0;">룰렛을 채워봐! ✍️</div>
                 <div style="width: 100%; display: flex; flex-direction: column; gap: 6px; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 12px; box-sizing: border-box; overflow: hidden;">
-                    <input type="text" id="wheel-input-0" value="안마해주기" oninput="syncWheelText(0)" placeholder="1번 조항 (분홍칸)" style="width: 100%; padding: 8px; border: 1px solid #ffadad; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
-                    <input type="text" id="wheel-input-1" value="뽀뽀 쬭" oninput="syncWheelText(1)" placeholder="2번 조항 (주황칸)" style="width: 100%; padding: 8px; border: 1px solid #ffd6a5; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+                    <input type="text" id="wheel-input-0" value="안마권" oninput="syncWheelText(0)" placeholder="1번 조항 (분홍칸)" style="width: 100%; padding: 8px; border: 1px solid #ffadad; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+                    <input type="text" id="wheel-input-1" value="뽀뽀권" oninput="syncWheelText(1)" placeholder="2번 조항 (주황칸)" style="width: 100%; padding: 8px; border: 1px solid #ffd6a5; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
                     <input type="text" id="wheel-input-2" value="소원권" oninput="syncWheelText(2)" placeholder="3번 조항 (연두칸)" style="width: 100%; padding: 8px; border: 1px solid #caffbf; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
                     <input type="text" id="wheel-input-3" value="야식권" oninput="syncWheelText(3)" placeholder="4번 조항 (하늘칸)" style="width: 100%; padding: 8px; border: 1px solid #9bf6ff; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
                 </div>
@@ -3465,7 +3465,7 @@ window.backToGameLobby = function() {
     // 🪜 4-1. 사다리타기 뷰 리셋 정산
     const ladderRes = document.getElementById('ladder-result');
     if (ladderRes) {
-        ladderRes.innerText = "과연 벌칙의 주인공은 누가 될 것인가?! 🔥";
+        ladderRes.innerText = "사다리의 주인공은 누가 될 것인가?! 🔥";
         // 아까 입혀둔 커스텀 컬러 박스 스타일 초기화 🧼
         ladderRes.style.cssText = "font-weight: 900; font-size: 1.15rem; color: #ff4d6d; text-align: center; min-height: 24px; margin: 2px 0;";
     }
@@ -3493,7 +3493,7 @@ window.backToGameLobby = function() {
     } else {
         // 백업용 예외 처리 방어막
         const wheelResult = document.getElementById('wheel-result');
-        if (wheelResult) wheelResult.innerText = "벌칙이나 내기를 입력해봐! ✍️";
+        if (wheelResult) wheelResult.innerText = "돌림판을 채워줘! ✍️";
         const wheelGraphic = document.getElementById('wheel-graphic');
         if (wheelGraphic) wheelGraphic.style.transform = "rotate(0deg)";
     }
@@ -3761,10 +3761,10 @@ function calculateRSPResult() {
         (geonnyChoice === '✌️' && yumiChoice === '🖐️') ||
         (geonnyChoice === '🖐️' && yumiChoice === '👊')
     ) {
-        resultText.innerText = "👑 거니 승리! 유미 소원 들어주기~! 😜";
+        resultText.innerText = "👑 거니 승리!😜";
         resultText.style.color = "#1565c0";
     } else {
-        resultText.innerText = "🏆 유미 승리!! 거니 납작 엎드려라~ 힇히 💖";
+        resultText.innerText = "🏆 유미 승리!😜";
         resultText.style.color = "#e53935";
     }
 
