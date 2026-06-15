@@ -3409,18 +3409,60 @@ const collectionData = {
     }
 };
 
-    // =======================================================
-// 🎮 [나우 전용 빌드] 거니오락실 3종 미니게임 시스템
+   // =======================================================
+// 📂 [거니오락실 최종 완공] 팝업 제어 및 무한 동력 리셋 매니저
 // =======================================================
 
-// 📂 오락실 팝업 켜기 (사이드 메뉴 강제 이사 방어막 장착)
+// 1. 오락실 팝업 완전히 켜기 (비밀메뉴 미니게임 버튼 클릭 시 발동! 🔑)
+window.openGameOverlay = function() {
+    const gameOverlay = document.getElementById('game-overlay');
+    const sideMenu = document.getElementById('side-menu');
+    const mainOverlay = document.getElementById('overlay');
+    
+    // 🪄 [레이어 방어막] 비밀메뉴 내부에 레이어가 갇혀서 안 뜨는 버그 원천 차단
+    if (gameOverlay && gameOverlay.parentNode.id === 'side-menu') {
+        document.body.appendChild(gameOverlay);
+    }
+    
+    // 기존 배경 사이드메뉴와 블러 가림막 숨기기
+    if (sideMenu) sideMenu.style.display = 'none';
+    if (mainOverlay) mainOverlay.style.display = 'none';
+    
+    // 오락실 오버레이를 화면 정중앙에 팝업으로 띄우기 ✨
+    if (gameOverlay) gameOverlay.style.display = 'flex';
+    
+    // 켜질 때 무조건 깨끗하게 리셋된 '로비 메뉴' 화면으로 세팅
+    if (window.backToGameLobby) {
+        window.backToGameLobby();
+    }
+};
+
+// 2. 오락실 팝업 창 완전히 닫기 (오락실 나가기 버튼 클릭 시 🚪)
+window.closeGameOverlay = function() {
+    const gameOverlay = document.getElementById('game-overlay');
+    if (gameOverlay) gameOverlay.style.display = 'none'; // 완전히 숨김 처리
+};
+
+// 3. 미니게임 로비 <-> 개별 게임 간의 화면 스위칭 매니저 🔄
+window.switchGameView = function(type) {
+    document.getElementById('game-lobby-view').style.display = 'none';
+    document.getElementById('game-ladder-view').style.display = 'none';
+    document.getElementById('game-rsp-view').style.display = 'none';
+    document.getElementById('game-wheel-view').style.display = 'none';
+    
+    if (type === 'ladder') document.getElementById('game-ladder-view').style.display = 'flex';
+    if (type === 'rsp') document.getElementById('game-rsp-view').style.display = 'flex';
+    if (type === 'wheel') document.getElementById('game-wheel-view').style.display = 'flex';
+};
+
+// 4. [중복 제거 완결판] 게임 선택 목록(로비)으로 돌아갈 때 가동되는 통합 청소 엔진 🧹
 window.backToGameLobby = function() {
     document.getElementById('game-lobby-view').style.display = 'flex';
     document.getElementById('game-ladder-view').style.display = 'none';
     document.getElementById('game-rsp-view').style.display = 'none';
     document.getElementById('game-wheel-view').style.display = 'none';
     
-    // 🪜 1. 사다리타기 뷰 리셋 정산
+    // 🪜 4-1. 사다리타기 뷰 리셋 정산
     const ladderRes = document.getElementById('ladder-result');
     if (ladderRes) {
         ladderRes.innerText = "과연 벌칙의 주인공은 누가 될 것인가?! 🔥";
@@ -3430,8 +3472,7 @@ window.backToGameLobby = function() {
     // 초록 구슬 도화지 깨끗하게 리드로잉 🟢
     if (window.drawBaseLadder) window.drawBaseLadder();
 
-    // ✌️ 2. 가위바위보 2인용 엔진 리셋 연동
-    // 💡 아까 만들어둔 전용 리셋기(resetRSPMatchOnly)가 있다면 호출해서 완벽 진압!
+    // ✌️ 4-2. 가위바위보 2인용 엔진 리셋 연동
     if (window.resetRSPMatchOnly) {
         window.resetRSPMatchOnly();
     } else {
@@ -3446,7 +3487,7 @@ window.backToGameLobby = function() {
         if (finalRes) finalRes.innerText = "";
     }
     
-    // 🎡 3. 돌림판 룰렛 정밀 리셋 연동
+    // 🎡 4-3. 돌림판 룰렛 정밀 리셋 연동
     if (window.resetWheelMatch) {
         window.resetWheelMatch();
     } else {
@@ -3457,42 +3498,10 @@ window.backToGameLobby = function() {
         if (wheelGraphic) wheelGraphic.style.transform = "rotate(0deg)";
     }
 
-    // 🚀 4. 인풋창 입력 텍스트 룰렛 원판 위에 자석 동기화 재가동
+    // 🚀 4-4. 인풋창 입력 텍스트 룰렛 원판 위에 자석 동기화 재가동
     for (let i = 0; i < 4; i++) { 
         if (window.syncWheelText) window.syncWheelText(i); 
     }
-};
-
-window.closeGameOverlay = function() {
-    const gameOverlay = document.getElementById('game-overlay');
-    if (gameOverlay) gameOverlay.style.display = 'none';
-};
-
-// 🔄 각 미니게임 화면 스위칭 매니저
-window.switchGameView = function(type) {
-    document.getElementById('game-lobby-view').style.display = 'none';
-    document.getElementById('game-ladder-view').style.display = 'none';
-    document.getElementById('game-rsp-view').style.display = 'none';
-    document.getElementById('game-wheel-view').style.display = 'none';
-    
-    if (type === 'ladder') document.getElementById('game-ladder-view').style.display = 'flex';
-    if (type === 'rsp') document.getElementById('game-rsp-view').style.display = 'flex';
-    if (type === 'wheel') document.getElementById('game-wheel-view').style.display = 'flex';
-};
-
-window.backToGameLobby = function() {
-    document.getElementById('game-lobby-view').style.display = 'flex';
-    document.getElementById('game-ladder-view').style.display = 'none';
-    document.getElementById('game-rsp-view').style.display = 'none';
-    document.getElementById('game-wheel-view').style.display = 'none';
-    
-    // 리셋 초기화
-    document.getElementById('ladder-result').innerText = "결과를 예측해봐! ⚡";
-    document.getElementById('rsp-ai-hand').innerText = "🤖❔";
-    document.getElementById('rsp-status').innerText = "무엇을 낼까 유미야?";
-    document.getElementById('rsp-result').innerText = "";
-    document.getElementById('wheel-result').innerText = "";
-    document.getElementById('wheel-graphic').style.transform = "rotate(0deg)";
 };
 
 // =======================================================
