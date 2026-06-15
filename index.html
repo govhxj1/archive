@@ -3592,7 +3592,6 @@ window.showLadderResultDirectly = function(startX, penaltyText) {
     resBox.innerHTML = `<span style="font-size:1.25rem;">${winnerText}</span><br><span style="color:#444; font-size:0.85rem; font-weight:bold;">[ ${penaltyText} ] 수행하기! 힇히 🤣</span>`;
 };
 
-// 🪄 2-4. [UX 복원 최종판] 새로고침 및 재진입 시 텍스트 공백 에러 완벽 해결 엔진
 window.showWheelResultDirectly = async function(targetAngle, winnerPrize) {
     const wheelGraphic = document.getElementById('wheel-graphic');
     const wheelResult = document.getElementById('wheel-result');
@@ -3605,12 +3604,10 @@ window.showWheelResultDirectly = async function(targetAngle, winnerPrize) {
     if (wheelResult) wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
     if (wheelBtn) wheelBtn.disabled = false;
 
-    // 🚨 [새로고침 가드] 빈 서버 장부를 만났을 때도 기본 셋팅 텍스트가 예쁘게 복원되도록 처리
     try {
         const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         const snap = await getDoc(doc(window.db, "games", "wheelMatch"));
         
-        // 디폴트 매칭 맵 스펙
         const defaultLabels = ["안마권", "뽀뽀권", "소원권", "야식권"];
         const defaultTexts = ["안마", "뽀뽀", "소원", "야식"];
 
@@ -3618,14 +3615,13 @@ window.showWheelResultDirectly = async function(targetAngle, winnerPrize) {
             const inputField = document.getElementById(`wheel-input-${i}`);
             const txtDiv = document.getElementById(`wheel-txt-${i}`);
             
-            if (snap.exists() && snap.data()[`text_${i}`] !== undefined && snap.data()[`text_${i}`] !== "") {
-                const serverVal = snap.data()[`text_${i}`];
-                if (inputField) inputField.value = serverVal;
-                if (txtDiv) txtDiv.innerText = serverVal;
-            } else {
-                // 서버에 저장된 커스텀 내용이 없다면 깡통 방지용 기본 세팅 복원!
-                if (inputField) inputField.value = defaultLabels[i];
-                if (txtDiv) txtDiv.innerText = defaultTexts[i];
+            // 🚨 [핵심 수정] 결과가 이미 뜬 상태(spinning 완료)라면 인풋창을 잠가서 내기 조작 방지! 🔒
+            if (inputField) {
+                inputField.value = (snap.exists() && snap.data()[`text_${i}`]) ? snap.data()[`text_${i}`] : defaultLabels[i];
+                inputField.disabled = true; // 결과 떴으니 수정 불가!
+            }
+            if (txtDiv) {
+                txtDiv.innerText = (snap.exists() && snap.data()[`text_${i}`]) ? snap.data()[`text_${i}`] : defaultTexts[i];
             }
         }
     } catch(e) { console.error("재진입 룰렛 텍스트 최종 복원 실패:", e); }
