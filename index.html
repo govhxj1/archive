@@ -581,9 +581,15 @@
         🛌 여기어때
     </button>
 
+    <button class="confirm-btn" style="width: 100%; height: 55px; background: #fdf2e9; color: #d4a373; border: none; border-radius: 15px; font-weight: 900; font-size: 16px; cursor: pointer; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;" onclick="window.openGameOverlay()">
+    🎮 미니게임
+    </button>
+
     <button class="confirm-btn" onclick="openCollection()" style="width:100%; height:55px; background:#e8f4fd; color:#3498db; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;">
     💎 아카이브
     </button>
+
+        
 
 
         <button id="dday-mission-btn" class="confirm-btn" onclick="handleDdayMission()" 
@@ -609,6 +615,72 @@
         <button onclick="document.getElementById('collection-overlay').style.display='none'" style="width:100%; padding:15px; background:#8D6E63; border:2px solid #3E2723; border-radius:12px; color:#FFF; font-weight:900; font-size:1rem; cursor:pointer;">
             도서관 문 닫기
         </button>
+    </div>
+</div>
+
+    <div id="game-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div class="game-box" style="background: #fff; width: 90%; max-width: 360px; height: 80vh; max-height: 650px; padding: 20px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; box-sizing: border-box;">
+        
+        <div id="game-lobby-view" style="display: flex; flex-direction: column; height: 100%;">
+            <span style="color: #ff8fab; font-weight: 900; font-size: 1.3rem; margin-bottom: 5px;">🎮 거니와 유미의 오락실 💛</span>
+            <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 20px;">오늘은 어떤 내기를 해볼까?! ✨</div>
+            
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 15px; justify-content: center;">
+                <button onclick="switchGameView('ladder')" style="padding: 16px; background: #fff0f3; border: 2px solid #ffafcc; border-radius: 15px; color: #ff4d6d; font-weight: 900; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">🪜 사다리 타기</button>
+                <button onclick="switchGameView('rsp')" style="padding: 16px; background: #e8f5e9; border: 2px solid #81c784; border-radius: 15px; color: #2e7d32; font-weight: 900; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">✌️ 가위 바위 보</button>
+                <button onclick="switchGameView('wheel')" style="padding: 16px; background: #e3f2fd; border: 2px solid #64b5f6; border-radius: 15px; color: #1565c0; font-weight: 900; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">🎡 두근두근 돌림판</button>
+            </div>
+            
+            <button onclick="closeGameOverlay()" style="margin-top: 20px; height: 45px; background: #eee; color: #666; border: none; border-radius: 12px; font-weight: 900; font-size: 0.95rem; cursor: pointer; flex-shrink: 0;">🚪 오락실 나가기</button>
+        </div>
+
+        <div id="game-ladder-view" style="display: none; flex-direction: column; height: 100%;">
+            <span style="color: #ff4d6d; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px;">🪜 사다리 타기 (복불복!)</span>
+            <div style="flex: 1; background: #fafafa; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; justify-content: center; gap: 20px;">
+                <div style="display: flex; justify-content: space-around; font-weight: bold; color: #555;">
+                    <div>거니 👦</div> <div>유미 👧</div>
+                </div>
+                <div style="position: relative; width: 100%; height: 150px; display: flex; justify-content: space-around;">
+                    <div style="width: 4px; height: 100%; background: #ccc;"></div>
+                    <div style="position: absolute; top: 40px; left: 25%; width: 50%; height: 4px; background: #ccc;"></div>
+                    <div style="position: absolute; top: 90px; left: 25%; width: 50%; height: 4px; background: #ccc;"></div>
+                    <div style="width: 4px; height: 100%; background: #ccc;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-around; font-weight: 900;">
+                    <button onclick="runLadder('A')" style="padding: 8px 15px; background: #ffafcc; border: none; border-radius: 8px; color: white; cursor: pointer;">[왼쪽] 선택</button>
+                    <button onclick="runLadder('B')" style="padding: 8px 15px; background: #ffafcc; border: none; border-radius: 8px; color: white; cursor: pointer;">[오른쪽] 선택</button>
+                </div>
+                <div id="ladder-result" style="font-weight: 900; font-size: 1.2rem; color: #ff4d6d; margin-top: 10px;">결과를 예측해봐! ⚡</div>
+            </div>
+            <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer;">🔙 게임 선택으로</button>
+        </div>
+
+        <div id="game-rsp-view" style="display: none; flex-direction: column; height: 100%;">
+            <span style="color: #2e7d32; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px;">✌️ 거니와 가위바위보 대결!</span>
+            <div style="flex: 1; background: #f1f8e9; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; justify-content: center; gap: 20px;">
+                <div id="rsp-ai-hand" style="font-size: 3.5rem; transition: 0.3s;">🤖❔</div>
+                <div id="rsp-status" style="font-weight: bold; color: #666;">무엇을 낼까 유미야?</div>
+                <div style="display: flex; justify-content: center; gap: 15px;">
+                    <button onclick="playRSP('👊')" style="font-size: 2rem; background: white; border: 2px solid #81c784; border-radius: 50%; width: 65px; height: 65px; cursor: pointer; display: flex; align-items: center; justify-content: center;">👊</button>
+                    <button onclick="playRSP('✌️')" style="font-size: 2rem; background: white; border: 2px solid #81c784; border-radius: 50%; width: 65px; height: 65px; cursor: pointer; display: flex; align-items: center; justify-content: center;">✌️</button>
+                    <button onclick="playRSP('🖐️')" style="font-size: 2rem; background: white; border: 2px solid #81c784; border-radius: 50%; width: 65px; height: 65px; cursor: pointer; display: flex; align-items: center; justify-content: center;">🖐️</button>
+                </div>
+                <div id="rsp-result" style="font-weight: 900; font-size: 1.3rem; color: #2e7d32;"></div>
+            </div>
+            <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer;">🔙 게임 선택으로</button>
+        </div>
+
+        <div id="game-wheel-view" style="display: none; flex-direction: column; height: 100%;">
+            <span style="color: #1565c0; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px;">🎡 두근두근 룰렛 돌림판</span>
+            <div style="flex: 1; background: #e3f2fd; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
+                <div id="wheel-graphic" style="width: 140px; height: 140px; border-radius: 50%; border: 8px solid #64b5f6; background: conic-gradient(#ffadad 0% 25%, #ffd6a5 25% 50%, #caffbf 50% 75%, #9bf6ff 75% 100%); transition: transform 2s cubic-bezier(0.1, 0.8, 0.3, 1); display: flex; align-items: center; justify-content: center; font-size: 2rem;">🎯</div>
+                <div style="font-size: 0.8rem; color: #1e88e5; font-weight: bold;">[당첨 후보: 안마해주기 / 뽀뽀 / 소원권 / 맛있는거사주기]</div>
+                <button onclick="spinWheel()" id="wheel-btn" style="padding: 12px 25px; background: #1976d2; color: white; border: none; border-radius: 20px; font-weight: 900; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">룰렛 힘차게 돌리기! 🚀</button>
+                <div id="wheel-result" style="font-weight: 900; font-size: 1.2rem; color: #0d47a1; min-height: 24px;"></div>
+            </div>
+            <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer;">🔙 게임 선택으로</button>
+        </div>
+
     </div>
 </div>
     
@@ -3306,6 +3378,120 @@ const collectionData = {
         console.error("도감 로딩 에러:", e);
         if (grid) grid.innerHTML = '<div style="grid-column: span 5; color:#ff8fab;">기록을 불러오지 못했어요. 😢</div>';
     }
+};
+
+    // =======================================================
+// 🎮 [나우 전용 빌드] 거니오락실 3종 미니게임 시스템
+// =======================================================
+
+// 📂 오락실 팝업 켜기 (사이드 메뉴 강제 이사 방어막 장착)
+window.openGameOverlay = function() {
+    const gameOverlay = document.getElementById('game-overlay');
+    const sideMenu = document.getElementById('side-menu');
+    const mainOverlay = document.getElementById('overlay');
+    
+    // 비밀메뉴 레이어 버그 차단 방어막
+    if (gameOverlay && gameOverlay.parentNode.id === 'side-menu') {
+        document.body.appendChild(gameOverlay);
+    }
+    
+    if (sideMenu) sideMenu.style.display = 'none';
+    if (mainOverlay) mainOverlay.style.display = 'none';
+    if (gameOverlay) gameOverlay.style.display = 'flex';
+    
+    backToGameLobby(); // 무조건 로비 화면으로 리셋 켜기
+};
+
+window.closeGameOverlay = function() {
+    const gameOverlay = document.getElementById('game-overlay');
+    if (gameOverlay) gameOverlay.style.display = 'none';
+};
+
+// 🔄 각 미니게임 화면 스위칭 매니저
+window.switchGameView = function(type) {
+    document.getElementById('game-lobby-view').style.display = 'none';
+    document.getElementById('game-ladder-view').style.display = 'none';
+    document.getElementById('game-rsp-view').style.display = 'none';
+    document.getElementById('game-wheel-view').style.display = 'none';
+    
+    if (type === 'ladder') document.getElementById('game-ladder-view').style.display = 'flex';
+    if (type === 'rsp') document.getElementById('game-rsp-view').style.display = 'flex';
+    if (type === 'wheel') document.getElementById('game-wheel-view').style.display = 'flex';
+};
+
+window.backToGameLobby = function() {
+    document.getElementById('game-lobby-view').style.display = 'flex';
+    document.getElementById('game-ladder-view').style.display = 'none';
+    document.getElementById('game-rsp-view').style.display = 'none';
+    document.getElementById('game-wheel-view').style.display = 'none';
+    
+    // 리셋 초기화
+    document.getElementById('ladder-result').innerText = "결과를 예측해봐! ⚡";
+    document.getElementById('rsp-ai-hand').innerText = "🤖❔";
+    document.getElementById('rsp-status').innerText = "무엇을 낼까 유미야?";
+    document.getElementById('rsp-result').innerText = "";
+    document.getElementById('wheel-result').innerText = "";
+    document.getElementById('wheel-graphic').style.transform = "rotate(0deg)";
+};
+
+// 🪜 [1번 게임] 사다리타기 실시간 연산 로직
+window.runLadder = function(choice) {
+    const outcomes = [
+        "🎉 당첨! 거니가 소원 들어주기!", 
+        "💥 꽝! 유미가 거니 볼에 뽀뽀하기! 😘", 
+        "🍕 맛있는 야식 사주기 당첨!!", 
+        "💆‍♂️ 오늘 밤 시원한 안마 서비스 당첨!"
+    ];
+    const finalOutcome = outcomes[Math.floor(Math.random() * outcomes.length)];
+    document.getElementById('ladder-result').innerHTML = `선택 [${choice === 'A' ? '왼쪽' : '오른쪽'}] 결과:<br><span style="font-size:0.95rem; color:#333;">${finalOutcome}</span>`;
+};
+
+// ✌️ [2번 게임] 가위바위보 대결 로직
+window.playRSP = function(userHand) {
+    const aiOptions = ['👊', '✌️', '🖐️'];
+    const aiHand = aiOptions[Math.floor(Math.random() * aiOptions.length)];
+    
+    document.getElementById('rsp-ai-hand').innerText = aiHand;
+    document.getElementById('rsp-status').innerText = `유미: ${userHand} VS 거니 AI: ${aiHand}`;
+    
+    const resultBox = document.getElementById('rsp-result');
+    if (userHand === aiHand) {
+        resultBox.innerText = "🤝 비겼다! 한 판 더?!";
+        resultBox.style.color = "#666";
+    } else if (
+        (userHand === '👊' && aiHand === '✌️') ||
+        (userHand === '✌️' && aiHand === '🖐️') ||
+        (userHand === '🖐️' && aiHand === '👊')
+    ) {
+        resultBox.innerText = "🏆 유미가 이겼다!! 거니 소원권 당첨! 💛";
+        resultBox.style.color = "#4caf50";
+    } else {
+        resultBox.innerText = "😜 거니 AI 승리! 유미 소원 들어줘라~ 힇히";
+        resultBox.style.color = "#e53935";
+    }
+};
+
+// 🎡 [3번 게임] 돌림판 회전 애니메이션 연산 로직
+let currentRotation = 0;
+window.spinWheel = function() {
+    const btn = document.getElementById('wheel-btn');
+    btn.disabled = true; // 중복 클릭 방지
+    
+    const prizes = ["💆‍♀️ 시원한 안마해주기!", "💋 달콤한 볼 뽀뽀 쫍!", "🏆 무적의 슈퍼 소원권!", "🍕 맛있는거 쏘기!"];
+    const randomIndex = Math.floor(Math.random() * prizes.length);
+    
+    // 회전 각도 연산 (기본 3바퀴 이상 강하게 회전 후 당첨 구역 안착)
+    const extraDegree = randomIndex * 90 + 45; // 4등분 각도 세팅
+    currentRotation += 1440 + extraDegree; 
+    
+    const wheel = document.getElementById('wheel-graphic');
+    wheel.style.transform = `rotate(${currentRotation}deg)`;
+    document.getElementById('wheel-result').innerText = "도오오올아갑니다아아아~! 🌀";
+
+    setTimeout(() => {
+        document.getElementById('wheel-result').innerText = `🎯 결과: [ ${prizes[randomIndex]} ]`;
+        btn.disabled = false;
+    }, 2000); // 애니메이션 2초 대기 후 결과 매칭
 };
     
 </script>       
