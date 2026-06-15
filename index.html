@@ -4007,24 +4007,24 @@ window.resetRSPMatchOnly = async function() {
     
     
 // =======================================================
-// 🎡 [각도 싱크 100% + 무한 회전 완결판] 거니 💛 유미 커스텀 룰렛 엔진
+// 🎡 [버그 완전 박멸 / 클릭 씹힘 0%] 거니 💛 유미 커스텀 룰렛 엔진
 // =======================================================
 let isWheelSpinning = false;
-let wheelDbListener = null;
-    
-// ✍️ 2-1. 내 눈앞의 인풋창 문구를 룰렛 원판 조각 위에 자석 동기화해 주는 함수
+let wheelDbListener = null; 
+
+// ✍️ 2-1. 내 눈앞의 인풋창 문구를 룰렛 원판 조각 위에 자석 동기화해 주는 함수 (입력 즉시 동기화 강화)
 window.syncWheelText = function(index) {
     const inputVal = document.getElementById(`wheel-input-${index}`).value.trim();
     const txtDiv = document.getElementById(`wheel-txt-${index}`);
     if (txtDiv) txtDiv.innerText = inputVal || `${index + 1}번 벌칙`;
     
+    // 🚨 [입력 버그 해결] 타이핑할 때 미세한 딜레이 없이 즉시 즉시 서버에 다이렉트로 백업 전송!
     if (!isWheelSpinning) {
-        setTimeout(async () => {
-            const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(async ({ doc, setDoc }) => {
             await setDoc(doc(window.db, "games", "wheelMatch"), {
                 [`text_${index}`]: inputVal
             }, { merge: true });
-        }, 0);
+        }).catch(e => console.error("텍스트 실시간 저장 실패:", e));
     }
 };
 
@@ -4044,7 +4044,7 @@ window.startWheelRealtimeListener = async function() {
             if (!docSnap.exists()) {
                 if (wheelBtn) wheelBtn.disabled = false;
                 wheelResult.innerText = "벌칙이나 내기를 입력해봐! ✍️";
-                wheelGraphic.style.transition = "none"; // 🧼 리셋할 땐 회전 애니메이션 끄기
+                wheelGraphic.style.transition = "none"; 
                 wheelGraphic.style.transform = "rotate(0deg)";
                 return;
             }
@@ -4057,15 +4057,17 @@ window.startWheelRealtimeListener = async function() {
                     const inputField = document.getElementById(`wheel-input-${i}`);
                     const txtDiv = document.getElementById(`wheel-txt-${i}`);
                     if (document.activeElement !== inputField) { 
-                        inputField.value = data[`text_${i}`];
+                        if (inputField) inputField.value = data[`text_${i}`];
                     }
                     txtDiv.innerText = data[`text_${i}`] || `${i + 1}번 벌칙`;
                 }
             }
 
-            // 2. 🚀 [강제 연출 장착] 늦게 들어오든 아니든 무조건 윙윙 도는 애니메이션 작동
-            if (data.status === 'spinning') {
-                if (!isWheelSpinning) {
+            // 2. 🚀 [씹힘 방지 핵심 기믹] status가 spinning이면서 새로운 타임스탬프가 감지되면 무조건 물리 돌격!
+            if (data.status === 'spinning' && data.spinTriggerTime) {
+                // 내 로컬 브라우저가 마지막으로 실행한 돌리기 시간이 아니거나, 현재 돌고 있지 않을 때 작동!
+                if (window.lastSpinTime !== data.spinTriggerTime && !isWheelSpinning) {
+                    window.lastSpinTime = data.spinTriggerTime; // 중복 실행 방지 도장 쾅
                     window.runLocalWheelPhysics(data.targetAngle, data.winnerPrize);
                 }
             }
@@ -4073,7 +4075,7 @@ window.startWheelRealtimeListener = async function() {
     } catch (e) { console.error("룰렛 리스너 오류:", e); }
 };
 
-// 🚀 2-3. [수학적 각도 완전 교정] 12시 바늘(👇) 기준 그라디언트 완벽 매칭 연산기
+// 🚀 2-3. [원터치 점화 보장] 돌리기 버튼 터치 시 무조건 즉시 작동하는 연산 사출기
 window.spinWheel = async function() {
     if (isWheelSpinning) return;
 
@@ -4090,24 +4092,24 @@ window.spinWheel = async function() {
     const finalTotalRotation = 2520 + targetRandomAngle; 
 
     try {
-        const { doc, setDoc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
-        // 🚨 [핵심 버그 차단 1] 리스너가 "데이터가 진짜 변했다!"고 인지할 수 있도록 기존 spinning 상태를 먼저 싹 날려줍니다!
-        await setDoc(doc(window.db, "games", "wheelMatch"), { status: 'idle' }, { merge: true });
-        
-        // 컴퓨터가 상태 변화를 인지할 시간을 0.05초 준 뒤, 새 당첨 각도와 spinning 신호를 쾅 박아줍니다!
-        setTimeout(async () => {
-            await setDoc(doc(window.db, "games", "wheelMatch"), {
-                status: 'spinning',
-                targetAngle: finalTotalRotation,
-                winnerPrize: winner.prize || "벌칙 조항"
-            }, { merge: true });
-        }, 50);
+        // 🚨 [클릭 씹힘 완전 격파] idle 변환 단계를 생략하고, 고유한 현재 시간(Timestamp)을 섞어 보냅니다.
+        // 리스너는 status가 똑같아도 이 시간이 바뀌면 무조건 "새로 돌렸다!"고 인지해서 즉시 가동합니다!
+        const uniqueTime = Date.now();
+        window.lastSpinTime = uniqueTime; // 내 폰에서도 중복 방지 타임 박제
+
+        await setDoc(doc(window.db, "games", "wheelMatch"), {
+            status: 'spinning',
+            targetAngle: finalTotalRotation,
+            winnerPrize: winner.prize || "벌칙 조항",
+            spinTriggerTime: uniqueTime // 🔑 무조건 버튼이 눌리게 만드는 마스터 키
+        }, { merge: true });
 
     } catch(e) { console.error("룰렛 서버 전송 실패:", e); }
 };
 
-// 🎡 2-4. [틱- 멈춤 버그 완전 해결] 원점 워프 후 3초간 시원하게 회전하는 물리 엔진
+// 🎡 2-4. [원점 동기화] 3초간 시원하게 회전하는 물리 엔진
 window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
     const wheelBtn = document.getElementById('wheel-btn');
     if (wheelBtn) wheelBtn.disabled = true;
@@ -4118,22 +4120,22 @@ window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
 
     if (!wheelGraphic || !wheelResult) return;
 
-    // 🚨 [핵심 버그 차단 2] 애니메이션 축적을 막기 위해 트랜지션을 끄고 0도로 순간이동 복원!
+    // 🧼 트랜지션을 즉시 끄고 '0도' 원점으로 순간 이동!
     wheelGraphic.style.transition = "none";
     wheelGraphic.style.transform = "rotate(0deg)";
 
-    // 아주 미세한 딜레이 후 웅장하게 3초 회전 켜기! 🔥
+    // 미세한 딜레이(0.03초) 준 뒤 화려하게 3초 회전 시작! 🔥
     setTimeout(() => {
         wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
         wheelGraphic.style.transition = "transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)";
         wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
     }, 30);
 
-    // 3초 후 정산창 오픈
+    // 3초 후 결과창 고정 표출
     setTimeout(() => {
         wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
         isWheelSpinning = false;
-        if (wheelBtn) wheelBtn.disabled = false; // 연달아 또 돌릴 수 있게 버튼 완벽 해제!
+        if (wheelBtn) wheelBtn.disabled = false; 
     }, 3030);
 };
 
