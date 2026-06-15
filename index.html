@@ -3409,139 +3409,131 @@ const collectionData = {
     }
 };
 
-   // =======================================================
-// 📂 [거니오락실 최종 완공] 팝업 제어 및 무한 동력 리셋 매니저
+
+
+// =======================================================
+// 🎮 [거니오락실 최종 완공] 통합 네트워크 내비게이션 매니저
 // =======================================================
 
-// 1. 오락실 팝업 완전히 켜기 (비밀메뉴 미니게임 버튼 클릭 시 발동! 🔑)
+// 🔑 1. 오락실 팝업 완전히 켜기 (비밀메뉴 미니게임 버튼 클릭 시 발동)
 window.openGameOverlay = function() {
     const gameOverlay = document.getElementById('game-overlay');
     const sideMenu = document.getElementById('side-menu');
     const mainOverlay = document.getElementById('overlay');
     
-    // 🪄 [레이어 방어막] 비밀메뉴 내부에 레이어가 갇혀서 안 뜨는 버그 원천 차단
-    if (gameOverlay && gameOverlay.parentNode.id === 'side-menu') {
-        document.body.appendChild(gameOverlay);
-    }
-    
-    // 기존 배경 사이드메뉴와 블러 가림막 숨기기
+    if (gameOverlay && gameOverlay.parentNode.id === 'side-menu') document.body.appendChild(gameOverlay);
     if (sideMenu) sideMenu.style.display = 'none';
     if (mainOverlay) mainOverlay.style.display = 'none';
-    
-    // 오락실 오버레이를 화면 정중앙에 팝업으로 띄우기 ✨
     if (gameOverlay) gameOverlay.style.display = 'flex';
     
-    // 켜질 때 무조건 깨끗하게 리셋된 '로비 메뉴' 화면으로 세팅
-    if (window.backToGameLobby) {
-        window.backToGameLobby();
-    }
+    if (window.backToGameLobby) window.backToGameLobby();
 };
 
-// 2. 오락실 팝업 창 완전히 닫기 (오락실 나가기 버튼 클릭 시 🚪)
+// 🚪 2. 오락실 팝업창 완전히 닫기
 window.closeGameOverlay = function() {
     const gameOverlay = document.getElementById('game-overlay');
-    if (gameOverlay) gameOverlay.style.display = 'none'; // 완전히 숨김 처리
+    if (gameOverlay) gameOverlay.style.display = 'none';
 };
 
-    // 3. 미니게임 로비 <-> 개별 게임 간의 화면 스위칭 매니저 🔄
-    // 🔄 각 미니게임 화면 스위칭 매니저 (사다리 / 가위바위보 / 룰렛 3대 네트워크 총동원 ⚡)
+// 🔀 3. [완벽 결합] 화면 스위칭 매니저 (중복 제거 및 진입 시 서버 스캔 고정 엔진)
 window.switchGameView = function(type) {
+    // ① 화면 레이아웃 싹 가려주기 🧼
     document.getElementById('game-lobby-view').style.display = 'none';
     document.getElementById('game-ladder-view').style.display = 'none';
     document.getElementById('game-rsp-view').style.display = 'none';
     document.getElementById('game-wheel-view').style.display = 'none';
     
-    // 🪜 사다리방 입장 시 서버 리스너 온!
-    if (type === 'ladder') {
-        document.getElementById('game-ladder-view').style.display = 'flex';
-        if (window.startLadderRealtimeListener) window.startLadderRealtimeListener();
-    }
-    
-    // ✌️ 가위바위보방 입장 시 서버 리스너 온!
-    if (type === 'rsp') {
-        document.getElementById('game-rsp-view').style.display = 'flex';
-        if (window.startRSPRealtimeListener) window.startRSPRealtimeListener();
-    }
-    
-    // 🎡 룰렛방 입장 시 서버 리스너 온!
-    if (type === 'wheel') {
-        document.getElementById('game-wheel-view').style.display = 'flex';
-        if (window.startWheelRealtimeListener) window.startWheelRealtimeListener();
-    }
+    // ② 버튼 먹통 방지 전역 자물쇠 강제 해제 안전핀 🔓
+    window.isLadderRunning = false;
+    window.isWheelSpinning = false;
+
+    const ladderBtn = document.getElementById('ladder-btn');
+    if (ladderBtn) ladderBtn.disabled = false;
+
+    const wheelBtn = document.getElementById('wheel-btn');
+    if (wheelBtn) wheelBtn.disabled = false;
+
+    // ③ 나갔다 다시 들어왔을 때 서버 데이터 백업 복원 스캔 🔍
+    setTimeout(async () => {
+        try {
+            const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+            
+            // 🪜 사다리방 재진입 검사
+            if (type === 'ladder') {
+                const snap = await getDoc(doc(window.db, "games", "ladderMatch"));
+                if (snap.exists() && snap.data().status === 'spinning') {
+                    window.runLocalLadderPhysics(snap.data().startPositions, snap.data().penaltyText);
+                }
+            }
+            // ✌️ 가위바위보방 재진입 검사
+            else if (type === 'rsp') {
+                const snap = await getDoc(doc(window.db, "games", "rspMatch"));
+                if (snap.exists() && snap.data().geonny && snap.data().yumi) {
+                    window.executeRSPCalculation(snap.data().geonny, snap.data().yumi);
+                }
+            }
+            // 🎡 룰렛방 재진입 검사
+            else if (type === 'wheel') {
+                const snap = await getDoc(doc(window.db, "games", "wheelMatch"));
+                if (snap.exists() && snap.data().status === 'spinning') {
+                    window.runLocalWheelPhysics(snap.data().targetAngle, snap.data().winnerPrize);
+                }
+            }
+        } catch(e) { console.error("방 진입 실시간 서버 스캔 실패:", e); }
+    }, 10);
+
+    // ④ 실시간 연동 감시 카메라 작동
+    if (type === 'ladder' && window.startLadderRealtimeListener) window.startLadderRealtimeListener();
+    if (type === 'rsp' && window.startRSPRealtimeListener) window.startRSPRealtimeListener();
+    if (type === 'wheel' && window.startWheelRealtimeListener) window.startWheelRealtimeListener();
+
+    // ⑤ 타겟 화면 최종 등판
+    const targetView = document.getElementById(`game-${type}-view`);
+    if (targetView) targetView.style.display = 'flex';
 };
 
-// =======================================================
-// 🔀 [진입 시 서버 스캔 장착] 오락실 통합 화면 스위칭 매니저
-// =======================================================
-window.switchGameView = async function(type) {
-    // 1. 일단 모든 화면 레이아웃을 싹 가려주고 🧼
-    document.getElementById('game-lobby-view').style.display = 'none';
+// 🧹 4. 로비 목록으로 나갈 때 작동하는 청소 매니저
+window.backToGameLobby = function() {
+    document.getElementById('game-lobby-view').style.display = 'flex';
     document.getElementById('game-ladder-view').style.display = 'none';
     document.getElementById('game-rsp-view').style.display = 'none';
     document.getElementById('game-wheel-view').style.display = 'none';
     
-    // 파이어베이스 핵심 함수 바인딩 땡겨오기
-    const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-
-    // 🪜 A. 사다리타기 방 입장 프로세스
-    if (type === 'ladder') {
-        document.getElementById('game-ladder-view').style.display = 'flex';
-        
-        // ① [나갔다 재진입 가드] 서버에 이미 돌려놓은 데이터가 있는지 먼저 1회 강제 스캔! 🔍
-        try {
-            const snap = await getDoc(doc(window.db, "games", "ladderMatch"));
-            if (snap.exists()) {
-                const data = snap.data();
-                // 이미 사다리가 굴러간 상태라면 나갔다 들어왔어도 강제로 다시 구슬 연출 가동! 🟢
-                if (data.status === 'spinning' && !isLadderRunning) {
-                    window.runLocalLadderPhysics(data.startPositions, data.penaltyText);
-                }
-            }
-        } catch(e) { console.error("사다리 진입 스캔 에러:", e); }
-
-        // ② 실시간 연속 감시 카메라 시동
-        if (window.startLadderRealtimeListener) window.startLadderRealtimeListener();
-    }
+    // 전역 자물쇠 강제 공장초기화 (재경기 기능 봉인 해제)
+    window.isLadderRunning = false;
+    window.isWheelSpinning = false;
     
-    // ✌️ B. 가위바위보 방 입장 프로세스
-    if (type === 'rsp') {
-        document.getElementById('game-rsp-view').style.display = 'flex';
-        
-        // ① [나갔다 재진입 가드] 진입 즉시 두 사람의 패가 다 와 있는지 체크해서 결과판 강제 고정!
-        try {
-            const snap = await getDoc(doc(window.db, "games", "rspMatch"));
-            if (snap.exists()) {
-                const data = snap.data();
-                if (data.geonny && data.yumi) {
-                    window.executeRSPCalculation(data.geonny, data.yumi);
-                }
-            }
-        } catch(e) { console.error("가위바위보 진입 스캔 에러:", e); }
-
-        // ② 실시간 연속 감시 카메라 시동
-        if (window.startRSPRealtimeListener) window.startRSPRealtimeListener();
-    }
+    const ladderBtn = document.getElementById('ladder-btn');
+    if (ladderBtn) ladderBtn.disabled = false;
     
-    // 🎡 C. 돌림판 룰렛 방 입장 프로세스
-    if (type === 'wheel') {
-        document.getElementById('game-wheel-view').style.display = 'flex';
-        
-        // ① [나갔다 재진입 가드] 진입 즉시 이미 당첨 각도와 결과가 뽑혀 있는지 1회 체크!
-        try {
-            const snap = await getDoc(doc(window.db, "games", "wheelMatch"));
-            if (snap.exists()) {
-                const data = snap.data();
-                // 이미 돌려놓은 판이라면 유미나 거니가 나갔다 들어왔어도 무조건 윙윙 돌아서 결과창 고정! 🎡
-                if (data.status === 'spinning' && !isWheelSpinning) {
-                    window.runLocalWheelPhysics(data.targetAngle, data.winnerPrize);
-                }
-            }
-        } catch(e) { console.error("룰렛 진입 스캔 에러:", e); }
+    const wheelBtn = document.getElementById('wheel-btn');
+    if (wheelBtn) wheelBtn.disabled = false;
 
-        // ② 실시간 연속 감시 카메라 시동
-        if (window.startWheelRealtimeListener) window.startWheelRealtimeListener();
+    // 사다리 화면 가림막 정돈
+    const ladderRes = document.getElementById('ladder-result');
+    if (ladderRes) {
+        ladderRes.innerText = "사다리의 주인공은 누가 될 것인가?! 🔥";
+        ladderRes.style.cssText = "font-weight: 900; font-size: 1.15rem; color: #ff4d6d; text-align: center; min-height: 24px; margin: 2px 0;";
     }
+    if (window.drawBaseLadder) window.drawBaseLadder();
+
+    // 가위바위보 화면 가림막 정돈
+    const vsBox = document.getElementById('rsp-match-vs');
+    const resetBtn = document.getElementById('rsp-reset-btn');
+    const finalRes = document.getElementById('rsp-final-result');
+    if (vsBox) vsBox.style.display = "none";
+    if (resetBtn) resetBtn.style.display = "none";
+    if (finalRes) finalRes.innerText = "";
+    
+    // 룰렛 화면 가림막 정돈
+    const wheelResult = document.getElementById('wheel-result');
+    const wheelGraphic = document.getElementById('wheel-graphic');
+    if (wheelResult) wheelResult.innerText = "돌림판을 채워줘! ✍️";
+    if (wheelGraphic) wheelGraphic.style.transform = "rotate(0deg)";
+    
+    for (let i = 0; i < 4; i++) { if (window.syncWheelText) window.syncWheelText(i); }
 };
+    
 
 // =======================================================
 // 🪜 [실시간 멀티플레이 네트워크] 거니 💛 유미 복불복 사다리 엔진
