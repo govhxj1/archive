@@ -2638,9 +2638,8 @@ window.backToLetterList = function() {
     document.getElementById('letter-content-view').style.display = 'none';
 };
 
-// 🚨 [하트 클릭 이벤트 연결 재정의] 
-// 기존의 노란 하트 클릭 코드를 이 마법의 연타 코드로 교체해 주세요!
-const heartTrigger = document.getElementById('secret-heart-trigger');
+
+heartTrigger = document.getElementById('secret-heart-trigger');
 if (heartTrigger) {
     heartTrigger.onclick = () => {
         secretClickCount++;
