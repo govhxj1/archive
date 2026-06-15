@@ -681,37 +681,28 @@
     </div>
 </div>
 
-<div id="surprise-overlay">
-    <div class="surprise-box">
-        <span class="surprise-title">✨ 유미야!!사랑해💛 ✨</span>
-        <div class="surprise-msg-container">
-            <div class="surprise-msg" id="surprise-msg-content">
-                내가 사랑하는 우리 유미<br>
-                너랑 만난지도 벌써 100일이 넘었내!?<br>
-                나 때문에 울고, 웃고 행복해하고 슬퍼하는 유미 볼때마다 유미가 나 참 많이 좋아해주구나 싶더라?<br>
-                항상 나한테 해준거 없다하지만 충분히 넘치는 사랑받고있어 내가 그렇게 느끼고있으니까 난 너무 많이 받고있는거같아<br>
-                아직도..유미 사랑받는게 느껴질까? 내가 유미 사랑하는거 알까..? 가끔 생각해<br>
-                그게 싫은것도 그말이 서운한것도 아니야<br>
-                그냥 내가 느낀 유미의 사랑이 너무 행복했어서<br>
-                유미도 그 행복함 꼭 느끼게 해주고싶어..!<br>
-                너 이따아아아아만큼 사랑하니까. 이렇게 꼬시는거고<br>
-                너 이따아아아아아아아만큼 좋아하니까. 맨날 보고싶은거고<br>
-                너 이따아아아아아아아아아아만큼 생각하구있어서 항상 챙겨주려고하는거야<br>
-                요즘에는 진짜 유미 보는날만 기다리고있다? ㅎㅎ 알아?!<br>
-                나 걱정해주는것도 내 생각해주는것도 너무 이쁘고 고마워<br>
-                그치만 피곤하고 힘든거 유미는 항상 괜찮다하지만 너도 그럴거 알아..!<br>
-                그래도 나보니까 피곤한거 그런거 생각안하는거잖아 나두 유미 볼때만큼은 너무 좋아서 그런거 안따질거야<br>
-                당장 내일 보자해도 볼거구. 또 출근같이 하자해두 볼거야<br>
-                왜 냐면 유미는 내 여자친구니까!!💛<br>
-                지금까지 너무 행복했어<br>
-                앞으로는 더 행복할려구!<br>
-                지금까지도 충분히 사랑 넘치게 받았구 나도 엄청 줬어<br>
-                그래도 앞으로는 더 콸콸넘치게 사랑할거야!<br><br>
-                -오늘도 내일도 계속 유미 남자친구인 거니💛-<br>
-                사랑해 힇히
-            </div>
+<div id="surprise-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div class="surprise-box" style="background: #fff; width: 85%; max-width: 340px; padding: 25px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 80vh; display: flex; flex-direction: column;">
+        
+        <div id="letter-list-view" style="display: flex; flex-direction: column; height: 100%;">
+            <span class="surprise-title" style="color: #ff8fab; font-weight: 900; font-size: 1.2rem; margin-bottom: 15px;">📚 거니의 비밀 편지 책장 🌠</span>
+            <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 15px;">유미를 향한 진심이 차곡차곡 쌓여있어 💛</div>
+            
+            <div id="surprise-menu-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 5px; -webkit-overflow-scrolling: touch;">
+                </div>
+            
+            <button class="confirm-btn btn-delete" onclick="closeSurprise()" style="margin-top: 15px; font-size: 1rem; padding: 12px; background: #eee; color: #666; border-radius: 12px;">🚪 책장 문 닫기</button>
         </div>
-        <button class="confirm-btn btn-delete" onclick="closeSurprise()" style="font-size: 1.2rem;">❣️</button>
+
+        <div id="letter-content-view" style="display: none; flex-direction: column; height: 100%;">
+            <span class="surprise-title" id="opened-letter-title" style="color: #ff8fab; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px;">💌 편지 읽는 중...</span>
+            <div class="surprise-msg-container" style="background: var(--bg-pink); border-radius: 15px; padding: 15px; flex: 1; overflow-y: auto; text-align: left; -webkit-overflow-scrolling: touch;">
+                <div class="surprise-msg" id="opened-letter-body" style="color: var(--text-dark); font-weight: 500; font-size: 0.9rem; line-height: 1.8; word-break: keep-all; white-space: pre-wrap;">
+                    </div>
+            </div>
+            <button class="confirm-btn btn-delete" onclick="backToLetterList()" style="margin-top: 15px; font-size: 1rem; padding: 12px; background: var(--point-pink); color: white; border-radius: 12px;">🔙 목록으로 돌아가기</button>
+        </div>
+
     </div>
 </div>
 
@@ -2566,6 +2557,105 @@ const defaultFortunes = [
     "유미야!!\n항상 내생각 많이해줘서 고마워!\n지금 나도 유미생각중이야ㅎㅎ"
 ];
 
+    // ==============================================
+// 💛 [나우 전용 빌드] 노란 하트 비밀 편지첩 시스템 
+// ==============================================
+
+// 📝 거니 팀장님의 비밀 편지 보관 장부 (여기에 편지가 늘어날 때마다 번호 따서 쭉쭉 추가해 주시면 됩니다! ✨)
+const surpriseLetters = {
+    1: {
+        title: "💖 100일의 기억",
+        content: '내가 사랑하는 우리 유미<br>
+                너랑 만난지도 벌써 100일이 넘었내!?<br>
+                나 때문에 울고, 웃고 행복해하고 슬퍼하는 유미 볼때마다 유미가 나 참 많이 좋아해주구나 싶더라?<br>
+                항상 나한테 해준거 없다하지만 충분히 넘치는 사랑받고있어 내가 그렇게 느끼고있으니까 난 너무 많이 받고있는거같아<br>
+                아직도..유미 사랑받는게 느껴질까? 내가 유미 사랑하는거 알까..? 가끔 생각해<br>
+                그게 싫은것도 그말이 서운한것도 아니야<br>
+                그냥 내가 느낀 유미의 사랑이 너무 행복했어서<br>
+                유미도 그 행복함 꼭 느끼게 해주고싶어..!<br>
+                너 이따아아아아만큼 사랑하니까. 이렇게 꼬시는거고<br>
+                너 이따아아아아아아아만큼 좋아하니까. 맨날 보고싶은거고<br>
+                너 이따아아아아아아아아아아만큼 생각하구있어서 항상 챙겨주려고하는거야<br>
+                요즘에는 진짜 유미 보는날만 기다리고있다? ㅎㅎ 알아?!<br>
+                나 걱정해주는것도 내 생각해주는것도 너무 이쁘고 고마워<br>
+                그치만 피곤하고 힘든거 유미는 항상 괜찮다하지만 너도 그럴거 알아..!<br>
+                그래도 나보니까 피곤한거 그런거 생각안하는거잖아 나두 유미 볼때만큼은 너무 좋아서 그런거 안따질거야<br>
+                당장 내일 보자해도 볼거구. 또 출근같이 하자해두 볼거야<br>
+                왜 냐면 유미는 내 여자친구니까!!💛<br>
+                지금까지 너무 행복했어<br>
+                앞으로는 더 행복할려구!<br>
+                지금까지도 충분히 사랑 넘치게 받았구 나도 엄청 줬어<br>
+                그래도 앞으로는 더 콸콸넘치게 사랑할거야!<br><br>
+                -오늘도 내일도 계속 유미 남자친구인 거니💛-<br>
+                사랑해 힇히'    },
+    2: {
+        title: "🌹 준비중",
+        content: `이따아아아아아큼 사랑해! 💛`
+    }
+    // 💡 3: { title: "제목", content: "내용" } 형태로 늘려가시면 됩니다!
+};
+
+// 📂 하트 연타 시 목록 화면을 먼저 그려주는 함수
+function renderLetterList() {
+    const listContainer = document.getElementById('surprise-menu-list');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = ""; // 기존 목록 청소
+
+    // 장부에 등록된 편지들을 바탕으로 이쁜 핑크빛 선택 버튼들을 자동 생성! 🛠️
+    Object.entries(surpriseLetters).forEach(([num, data]) => {
+        const btn = document.createElement('button');
+        btn.style.cssText = "width: 100%; padding: 14px; background: #fff0f3; border: 1.5px solid #ffafcc; border-radius: 15px; color: #ff4d6d; font-weight: 900; font-size: 0.9rem; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(255,175,204,0.15); transition: 0.2s;";
+        btn.innerHTML = `<span>💌</span> <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${data.title}</span>`;
+        
+        // 버튼 누르면 본문 읽기 화면으로 스위칭!
+        btn.onclick = () => window.openLetterContent(num);
+        listContainer.appendChild(btn);
+    });
+
+    // 화면 무조건 목록 모드로 리셋
+    document.getElementById('letter-list-view').style.display = 'flex';
+    document.getElementById('letter-content-view').style.display = 'none';
+}
+
+// 📖 특정 편지를 클릭했을 때 본문을 보여주는 함수
+window.openLetterContent = function(num) {
+    const letter = surpriseLetters[num];
+    if (!letter) return;
+
+    document.getElementById('opened-letter-title').innerText = letter.title;
+    document.getElementById('opened-letter-body').innerHTML = letter.content.replace(/\n/g, "<br>");
+
+    // 목록 숨기고 본문 열기!
+    document.getElementById('letter-list-view').style.display = 'none';
+    document.getElementById('letter-content-view').style.display = 'flex';
+};
+
+// 🔙 본문에서 다시 목록 화면으로 되돌아가는 함수
+window.backToLetterList = function() {
+    document.getElementById('letter-list-view').style.display = 'flex';
+    document.getElementById('letter-content-view').style.display = 'none';
+};
+
+// 🚨 [하트 클릭 이벤트 연결 재정의] 
+// 기존의 노란 하트 클릭 코드를 이 마법의 연타 코드로 교체해 주세요!
+const heartTrigger = document.getElementById('secret-heart-trigger');
+if (heartTrigger) {
+    heartTrigger.onclick = () => {
+        secretClickCount++;
+        if (secretClickCount === 5) { 
+            const surpriseOverlay = document.getElementById('surprise-overlay');
+            if (surpriseOverlay) {
+                renderLetterList(); // 뼈대 리스트 먼저 렌더링하고
+                surpriseOverlay.style.display = 'flex'; // 오버레이 팝업 가동!
+            }
+            secretClickCount = 0; 
+        }
+        clearTimeout(window.heartTimer);
+        window.heartTimer = setTimeout(() => { secretClickCount = 0; }, 2000);
+    };
+}
+    
 // 1. 함수 정의 (window에 직접 붙여서 HTML이 인식하게 함)
 window.openFortune = async function() {
     const today = new Date();
