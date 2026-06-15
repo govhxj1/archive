@@ -693,10 +693,10 @@
                 <div style="position: relative; width: 160px; height: 160px; margin-top: 5px; flex-shrink: 0;">
                     <div style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 1.6rem; z-index: 10; color: #e53935;">👇</div>
                     <div id="wheel-graphic" style="width: 100%; height: 100%; border-radius: 50%; border: 6px solid #64b5f6; background: conic-gradient(#ffadad 0% 25%, #ffd6a5 25% 50%, #caffbf 50% 75%, #9bf6ff 75% 100%); transform: rotate(0deg); position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1); box-sizing: border-box;">
-                        <div style="position: absolute; top: 12px; left: 68%; transform: rotate(45deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-0">안마</div>
-                        <div style="position: absolute; top: 68%; left: 88%; transform: rotate(135deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-1">뽀뽀</div>
-                        <div style="position: absolute; top: 88%; left: 32%; transform: rotate(225deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-2">소원</div>
-                        <div style="position: absolute; top: 32%; left: 12%; transform: rotate(315deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-3">야식</div>
+                        <div style="position: absolute; top: 12px; left: 68%; transform: rotate(45deg); ...;" id="wheel-txt-0"></div>
+                        <div style="position: absolute; top: 68%; left: 88%; transform: rotate(135deg); ...;" id="wheel-txt-1"></div>
+                        <div style="position: absolute; top: 88%; left: 32%; transform: rotate(225deg); ...;" id="wheel-txt-2"></div>
+                        <div style="position: absolute; top: 32%; left: 12%; transform: rotate(315deg); ...;" id="wheel-txt-3"></div>
                     </div>
                 </div>
                 <div id="wheel-result" style="font-weight: 900; font-size: 1.15rem; color: #0d47a1; text-align: center; min-height: 24px; margin: 2px 0;">돌림판을 채워줘!✍️</div>
@@ -3747,7 +3747,7 @@ window.runLocalLadderPhysics = function(startX, penaltyText, p1Name, p2Name) {
     const p2Box = document.getElementById('ladder-p2');
     
     resBox.style.background = "transparent"; resBox.style.padding = "0"; resBox.style.borderRadius = "0";
-    resBox.innerHTML = `🟢 벌칙 [${penaltyText}]이(가) 하강 중...`;
+    resBox.innerHTML = `🟢 [${penaltyText}]이(가) 하강 중...`;
 
     let currentX = startX;
     let currentY = 10;
@@ -4023,16 +4023,21 @@ let isWheelSpinning = false;
 let wheelDbListener = null; 
 
 // ✍️ 2-1. 내 눈앞의 인풋창 문구를 룰렛 원판 조각 위에 자석 동기화해 주는 함수 (입력 즉시 동기화 강화)
-window.syncWheelText = function(index) {
-    const inputVal = document.getElementById(`wheel-input-${index}`).value.trim();
+window.syncWheelText = async function(index) {
+    const inputField = document.getElementById(`wheel-input-${index}`);
     const txtDiv = document.getElementById(`wheel-txt-${index}`);
-    if (txtDiv) txtDiv.innerText = inputVal || `${index + 1}번 벌칙`;
+    const newVal = inputField.value.trim();
     
-    // 🚨 [입력 버그 해결] 타이핑할 때 미세한 딜레이 없이 즉시 즉시 서버에 다이렉트로 백업 전송!
+    // 원판에 글자 그대로 반영 (글자 수 제한 없음, 그대로 출력)
+    if(txtDiv) {
+        txtDiv.innerText = newVal;
+    }
+    
+    // 서버에 저장
     if (!isWheelSpinning) {
         import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(async ({ doc, setDoc }) => {
             await setDoc(doc(window.db, "games", "wheelMatch"), {
-                [`text_${index}`]: inputVal
+                [`text_${index}`]: newVal
             }, { merge: true });
         }).catch(e => console.error("텍스트 실시간 저장 실패:", e));
     }
@@ -4078,36 +4083,36 @@ window.startWheelRealtimeListener = async function() {
 
 // 🚀 2-3. [원터치 점화 보장] 돌리기 버튼 터치 시 무조건 즉시 작동하는 연산 사출기
 window.spinWheel = async function() {
-    if (isWheelSpinning) return;
-
-    // 🪄 [conic-gradient 싱크 가이드 반영]
-    const randomItems = [
-        { prize: document.getElementById('wheel-input-0').value, minA: 275, maxA: 355 }, // 1번 분홍칸 (안마)
-        { prize: document.getElementById('wheel-input-1').value, minA: 185, maxA: 265 }, // 2번 주황칸 (뽀뽀)
-        { prize: document.getElementById('wheel-input-2').value, minA: 95,  maxA: 175 }, // 3번 연두칸 (소원)
-        { prize: document.getElementById('wheel-input-3').value, minA: 5,   maxA: 85  }  // 4번 하늘칸 (야식)
-    ];
+    const wheelBtn = document.getElementById('wheel-btn');
+    const wheelResult = document.getElementById('wheel-result');
     
-    const winner = randomItems[Math.floor(Math.random() * randomItems.length)];
-    const targetRandomAngle = Math.floor(Math.random() * (winner.maxA - winner.minA)) + winner.minA;
-    const finalTotalRotation = 2520 + targetRandomAngle; 
+    // 1. 이미 돌고 있다면 무시
+    if (window.isWheelSpinning) return;
+    
+    // 2. 버튼 잠금 및 결과창 초기화
+    wheelBtn.disabled = true;
+    wheelResult.innerText = "두구두구두구~! 🎡";
 
-    try {
-        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-        
-        // 🚨 [클릭 씹힘 완전 격파] idle 변환 단계를 생략하고, 고유한 현재 시간(Timestamp)을 섞어 보냅니다.
-        // 리스너는 status가 똑같아도 이 시간이 바뀌면 무조건 "새로 돌렸다!"고 인지해서 즉시 가동합니다!
-        const uniqueTime = Date.now();
-        window.lastSpinTime = uniqueTime; // 내 폰에서도 중복 방지 타임 박제
+    // 3. 서버에 '돌리기 시작' 신호 전달
+    const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+    const targetAngle = Math.floor(Math.random() * 360) + 1440; // 4바퀴 이상
+    
+    // 당첨 기준 (간단 로직)
+    const prizeIdx = Math.floor(((targetAngle % 360) / 90)); 
+    const winnerPrize = document.getElementById(`wheel-input-${prizeIdx}`).value;
 
-        await setDoc(doc(window.db, "games", "wheelMatch"), {
-            status: 'spinning',
-            targetAngle: finalTotalRotation,
-            winnerPrize: winner.prize || "벌칙 조항",
-            spinTriggerTime: uniqueTime // 🔑 무조건 버튼이 눌리게 만드는 마스터 키
-        }, { merge: true });
+    await updateDoc(doc(window.db, "games", "wheelMatch"), {
+        status: 'spinning',
+        targetAngle: targetAngle,
+        winnerPrize: winnerPrize,
+        spinTriggerTime: Date.now() // 타임스탬프 갱신
+    });
 
-    } catch(e) { console.error("룰렛 서버 전송 실패:", e); }
+    // 4. 강제 5초 뒤에 버튼 다시 풀어주기 (게임 루프 해제)
+    setTimeout(() => {
+        wheelBtn.disabled = false;
+        window.isWheelSpinning = false;
+    }, 5000);
 };
 
 window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
