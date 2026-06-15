@@ -4009,7 +4009,9 @@ window.resetRSPMatchOnly = async function() {
 // =======================================================
 // 🎡 [각도 싱크 100% + 무한 회전 완결판] 거니 💛 유미 커스텀 룰렛 엔진
 // =======================================================
-
+let isWheelSpinning = false;
+let wheelDbListener = null;
+    
 // ✍️ 2-1. 내 눈앞의 인풋창 문구를 룰렛 원판 조각 위에 자석 동기화해 주는 함수
 window.syncWheelText = function(index) {
     const inputVal = document.getElementById(`wheel-input-${index}`).value.trim();
