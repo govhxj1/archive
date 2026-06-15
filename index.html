@@ -3818,17 +3818,17 @@ window.executeRSPCalculation = function(gChoice, yChoice) {
 
     if (resultText) {
         if (gChoice === yChoice) {
-            resultText.innerText = "🤝 서로 통했다! 무승부! 💛";
+            resultText.innerText = "🤝 서로 통했다!💛";
             resultText.style.color = "#666";
         } else if (
             (gChoice === '👊' && yChoice === '✌️') ||
             (gChoice === '✌️' && yChoice === '🖐️') ||
             (gChoice === '🖐️' && yChoice === '👊')
         ) {
-            resultText.innerText = "👑 거니 승리! 유미 소원 들어주기~! 😜";
+            resultText.innerText = "👑 거니 승리!😜";
             resultText.style.color = "#1565c0";
         } else {
-            resultText.innerText = "🏆 유미 승리!! 거니 납작 엎드려라~ 힇히 💖";
+            resultText.innerText = "🏆 유미 승리!😜";
             resultText.style.color = "#e53935";
         }
     }
