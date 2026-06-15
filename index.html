@@ -3461,21 +3461,53 @@ const collectionData = {
 // =======================================================
 
 // 📂 오락실 팝업 켜기 (사이드 메뉴 강제 이사 방어막 장착)
-window.openGameOverlay = function() {
-    const gameOverlay = document.getElementById('game-overlay');
-    const sideMenu = document.getElementById('side-menu');
-    const mainOverlay = document.getElementById('overlay');
+window.backToGameLobby = function() {
+    document.getElementById('game-lobby-view').style.display = 'flex';
+    document.getElementById('game-ladder-view').style.display = 'none';
+    document.getElementById('game-rsp-view').style.display = 'none';
+    document.getElementById('game-wheel-view').style.display = 'none';
     
-    // 비밀메뉴 레이어 버그 차단 방어막
-    if (gameOverlay && gameOverlay.parentNode.id === 'side-menu') {
-        document.body.appendChild(gameOverlay);
+    // 🪜 1. 사다리타기 뷰 리셋 정산
+    const ladderRes = document.getElementById('ladder-result');
+    if (ladderRes) {
+        ladderRes.innerText = "과연 벌칙의 주인공은 누가 될 것인가?! 🔥";
+        // 아까 입혀둔 커스텀 컬러 박스 스타일 초기화 🧼
+        ladderRes.style.cssText = "font-weight: 900; font-size: 1.15rem; color: #ff4d6d; text-align: center; min-height: 24px; margin: 2px 0;";
+    }
+    // 초록 구슬 도화지 깨끗하게 리드로잉 🟢
+    if (window.drawBaseLadder) window.drawBaseLadder();
+
+    // ✌️ 2. 가위바위보 2인용 엔진 리셋 연동
+    // 💡 아까 만들어둔 전용 리셋기(resetRSPMatchOnly)가 있다면 호출해서 완벽 진압!
+    if (window.resetRSPMatchOnly) {
+        window.resetRSPMatchOnly();
+    } else {
+        // 백업용 예외 처리 방어막
+        const statusTitle = document.getElementById('rsp-status-title');
+        if (statusTitle) statusTitle.innerText = "먼저 플레이어를 골라줘! 👆";
+        const readyBox = document.getElementById('rsp-readiness');
+        if (readyBox) readyBox.innerText = "거니: ❌ 대기중 | 유미: ❌ 대기중";
+        const vsBox = document.getElementById('rsp-match-vs');
+        if (vsBox) vsBox.style.display = "none";
+        const finalRes = document.getElementById('rsp-final-result');
+        if (finalRes) finalRes.innerText = "";
     }
     
-    if (sideMenu) sideMenu.style.display = 'none';
-    if (mainOverlay) mainOverlay.style.display = 'none';
-    if (gameOverlay) gameOverlay.style.display = 'flex';
-    
-    backToGameLobby(); // 무조건 로비 화면으로 리셋 켜기
+    // 🎡 3. 돌림판 룰렛 정밀 리셋 연동
+    if (window.resetWheelMatch) {
+        window.resetWheelMatch();
+    } else {
+        // 백업용 예외 처리 방어막
+        const wheelResult = document.getElementById('wheel-result');
+        if (wheelResult) wheelResult.innerText = "벌칙이나 내기를 입력해봐! ✍️";
+        const wheelGraphic = document.getElementById('wheel-graphic');
+        if (wheelGraphic) wheelGraphic.style.transform = "rotate(0deg)";
+    }
+
+    // 🚀 4. 인풋창 입력 텍스트 룰렛 원판 위에 자석 동기화 재가동
+    for (let i = 0; i < 4; i++) { 
+        if (window.syncWheelText) window.syncWheelText(i); 
+    }
 };
 
 window.closeGameOverlay = function() {
