@@ -665,12 +665,17 @@
             <button id="rsp-player-yumi" onclick="selectRSPPlayer('유미')" style="flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;">👧 유미 선택</button>
         </div>
 
-        <div style="text-align: center; margin: 15px 0; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
+        <div style="text-align: center; margin: 10px 0; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;">
             <div id="rsp-status-title" style="font-weight: 900; font-size: 1.1rem; color: #333;">먼저 플레이어를 골라줘! 👆</div>
             <div id="rsp-readiness" style="font-size: 0.85rem; color: #666; font-weight: bold; background: rgba(255,255,255,0.6); padding: 6px 12px; border-radius: 20px;">
                 거니: ❌ 대기중 | 유미: ❌ 대기중
             </div>
-            <div id="rsp-match-vs" style="font-size: 2.2rem; margin-top: 10px; display: none;">❔ VS ❔</div>
+            
+            <div id="rsp-match-vs" style="font-size: 2.2rem; margin: 8px 0; display: none;">❔ VS ❔</div>
+            
+            <button id="rsp-reset-btn" onclick="resetRSPMatchOnly()" style="display: none; padding: 8px 16px; background: var(--point-pink); color: white; border: none; border-radius: 20px; font-weight: 900; font-size: 0.85rem; cursor: pointer; box-shadow: 0 4px 8px rgba(255, 143, 171, 0.3); transition: 0.2s;">
+                🔄 한 판 더 하기!
+            </button>
         </div>
 
         <div id="rsp-choice-panel" style="display: flex; justify-content: center; gap: 12px; pointer-events: none; opacity: 0.4; flex-shrink: 0; padding-bottom: 5px;">
@@ -3531,21 +3536,21 @@ function updateRSPReadiness() {
     document.getElementById('rsp-readiness').innerText = `거니: ${gStatus} | 유미: ${yStatus}`;
 }
 
-// 🏆 4. 최종 결과 판정 및 결과창 표출 엔진
+// 🏆 4. 최종 결과 판정 및 결과창 표출 엔진 (리셋 버튼 활성화 기능 추가)
 function calculateRSPResult() {
     const title = document.getElementById('rsp-status-title');
-    const vsBox = document.getElementById('match-vs') || document.getElementById('rsp-match-vs');
+    const vsBox = document.getElementById('rsp-match-vs');
     const resultText = document.getElementById('rsp-final-result');
+    const resetBtn = document.getElementById('rsp-reset-btn'); // 🎯 리셋 버튼 포착
 
     title.innerText = "🎉 대결 결과 오픈! 🎉";
     
-    // 숨겨져 있던 두 사람의 패를 화면에 공개! 👀
     if (vsBox) {
         vsBox.innerText = `👦 ${geonnyChoice} VS ${yumiChoice} 👧`;
         vsBox.style.display = "block";
     }
 
-    // 승패 판정 알고리즘
+    // 승패 판정
     if (geonnyChoice === yumiChoice) {
         resultText.innerText = "🤝 서로 통했다! 무승부! 💛";
         resultText.style.color = "#666";
@@ -3557,17 +3562,52 @@ function calculateRSPResult() {
         resultText.innerText = "👑 거니 승리! 유미 소원 들어주기~! 😜";
         resultText.style.color = "#1565c0";
     } else {
-        resultBoxText = resultText.innerText = "🏆 유미 승리!! 거니 납작 엎드려라~ 힇히 💖";
+        resultText.innerText = "🏆 유미 승리!! 거니 납작 엎드려라~ 힇히 💖";
         resultText.style.color = "#e53935";
     }
+
+    // 🎯 [핵심] 결과가 나오면 한가운데 리셋 버튼을 스르륵 오픈!
+    if (resetBtn) resetBtn.style.display = "inline-block";
 }
 
-// 🔄 5. 기존 로비 되돌아가기 함수 내부의 리셋 규격 확장 (덮어쓰기용)
+// 🔄 4-5. [신규 기능] 오락실 안 나가고 현 위치에서 '가위바위보만' 즉시 리셋하는 전용 기계
+window.resetRSPMatchOnly = function() {
+    rspCurrentPlayer = null;
+    geonnyChoice = null;
+    yumiChoice = null;
+    
+    const btnGeonny = document.getElementById('rsp-player-geonny');
+    const btnYumi = document.getElementById('rsp-player-yumi');
+    const vsBox = document.getElementById('rsp-match-vs');
+    const resetBtn = document.getElementById('rsp-reset-btn');
+    
+    if (btnGeonny) btnGeonny.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
+    if (btnYumi) btnYumi.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
+    if (vsBox) vsBox.style.display = "none";
+    if (resetBtn) resetBtn.style.display = "none"; // 🎯 다시 게임 시작하니 리셋 버튼은 임시 봉인!
+    
+    const panel = document.getElementById('rsp-choice-panel');
+    if (panel) { panel.style.pointerEvents = "none"; panel.style.opacity = "0.4"; }
+    
+    const readyBox = document.getElementById('rsp-readiness');
+    if (readyBox) readyBox.innerText = "거니: ❌ 대기중 | 유미: ❌ 대기중";
+    
+    const finalRes = document.getElementById('rsp-final-result');
+    if (finalRes) finalRes.innerText = "";
+    
+    const statusTitle = document.getElementById('rsp-status-title');
+    if (statusTitle) statusTitle.innerText = "먼저 플레이어를 골라줘! 👆";
+};
+
+// 🔄 5. 로비로 나갈 때 전체 리셋해 주던 기존 함수도 싱크 매칭 수정
 const originalBackToGameLobby = window.backToGameLobby;
 window.backToGameLobby = function() {
     if (originalBackToGameLobby) originalBackToGameLobby();
     
-    // 2인용 데이터 싹 청소하기 🧹
+    // 혹시라도 남아있을 리셋 버튼까지 확실하게 클리어
+    const resetBtn = document.getElementById('rsp-reset-btn');
+    if (resetBtn) resetBtn.style.display = "none";
+    
     rspCurrentPlayer = null;
     geonnyChoice = null;
     yumiChoice = null;
