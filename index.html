@@ -634,26 +634,44 @@
             <button onclick="closeGameOverlay()" style="margin-top: 20px; height: 45px; background: #eee; color: #666; border: none; border-radius: 12px; font-weight: 900; font-size: 0.95rem; cursor: pointer; flex-shrink: 0;">🚪 오락실 나가기</button>
         </div>
 
-        <div id="game-ladder-view" style="display: none; flex-direction: column; height: 100%;">
-            <span style="color: #ff4d6d; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px;">🪜 사다리 타기 (복불복!)</span>
-            <div style="flex: 1; background: #fafafa; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; justify-content: center; gap: 20px;">
-                <div style="display: flex; justify-content: space-around; font-weight: bold; color: #555;">
-                    <div>거니 👦</div> <div>유미 👧</div>
-                </div>
-                <div style="position: relative; width: 100%; height: 150px; display: flex; justify-content: space-around;">
-                    <div style="width: 4px; height: 100%; background: #ccc;"></div>
-                    <div style="position: absolute; top: 40px; left: 25%; width: 50%; height: 4px; background: #ccc;"></div>
-                    <div style="position: absolute; top: 90px; left: 25%; width: 50%; height: 4px; background: #ccc;"></div>
-                    <div style="width: 4px; height: 100%; background: #ccc;"></div>
-                </div>
-                <div style="display: flex; justify-content: space-around; font-weight: 900;">
-                    <button onclick="runLadder('A')" style="padding: 8px 15px; background: #ffafcc; border: none; border-radius: 8px; color: white; cursor: pointer;">[왼쪽] 선택</button>
-                    <button onclick="runLadder('B')" style="padding: 8px 15px; background: #ffafcc; border: none; border-radius: 8px; color: white; cursor: pointer;">[오른쪽] 선택</button>
-                </div>
-                <div id="ladder-result" style="font-weight: 900; font-size: 1.2rem; color: #ff4d6d; margin-top: 10px;">결과를 예측해봐! ⚡</div>
-            </div>
-            <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer;">🔙 게임 선택으로</button>
+        <div id="game-ladder-view" style="display: none; flex-direction: column; height: 100%; overflow-y: auto;">
+    <span style="color: #ff4d6d; font-weight: 900; font-size: 1.1rem; margin-bottom: 8px; flex-shrink: 0;">🪜 두근두근 리얼 사다리타기</span>
+    
+    <div style="flex: 1; background: #fff0f3; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px; box-sizing: border-box;">
+        
+        <div style="width: 100%; display: flex; justify-content: space-around; font-weight: 900; color: #555; font-size: 0.9rem; flex-shrink: 0;">
+            <div style="text-align: center; width: 50%;">👦 거니 출발</div>
+            <div style="text-align: center; width: 50%;">👧 유미 출발</div>
         </div>
+
+        <div style="position: relative; width: 220px; height: 200px; background: #fff; border-radius: 12px; border: 2px solid #ffafcc; box-shadow: inset 0 2px 8px rgba(0,0,0,0.05); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+            <canvas id="ladder-canvas" width="220" height="200" style="display: block;"></canvas>
+        </div>
+
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box; flex-shrink: 0;">
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 0.75rem; color: #ff4d6d; font-weight: bold; text-align: center;">[A 종착지]</span>
+                    <input type="text" id="ladder-input-A" value="뽀뽀 받기" placeholder="A 결과" style="width: 100%; padding: 6px; border: 1px solid #ffafcc; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 0.75rem; color: #ff4d6d; font-weight: bold; text-align: center;">[B 종착지]</span>
+                    <input type="text" id="ladder-input-B" value="바보유미 놀리기" placeholder="B 결과" style="width: 100%; padding: 6px; border: 1px solid #ffafcc; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+                </div>
+            </div>
+        </div>
+
+        <div id="ladder-result" style="font-weight: 900; font-size: 1.15rem; color: #ff4d6d; text-align: center; min-height: 24px; margin: 2px 0;">누가 사다리를 타고 내려올까?! 🤔</div>
+
+        <div style="width: 100%; flex-shrink: 0;">
+            <button onclick="startLadderGame()" id="ladder-btn" style="width: 100%; height: 45px; background: #ff4d6d; color: white; border: none; border-radius: 12px; font-weight: 900; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 10px rgba(255, 77, 109, 0.3);">
+                🚀 사다리 타기 시작하기!
+            </button>
+        </div>
+    </div>
+    
+    <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; flex-shrink: 0;">🔙 게임 선택으로</button>
+</div>
 
         <div id="game-rsp-view" style="display: none; flex-direction: column; height: 100%;">
     <span style="color: #2e7d32; font-weight: 900; font-size: 1.1rem; margin-bottom: 10px;">✌️ 거니 VS 유미 가위바위보</span>
@@ -710,10 +728,10 @@
         <div id="wheel-result" style="font-weight: 900; font-size: 1.15rem; color: #0d47a1; text-align: center; min-height: 24px; margin: 2px 0;">벌칙이나 내기를 입력해봐! ✍️</div>
 
         <div style="width: 100%; display: flex; flex-direction: column; gap: 6px; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 12px; box-sizing: border-box; overflow: hidden;">
-            <input type="text" id="wheel-input-0" value="시원한 안마해주기" oninput="syncWheelText(0)" placeholder="1번 조항 (분홍칸)" style="width: 100%; padding: 8px; border: 1px solid #ffadad; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
-            <input type="text" id="wheel-input-1" value="달콤한 볼 뽀뽀 쫍" oninput="syncWheelText(1)" placeholder="2번 조항 (주황칸)" style="width: 100%; padding: 8px; border: 1px solid #ffd6a5; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
-            <input type="text" id="wheel-input-2" value="무적의 슈퍼 소원권" oninput="syncWheelText(2)" placeholder="3번 조항 (연두칸)" style="width: 100%; padding: 8px; border: 1px solid #caffbf; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
-            <input type="text" id="wheel-input-3" value="맛있는 야식 쏘기" oninput="syncWheelText(3)" placeholder="4번 조항 (하늘칸)" style="width: 100%; padding: 8px; border: 1px solid #9bf6ff; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+            <input type="text" id="wheel-input-0" value="안마해주기" oninput="syncWheelText(0)" placeholder="1번 조항 (분홍칸)" style="width: 100%; padding: 8px; border: 1px solid #ffadad; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+            <input type="text" id="wheel-input-1" value="뽀뽀 쬭" oninput="syncWheelText(1)" placeholder="2번 조항 (주황칸)" style="width: 100%; padding: 8px; border: 1px solid #ffd6a5; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+            <input type="text" id="wheel-input-2" value="소원권" oninput="syncWheelText(2)" placeholder="3번 조항 (연두칸)" style="width: 100%; padding: 8px; border: 1px solid #caffbf; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+            <input type="text" id="wheel-input-3" value="야식 쏘기" oninput="syncWheelText(3)" placeholder="4번 조항 (하늘칸)" style="width: 100%; padding: 8px; border: 1px solid #9bf6ff; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
         </div>
 
         <div style="width: 100%; flex-shrink: 0;">
@@ -3479,16 +3497,125 @@ window.backToGameLobby = function() {
     document.getElementById('wheel-graphic').style.transform = "rotate(0deg)";
 };
 
-// 🪜 [1번 게임] 사다리타기 실시간 연산 로직
-window.runLadder = function(choice) {
-    const outcomes = [
-        "🎉 당첨! 거니가 소원 들어주기!", 
-        "💥 꽝! 유미가 거니 볼에 뽀뽀하기! 😘", 
-        "🍕 맛있는 야식 사주기 당첨!!", 
-        "💆‍♂️ 오늘 밤 시원한 안마 서비스 당첨!"
-    ];
-    const finalOutcome = outcomes[Math.floor(Math.random() * outcomes.length)];
-    document.getElementById('ladder-result').innerHTML = `선택 [${choice === 'A' ? '왼쪽' : '오른쪽'}] 결과:<br><span style="font-size:0.95rem; color:#333;">${finalOutcome}</span>`;
+// =======================================================
+// 🪜 [대개조 완결판] 거니 & 유미 캔버스 사다리 타기 엔진
+// =======================================================
+let isLadderRunning = false;
+const ladderBridges = [40, 90, 140]; // 가로 징검다리 다리가 놓일 세로 좌표들 (고정)
+
+// 🎨 1. 사다리 기본 뼈대 라인 실시간 그려주는 함수
+window.drawBaseLadder = function(ballX = null, ballY = null) {
+    const canvas = document.getElementById('ladder-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    // 이전 화면 싹 청소
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // 뼈대 사다리 스타일 세팅
+    ctx.strokeStyle = '#ffafcc';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    
+    // 세로줄 2개 그리기 (거니줄 X=55, 유미줄 X=165)
+    ctx.beginPath();
+    ctx.moveTo(55, 10); ctx.lineTo(55, 190);
+    ctx.moveTo(165, 10); ctx.lineTo(165, 190);
+    ctx.stroke();
+    
+    // 가로 징검다리 다리 3개 놓기
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ladderBridges.forEach(y => {
+        ctx.moveTo(55, y);
+        ctx.lineTo(165, y);
+    });
+    ctx.stroke();
+    
+    // 🔴 애니메이션 가동 시 굴러내려가는 볼 렌더링 기믹
+    if (ballX !== null && ballY !== null) {
+        ctx.fillStyle = '#ff4d6d';
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#ff4d6d';
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0; // 그림자 리셋
+    }
+};
+
+// 🚀 2. 사다리 구동 애니메이션 메인 함수
+window.startLadderGame = function() {
+    if (isLadderRunning) return;
+    
+    const btn = document.getElementById('ladder-btn');
+    if (btn) btn.disabled = true;
+    isLadderRunning = true;
+    
+    document.getElementById('ladder-result').innerText = "두구두구두구 내려갑니다아~! 🔴";
+    
+    // 무작위로 출발할 주인공 선정 (0: 거니 출발, 1: 유미 출발)
+    const players = ["거니 👦", "유미 👧"];
+    const luckyRiderIndex = Math.floor(Math.random() * players.length);
+    const starterName = players[luckyRiderIndex];
+
+    // 출발 X 좌표 바인딩 (거니는 55, 유미는 165)
+    let currentX = luckyRiderIndex === 0 ? 55 : 165;
+    let currentY = 10;
+    
+    // 프레임 애니메이션 타이머 시동
+    const timer = setInterval(() => {
+        // 아래로 수직 하강 📉
+        currentY += 2;
+        
+        // 가로 다리를 만나면 슉 좌우로 워프해서 차선 이동하기 횡단 기믹! 🔀
+        ladderBridges.forEach(y => {
+            if (currentY === y) {
+                currentX = currentX === 55 ? 165 : 55; // 55면 165로, 165면 55로 좌우 점프!
+            }
+        });
+        
+        // 매 프레임 실시간 위치 갱신 드로잉
+        window.drawBaseLadder(currentX, currentY);
+        
+        // 바닥 종착지(Y=190)에 도달하면 상황 종료 점수 계산
+        if (currentY >= 190) {
+            clearInterval(timer);
+            
+            // 최종 도착한 자리가 왼쪽(55)이면 A 당첨, 오른쪽(165)이면 B 당첨!
+            const finalDestination = currentX === 55 ? 'A' : 'B';
+            const prizeText = document.getElementById(`ladder-input-${finalDestination}`).value.trim() || `${finalDestination} 벌칙`;
+            
+            document.getElementById('ladder-result').innerHTML = `🏃‍♂️ ${starterName} 사다리 타기 결과:<br><span style="color:#ff4d6d; font-size:1.2rem;">🎯 [ ${prizeText} ] 당첨!!</span>`;
+            
+            isLadderRunning = false;
+            if (btn) btn.disabled = false; // 다시하기 버튼 따로 없이 원버튼 연속 플레이 개방!
+        }
+    }, 15); // 부드러운 60fps급 연출 속도 제어
+};
+
+// 🔄 3. 로비 전환 연동 스위치 및 도화지 클리어 매니저
+const originalBackToGameLobbyForLadder = window.backToGameLobby;
+window.backToGameLobby = function() {
+    if (originalBackToGameLobbyForLadder) originalBackToGameLobbyForLadder();
+    
+    isLadderRunning = false;
+    const btn = document.getElementById('ladder-btn');
+    if (btn) btn.disabled = false;
+    
+    document.getElementById('ladder-result').innerText = "누가 사다리를 타고 내려올까?! 🤔";
+    
+    // 도화지 초기 상태로 깔끔하게 리셋 리드로잉
+    setTimeout(() => { window.drawBaseLadder(); }, 100);
+};
+
+// 🚀 미니게임 메뉴에서 '사다리타기' 탭을 누르는 순간 캔버스 사다리를 챡 그려주도록 트리거 주입
+const originalSwitchGameView = window.switchGameView;
+window.switchGameView = function(type) {
+    if (originalSwitchGameView) originalSwitchGameView(type);
+    if (type === 'ladder') {
+        setTimeout(() => { window.drawBaseLadder(); }, 50);
+    }
 };
 
 // =======================================================
