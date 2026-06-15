@@ -619,9 +619,7 @@
 </div>
 
     <div id="game-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-    
     <div class="game-box" style="background: #fff; width: 90%; max-width: 360px; height: auto; padding: 25px 20px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; box-sizing: border-box;">
-        
         <div id="game-lobby-view" style="display: flex; flex-direction: column; justify-content: center; height: 100%; box-sizing: border-box; padding: 10px 0;">
             <div style="flex-shrink: 0; margin-bottom: 25px; text-align: center;">
                 <span style="color: #ff8fab; font-weight: 900; font-size: 1.2rem; display: block; margin-bottom: 6px;">🎮 거니와 유미의 오락실 💛</span>
@@ -684,33 +682,36 @@
             <button onclick="backToGameLobby()" style="width: 100%; height: 55px; background: var(--point-pink); color: white; border: none; border-radius: 15px; font-weight: 900; font-size: 16px; cursor: pointer; flex-shrink: 0; margin-top: 15px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 6px;">
                 닫기
             </button>
-        </div> <div id="game-wheel-view" style="display: none; flex-direction: column; height: 100%; overflow-y: auto;">
-            <span style="color: #1565c0; font-weight: 900; font-size: 1.1rem; margin-bottom: 8px; flex-shrink: 0;">두근두근 돌림판</span>
-            <div style="flex: 1; background: #e3f2fd; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-sizing: border-box;">
-                <div style="position: relative; width: 160px; height: 160px; margin-top: 5px; flex-shrink: 0;">
-                    <div style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 1.6rem; z-index: 10; color: #e53935;">👇</div>
-                    <div id="wheel-graphic" style="width: 100%; height: 100%; border-radius: 50%; border: 6px solid #64b5f6; background: conic-gradient(#ffadad 0% 25%, #ffd6a5 25% 50%, #caffbf 50% 75%, #9bf6ff 75% 100%); transition: transform 3s cubic-bezier(0.15, 0.85, 0.35, 1); position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1); box-sizing: border-box;">
-                        <div style="position: absolute; top: 12px; left: 68%; transform: rotate(45deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-0">안마</div>
-                        <div style="position: absolute; top: 68%; left: 88%; transform: rotate(135deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-1">뽀뽀</div>
-                        <div style="position: absolute; top: 88%; left: 32%; transform: rotate(225deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-2">소원</div>
-                        <div style="position: absolute; top: 32%; left: 12%; transform: rotate(315deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-3">야식</div>
-                    </div>
-                </div>
-                <div id="wheel-result" style="font-weight: 900; font-size: 1.15rem; color: #0d47a1; text-align: center; min-height: 24px; margin: 2px 0;">룰렛을 채워봐! ✍️</div>
-                <div style="width: 100%; display: flex; flex-direction: column; gap: 6px; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 12px; box-sizing: border-box; overflow: hidden;">
-                    <input type="text" id="wheel-input-0" value="안마권" onchange="syncWheelText(0)" placeholder="1번 조항 (분홍칸)" style="width: 100%; padding: 8px; border: 1px solid #ffadad; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
-                    <input type="text" id="wheel-input-1" value="뽀뽀권" onchange="syncWheelText(1)" placeholder="2번 조항 (주황칸)" style="width: 100%; padding: 8px; border: 1px solid #ffd6a5; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
-                    <input type="text" id="wheel-input-2" value="소원권" onchange="syncWheelText(2)" placeholder="3번 조항 (연두칸)" style="width: 100%; padding: 8px; border: 1px solid #caffbf; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
-                    <input type="text" id="wheel-input-3" value="야식권" onchange="syncWheelText(3)" placeholder="4번 조항 (하늘칸)" style="width: 100%; padding: 8px; border: 1px solid #9bf6ff; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
-                </div>
-                <div style="width: 100%; flex-shrink: 0;">
-                    <button onclick="spinWheel()" id="wheel-btn" style="width: 100%; height: 45px; background: #1976d2; color: white; border: none; border-radius: 12px; font-weight: 900; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);">🚀 룰렛 힘차게 돌리기!</button>
-                </div>
+        </div> 
+        <div id="game-overlay" style="display: none;"> <div id="game-wheel-view" style="display: none; flex-direction: column; height: 100%; overflow-y: auto;">
+    <span style="color: #1565c0; font-weight: 900; font-size: 1.1rem; margin-bottom: 8px; flex-shrink: 0;">두근두근 돌림판</span>
+    <div style="flex: 1; background: #e3f2fd; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-sizing: border-box;">
+        <div style="position: relative; width: 160px; height: 160px; margin-top: 5px; flex-shrink: 0;">
+            <div style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 1.6rem; z-index: 10; color: #e53935;">👇</div>
+            <div id="wheel-graphic" style="width: 100%; height: 100%; border-radius: 50%; border: 6px solid #64b5f6; background: conic-gradient(#ffadad 0% 25%, #ffd6a5 25% 50%, #caffbf 50% 75%, #9bf6ff 75% 100%); transform: rotate(0deg); position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1); box-sizing: border-box;">
+                <div style="position: absolute; top: 12px; left: 68%; transform: rotate(45deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-0">안마</div>
+                <div style="position: absolute; top: 68%; left: 88%; transform: rotate(135deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-1">뽀뽀</div>
+                <div style="position: absolute; top: 88%; left: 32%; transform: rotate(225deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-2">소원</div>
+                <div style="position: absolute; top: 32%; left: 12%; transform: rotate(315deg); transform-origin: 0 0; font-size: 0.75rem; font-weight: 900; color: #444; white-space: nowrap;" id="wheel-txt-3">야식</div>
             </div>
-            <button onclick="backToGameLobby()" style="width: 100%; height: 55px; background: var(--point-pink); color: white; border: none; border-radius: 15px; font-weight: 900; font-size: 16px; cursor: pointer; flex-shrink: 0; margin-top: 15px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                닫기
-            </button>
-        </div> </div> </div>
+        </div>
+        <div id="wheel-result" style="font-weight: 900; font-size: 1.15rem; color: #0d47a1; text-align: center; min-height: 24px; margin: 2px 0;">돌림판을 채워줘!✍️</div>
+        
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 6px; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 12px; box-sizing: border-box; overflow: hidden;">
+            <input type="text" id="wheel-input-0" onchange="syncWheelText(0)" placeholder="1번 벌칙 (기본: 안마권)" style="width: 100%; padding: 8px; border: 1px solid #ffadad; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+            <input type="text" id="wheel-input-1" onchange="syncWheelText(1)" placeholder="2번 벌칙 (기본: 뽀뽀권)" style="width: 100%; padding: 8px; border: 1px solid #ffd6a5; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+            <input type="text" id="wheel-input-2" onchange="syncWheelText(2)" placeholder="3번 벌칙 (기본: 소원권)" style="width: 100%; padding: 8px; border: 1px solid #caffbf; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+            <input type="text" id="wheel-input-3" onchange="syncWheelText(3)" placeholder="4번 벌칙 (기본: 야식권)" style="width: 100%; padding: 8px; border: 1px solid #9bf6ff; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; box-sizing: border-box;">
+        </div>
+        <div style="width: 100%; flex-shrink: 0;">
+            <button onclick="spinWheel()" id="wheel-btn" style="width: 100%; height: 45px; background: #1976d2; color: white; border: none; border-radius: 12px; font-weight: 900; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);">🚀 룰렛 힘차게 돌리기!</button>
+        </div>
+    </div>
+    <button onclick="backToGameLobby()" style="width: 100%; height: 55px; background: var(--point-pink); color: white; border: none; border-radius: 15px; font-weight: 900; font-size: 16px; cursor: pointer; flex-shrink: 0; margin-top: 15px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        닫기
+    </button>
+</div>
+</div>
     
     
 <div id="map-container" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; flex-direction: column;">
@@ -3585,36 +3586,43 @@ window.showLadderResultDirectly = function(startX, penaltyText) {
     resBox.innerHTML = `<span style="font-size:1.25rem;">${winnerText}</span><br><span style="color:#444; font-size:0.85rem; font-weight:bold;">[ ${penaltyText} ] 수행하기! 힇히 🤣</span>`;
 };
 
-// 룰렛 즉시 정산 복원
-// 🪄 2-4. [UX 복원 완료] 재진입 시 룰렛 각도뿐만 아니라 4개의 입력칸 글자까지 완벽 복원
+// 🪄 2-4. [UX 복원 최종판] 새로고침 및 재진입 시 텍스트 공백 에러 완벽 해결 엔진
 window.showWheelResultDirectly = async function(targetAngle, winnerPrize) {
     const wheelGraphic = document.getElementById('wheel-graphic');
     const wheelResult = document.getElementById('wheel-result');
     const wheelBtn = document.getElementById('wheel-btn');
     
     if (wheelGraphic) {
-        wheelGraphic.style.transition = "none"; // 워프할 땐 회전 애니 끄기
-        wheelGraphic.style.transform = `rotate(${targetAngle}deg)`; // 각도 강제 워프 고정
+        wheelGraphic.style.transition = "none"; 
+        wheelGraphic.style.transform = `rotate(${targetAngle}deg)`; 
     }
     if (wheelResult) wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
     if (wheelBtn) wheelBtn.disabled = false;
 
-    // 🚨 [추가 셋업] 방에 새로 팝업 열고 들어왔을 때, 서버에 저장되어 있던 마지막 4개 문구를 입력창과 원판에 다시 뿌려주기!
+    // 🚨 [새로고침 가드] 빈 서버 장부를 만났을 때도 기본 셋팅 텍스트가 예쁘게 복원되도록 처리
     try {
         const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         const snap = await getDoc(doc(window.db, "games", "wheelMatch"));
-        if (snap.exists()) {
-            const data = snap.data();
-            for (let i = 0; i < 4; i++) {
-                if (data[`text_${i}`] !== undefined) {
-                    const inputField = document.getElementById(`wheel-input-${i}`);
-                    const txtDiv = document.getElementById(`wheel-txt-${i}`);
-                    if (inputField) inputField.value = data[`text_${i}`];
-                    if (txtDiv) txtDiv.innerText = data[`text_${i}`] || `${i + 1}번 벌칙`;
-                }
+        
+        // 디폴트 매칭 맵 스펙
+        const defaultLabels = ["안마권", "뽀뽀권", "소원권", "야식권"];
+        const defaultTexts = ["안마", "뽀뽀", "소원", "야식"];
+
+        for (let i = 0; i < 4; i++) {
+            const inputField = document.getElementById(`wheel-input-${i}`);
+            const txtDiv = document.getElementById(`wheel-txt-${i}`);
+            
+            if (snap.exists() && snap.data()[`text_${i}`] !== undefined && snap.data()[`text_${i}`] !== "") {
+                const serverVal = snap.data()[`text_${i}`];
+                if (inputField) inputField.value = serverVal;
+                if (txtDiv) txtDiv.innerText = serverVal;
+            } else {
+                // 서버에 저장된 커스텀 내용이 없다면 깡통 방지용 기본 세팅 복원!
+                if (inputField) inputField.value = defaultLabels[i];
+                if (txtDiv) txtDiv.innerText = defaultTexts[i];
             }
         }
-    } catch(e) { console.error("재진입 룰렛 텍스트 복원 실패:", e); }
+    } catch(e) { console.error("재진입 룰렛 텍스트 최종 복원 실패:", e); }
 };
     
 
