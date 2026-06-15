@@ -2974,45 +2974,26 @@ window.updateDdayMissionUI = function() {
     }
 };
 
-// 💖 데이트 미션 업데이트 (나우의 스마트 로직 ⚡)
 window.handleDdayMission = async function() {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     
-    // 1. 날짜가 없거나 지난 경우 -> 관리자 모드로 날짜 설정
     const isPast = dateMission.targetDate && new Date(dateMission.targetDate) < now;
     if (!dateMission.targetDate || isPast) {
-        const pw = prompt("새로운 데이트를 예약할까요? 🔒\n관리자 비밀번호를 입력해줘!");
-        if (pw === "261029") {
-            const newDate = prompt("데이트 날짜를 입력해줘 (예: 2026-05-20)", 
-                isPast ? "" : dateMission.targetDate);
-            const newMsg = prompt("D-DAY에 보여줄 비밀 문구는?", 
-                isPast ? "" : dateMission.message);
-            
-            if (newDate && newMsg) {
-                await setDoc(doc(window.db, "settings", "date_mission"), { 
-                    targetDate: newDate, 
-                    message: newMsg 
-                });
-                alert("데이트 예약 완료! 이제 같이 기다려보자 ⚡");
-            }
-        }
+        // 🔒 관리자 창은 안 뜨고, 유미가 누르면 심쿵할 멘트 하나만 깔끔하게 뿜어줍니다!
+        alert("🗓️ 아직 다음 데이트가 안정해졌나봐!\n\n 나두 보구싶으니까 조금만 기다려줘 희히 💛");
         return;
     }
     
-// 2. 날짜가 잡혀있는 경우
     const target = new Date(dateMission.targetDate);
     target.setHours(0, 0, 0, 0);
     const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
 
     if (diff > 0) {
-        // 기다리는 중 팝업
         alert(`💌 데이트 기다리는 중...\n\n유미야, 우리 만나기까지 딱 ${diff}일 남았어!\n조금만 더 기다려줘. 보고싶어 💛`);
     } else if (diff === 0) {
-        // 드디어 D-DAY! 메시지 공개
         alert(`✨ TODAY IS D-DAY! ✨\n\n"${dateMission.message}"`);
     }
-};
 
 // UI 업데이트 함수 (상태에 따라 버튼 색상 자동 변경)
     
