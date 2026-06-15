@@ -4038,51 +4038,42 @@ window.syncWheelText = function(index) {
     }
 };
 
-// 👀 2-2. [실시간 텔레파시 리스너] 상대방이 돌리거나 텍스트를 고칠 때 100% 동기화
+// 👀 2-2. [강제 복원 및 애니메이션 복구 엔진]
 window.startWheelRealtimeListener = async function() {
     if (wheelDbListener) return;
     try {
-        const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        const { doc, onSnapshot, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
-        wheelDbListener = onSnapshot(doc(window.db, "games", "wheelMatch"), (docSnap) => {
-            const wheelBtn = document.getElementById('wheel-btn');
-            const wheelResult = document.getElementById('wheel-result');
-            const wheelGraphic = document.getElementById('wheel-graphic');
-            
-            if (!wheelGraphic || !wheelResult) return;
-
-            if (!docSnap.exists()) {
-                if (wheelBtn) wheelBtn.disabled = false;
-                wheelResult.innerText = "벌칙이나 내기를 입력해봐! ✍️";
-                wheelGraphic.style.transition = "none"; 
-                wheelGraphic.style.transform = "rotate(0deg)";
-                return;
-            }
-
-            const data = docSnap.data();
-
-            // 1. 상대방이 입력 중인 실시간 텍스트 동기화 수신
+        // [입장 즉시 강제 복원] 리스너가 연결되기 전에 한 번 서버를 털어서 글자부터 꽂습니다!
+        const initialSnap = await getDoc(doc(window.db, "games", "wheelMatch"));
+        if (initialSnap.exists()) {
+            const data = initialSnap.data();
             for (let i = 0; i < 4; i++) {
-                if (data[`text_${i}`] !== undefined) {
-                    const inputField = document.getElementById(`wheel-input-${i}`);
-                    const txtDiv = document.getElementById(`wheel-txt-${i}`);
-                    if (document.activeElement !== inputField) { 
-                        if (inputField) inputField.value = data[`text_${i}`];
-                    }
-                    txtDiv.innerText = data[`text_${i}`] || `${i + 1}번 벌칙`;
+                const inputField = document.getElementById(`wheel-input-${i}`);
+                const txtDiv = document.getElementById(`wheel-txt-${i}`);
+                if (data[`text_${i}`]) {
+                    if (inputField) inputField.value = data[`text_${i}`];
+                    if (txtDiv) txtDiv.innerText = data[`text_${i}`];
                 }
             }
+        }
 
-            // 2. 🚀 [씹힘 방지 핵심 기믹] status가 spinning이면서 새로운 타임스탬프가 감지되면 무조건 물리 돌격!
-            if (data.status === 'spinning' && data.spinTriggerTime) {
-                // 내 로컬 브라우저가 마지막으로 실행한 돌리기 시간이 아니거나, 현재 돌고 있지 않을 때 작동!
-                if (window.lastSpinTime !== data.spinTriggerTime && !isWheelSpinning) {
-                    window.lastSpinTime = data.spinTriggerTime; // 중복 실행 방지 도장 쾅
-                    window.runLocalWheelPhysics(data.targetAngle, data.winnerPrize);
+        wheelDbListener = onSnapshot(doc(window.db, "games", "wheelMatch"), (docSnap) => {
+            const wheelGraphic = document.getElementById('wheel-graphic');
+            if (!wheelGraphic) return;
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                // 🚀 spinning 신호 감지 시 애니메이션 즉시 재가동
+                if (data.status === 'spinning') {
+                    if (window.lastSpinTime !== data.spinTriggerTime && !isWheelSpinning) {
+                        window.lastSpinTime = data.spinTriggerTime;
+                        window.runLocalWheelPhysics(data.targetAngle, data.winnerPrize);
+                    }
                 }
             }
         });
-    } catch (e) { console.error("룰렛 리스너 오류:", e); }
+    } catch (e) { console.error("룰렛 복구 엔진 에러:", e); }
 };
 
 // 🚀 2-3. [원터치 점화 보장] 돌리기 버튼 터치 시 무조건 즉시 작동하는 연산 사출기
@@ -4119,34 +4110,29 @@ window.spinWheel = async function() {
     } catch(e) { console.error("룰렛 서버 전송 실패:", e); }
 };
 
-// 🎡 2-4. [원점 동기화] 3초간 시원하게 회전하는 물리 엔진
 window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
-    const wheelBtn = document.getElementById('wheel-btn');
-    if (wheelBtn) wheelBtn.disabled = true;
-    isWheelSpinning = true;
-
     const wheelGraphic = document.getElementById('wheel-graphic');
     const wheelResult = document.getElementById('wheel-result');
-
     if (!wheelGraphic || !wheelResult) return;
 
-    // 🧼 트랜지션을 즉시 끄고 '0도' 원점으로 순간 이동!
+    isWheelSpinning = true;
+
+    // 1. 초기화
     wheelGraphic.style.transition = "none";
     wheelGraphic.style.transform = "rotate(0deg)";
 
-    // 미세한 딜레이(0.03초) 준 뒤 화려하게 3초 회전 시작! 🔥
-    setTimeout(() => {
-        wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
-        wheelGraphic.style.transition = "transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)";
-        wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
-    }, 30);
+    // 2. 강제 브라우저 리플로우 (이 줄이 있어야 애니메이션이 다시 살아납니다!)
+    wheelGraphic.offsetHeight; 
 
-    // 3초 후 결과창 고정 표출
+    // 3. 3초간 화려하게 회전 (CSS를 자바스크립트로 강제 주입)
+    wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
+    wheelGraphic.style.transition = "transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)";
+    wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
+
     setTimeout(() => {
         wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
         isWheelSpinning = false;
-        if (wheelBtn) wheelBtn.disabled = false; 
-    }, 3030);
+    }, 3050);
 };
 
 // 🔄 2-5. 룰렛 전용 서버 리셋 스위치
