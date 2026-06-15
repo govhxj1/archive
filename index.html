@@ -3459,12 +3459,20 @@ window.switchGameView = function(type) {
             const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
             
         
-            // 🪜 사다리방 진입 스캔 (이름 셔플 인자 연동 보정)
+           // 🪜 사다리방 재진입 검사 (마지막 벌칙 문구 기억 장치 연동)
             if (type === 'ladder') {
                 const snap = await getDoc(doc(window.db, "games", "ladderMatch"));
-                if (snap.exists() && snap.data().status === 'spinning') {
-                    // 복원 엔진에 서버 셔플 이름 데이터(p1Name, p2Name)를 함께 딜리버리해 줍니다! ⭐
-                    window.showLadderResultDirectly(snap.data().startPositions, snap.data().penaltyText, snap.data().p1Name, snap.data().p2Name);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    
+                    // 1. 방에 그냥 다시 들어왔을 때도 이전 입력칸 문구를 복원해서 보여주기
+                    const inputField = document.getElementById('ladder-single-input');
+                    if (data.penaltyText && inputField) inputField.value = data.penaltyText;
+                    
+                    // 2. 만약 이미 완료된 상태라면 결과판 고정 표출
+                    if (data.status === 'spinning') {
+                        window.showLadderResultDirectly(data.startPositions, data.penaltyText, data.p1Name, data.p2Name);
+                    }
                 }
             }
             // ✌️ 가위바위보방 재진입 검사 (기존 그대로 고정)
@@ -3563,14 +3571,35 @@ window.showLadderResultDirectly = function(startX, penaltyText) {
 };
 
 // 룰렛 즉시 정산 복원
-window.showWheelResultDirectly = function(targetAngle, winnerPrize) {
+// 🪄 2-4. [UX 복원 완료] 재진입 시 룰렛 각도뿐만 아니라 4개의 입력칸 글자까지 완벽 복원
+window.showWheelResultDirectly = async function(targetAngle, winnerPrize) {
     const wheelGraphic = document.getElementById('wheel-graphic');
     const wheelResult = document.getElementById('wheel-result');
     const wheelBtn = document.getElementById('wheel-btn');
     
-    if (wheelGraphic) wheelGraphic.style.transform = `rotate(${targetAngle}deg)`; // 회전 생략하고 각도 즉시 강제 워프
+    if (wheelGraphic) {
+        wheelGraphic.style.transition = "none"; // 워프할 땐 회전 애니 끄기
+        wheelGraphic.style.transform = `rotate(${targetAngle}deg)`; // 각도 강제 워프 고정
+    }
     if (wheelResult) wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
     if (wheelBtn) wheelBtn.disabled = false;
+
+    // 🚨 [추가 셋업] 방에 새로 팝업 열고 들어왔을 때, 서버에 저장되어 있던 마지막 4개 문구를 입력창과 원판에 다시 뿌려주기!
+    try {
+        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        const snap = await getDoc(doc(window.db, "games", "wheelMatch"));
+        if (snap.exists()) {
+            const data = snap.data();
+            for (let i = 0; i < 4; i++) {
+                if (data[`text_${i}`] !== undefined) {
+                    const inputField = document.getElementById(`wheel-input-${i}`);
+                    const txtDiv = document.getElementById(`wheel-txt-${i}`);
+                    if (inputField) inputField.value = data[`text_${i}`];
+                    if (txtDiv) txtDiv.innerText = data[`text_${i}`] || `${i + 1}번 벌칙`;
+                }
+            }
+        }
+    } catch(e) { console.error("재진입 룰렛 텍스트 복원 실패:", e); }
 };
     
 
@@ -3613,27 +3642,30 @@ window.startLadderRealtimeListener = async function() {
             const resBox = document.getElementById('ladder-result');
             const p1Box = document.getElementById('ladder-p1');
             const p2Box = document.getElementById('ladder-p2');
+            const inputField = document.getElementById('ladder-single-input'); // ✍️ 입력창 주소 획득
             
             if (!resBox || !p1Box || !p2Box) return;
 
-            // 서버 데이터가 없으면 클린 초기화 🧼
+            // 서버 데이터가 아예 없으면 클린 초기화
             if (!docSnap.exists()) {
                 if (btn) btn.disabled = false;
                 resBox.innerText = "사다리의 주인공은 누가 될 것인가?! 🔥";
                 resBox.style.cssText = "font-weight: 900; font-size: 1.15rem; color: #ff4d6d; text-align: center; min-height: 24px; margin: 2px 0;";
-                
-                // 처음엔 일반 물음표로 숨겨두기
-                p1Box.innerText = "❓"; p1Box.style.color = "#777";
-                p2Box.innerText = "❓"; p2Box.style.color = "#777";
+                p1Box.innerText = "❓ 누구게"; p1Box.style.color = "#777";
+                p2Box.innerText = "❓ 누구게"; p2Box.style.color = "#777";
                 window.drawBaseLadder();
                 return;
             }
 
             const data = docSnap.data();
             
-            // 🚀 서버 상태가 spinning이면 무조건 애니메이션 켜기
+            // 🚨 [UX 핵심] 서버에 저장된 마지막 벌칙 문구가 있다면, 입력창에 그대로 꽂아주기! (내가 치고 있는 중이 아닐 때만)
+            if (data.penaltyText && inputField && document.activeElement !== inputField) {
+                inputField.value = data.penaltyText;
+            }
+            
+            // 서버 상태가 spinning이면 애니메이션 가동
             if (data.status === 'spinning') {
-                // 진입할 때 서버에 미리 저장된 좌우 랜덤 배치 정보(p1, p2)를 가져와서 하단 폰에 세팅!
                 p1Box.innerText = "🕵️ 대기중"; p1Box.style.color = "#999";
                 p2Box.innerText = "🕵️ 대기중"; p2Box.style.color = "#999";
                 
@@ -3649,25 +3681,24 @@ window.startLadderRealtimeListener = async function() {
 window.startLadderGame = async function() {
     if (isLadderRunning) return;
     
+    // 현재 입력창에 적힌 따끈따끈한 문구 가져오기
     const penaltyText = document.getElementById('ladder-single-input').value.trim() || "운명의 벌칙";
     
-    // ① 시작할 기둥 무작위 결정
     const startPositions = [55, 165];
     const chosenStartX = startPositions[Math.floor(Math.random() * startPositions.length)];
 
-    // ② 🔥 [기획 핵심] 왼쪽(p1)과 오른쪽(p2) 자리에 누가 앉을지 서버에서 50% 확률로 미리 셔플 믹싱!
     const names = ["👦 거니", "👧 유미"];
-    if (Math.random() < 0.5) names.reverse(); // 반반 확률로 좌우 뒤집기
+    if (Math.random() < 0.5) names.reverse(); 
     const p1Name = names[0];
     const p2Name = names[1];
 
     try {
         const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
-        // 리스너 리액션을 유도하기 위한 상태값 트래픽 버그 제거 선공격
+        // 튕김 인지용 idle 스위칭
         await setDoc(doc(window.db, "games", "ladderMatch"), { status: 'idle' }, { merge: true });
         
-        // 0.05초 뒤에 동시 출발 엔진 쾅 점화!
+        // 0.05초 뒤 penaltyText를 포함한 모든 정보를 서버에 영구 저장! 🔒
         setTimeout(async () => {
             await setDoc(doc(window.db, "games", "ladderMatch"), {
                 status: 'spinning',
