@@ -3444,229 +3444,198 @@ window.closeGameOverlay = function() {
 };
 
     // 3. 미니게임 로비 <-> 개별 게임 간의 화면 스위칭 매니저 🔄
-    window.switchGameView = function(type) {
+    // 🔄 각 미니게임 화면 스위칭 매니저 (사다리 / 가위바위보 / 룰렛 3대 네트워크 총동원 ⚡)
+window.switchGameView = function(type) {
     document.getElementById('game-lobby-view').style.display = 'none';
     document.getElementById('game-ladder-view').style.display = 'none';
     document.getElementById('game-rsp-view').style.display = 'none';
     document.getElementById('game-wheel-view').style.display = 'none';
     
-    if (type === 'ladder') document.getElementById('game-ladder-view').style.display = 'flex';
+    // 🪜 사다리방 입장 시 서버 리스너 온!
+    if (type === 'ladder') {
+        document.getElementById('game-ladder-view').style.display = 'flex';
+        if (window.startLadderRealtimeListener) window.startLadderRealtimeListener();
+    }
     
-    // 🎯 가위바위보 버튼을 누르고 게임에 진입하는 순간 서버 실시간 텔레파시 리스너 온! ⚡
+    // ✌️ 가위바위보방 입장 시 서버 리스너 온!
     if (type === 'rsp') {
         document.getElementById('game-rsp-view').style.display = 'flex';
         if (window.startRSPRealtimeListener) window.startRSPRealtimeListener();
     }
     
-    if (type === 'wheel') document.getElementById('game-wheel-view').style.display = 'flex';
+    // 🎡 룰렛방 입장 시 서버 리스너 온!
+    if (type === 'wheel') {
+        document.getElementById('game-wheel-view').style.display = 'flex';
+        if (window.startWheelRealtimeListener) window.startWheelRealtimeListener();
+    }
 };
 
-    // 4. [실시간 네트워크 연동판] 게임 선택 목록(로비)으로 돌아갈 때 가동되는 통합 청소 엔진 🧹
-    window.backToGameLobby = function() {
+// 4. [실시간 네트워크 대통합판] 로비로 돌아갈 때 화면 정돈 매니저 🧹
+window.backToGameLobby = function() {
     document.getElementById('game-lobby-view').style.display = 'flex';
     document.getElementById('game-ladder-view').style.display = 'none';
     document.getElementById('game-rsp-view').style.display = 'none';
     document.getElementById('game-wheel-view').style.display = 'none';
     
-    // 🪜 4-1. 사다리타기 뷰 리셋 정산
+    // 🪜 사다리 화면 가림막 정돈 (방 나가도 서버 폭파는 안 시킴)
     const ladderRes = document.getElementById('ladder-result');
     if (ladderRes) {
-        ladderRes.innerText = "사다리의 주인공은 누가 될 것인가?! 🔥";
+        ladderRes.innerText = "과연 벌칙의 주인공은 누가 될 것인가?! 🔥";
         ladderRes.style.cssText = "font-weight: 900; font-size: 1.15rem; color: #ff4d6d; text-align: center; min-height: 24px; margin: 2px 0;";
     }
     if (window.drawBaseLadder) window.drawBaseLadder();
 
-    // ✌️ 4-2. [정밀 수술 구역] 가위바위보 네트워크용 화면 리셋
-    // 💡 목록으로 뒤로가기 할 때는 '기록 보존'을 위해 파이어베이스 서버 데이터를 강제로 지우지 않습니다!
-    // 대신 현재 폰 화면의 대결 오픈 전광판과 결과창만 깔끔하게 가려줍니다. 🧼
+    // ✌️ 가위바위보 화면 가림막 정돈
     const vsBox = document.getElementById('rsp-match-vs');
     const resetBtn = document.getElementById('rsp-reset-btn');
     const finalRes = document.getElementById('rsp-final-result');
-    
     if (vsBox) vsBox.style.display = "none";
     if (resetBtn) resetBtn.style.display = "none";
     if (finalRes) finalRes.innerText = "";
     
-    // 🎡 4-3. 돌림판 룰렛 정밀 리셋 연동
-    if (window.resetWheelMatch) {
-        window.resetWheelMatch();
-    } else {
-        const wheelResult = document.getElementById('wheel-result');
-        if (wheelResult) wheelResult.innerText = "돌림판을 채워줘! ✍️";
-        const wheelGraphic = document.getElementById('wheel-graphic');
-        if (wheelGraphic) wheelGraphic.style.transform = "rotate(0deg)";
-    }
-
-    // 🚀 4-4. 인풋창 입력 텍스트 룰렛 원판 위에 자석 동기화 재가동
-    for (let i = 0; i < 4; i++) { 
-        if (window.syncWheelText) window.syncWheelText(i); 
-    }
+    // 🎡 룰렛 화면 가림막 정돈
+    const wheelResult = document.getElementById('wheel-result');
+    const wheelGraphic = document.getElementById('wheel-graphic');
+    if (wheelResult) wheelResult.innerText = "벌칙이나 내기를 입력해봐! ✍️";
+    if (wheelGraphic) wheelGraphic.style.transform = "rotate(0deg)";
+    
+    // 인풋창 동기화 유지
+    for (let i = 0; i < 4; i++) { if (window.syncWheelText) window.syncWheelText(i); }
 };
 
 // =======================================================
-// 🪜 [구슬 색상 초록색 🟢 교체 완료] 거니 VS 유미 사다리 엔진
+// 🪜 [실시간 멀티플레이 네트워크] 거니 💛 유미 복불복 사다리 엔진
 // =======================================================
 let isLadderRunning = false;
-const ladderBridges = [40, 85, 130]; // 가로 다리 세로 Y 좌표들
+let ladderDbListener = null;
+const ladderBridges = [40, 85, 130]; 
 
-// 🎨 1. 사다리판 및 구슬 실시간 렌더링 함수 (초록색 구슬 🟢 적용)
+// 🎨 1-1. 사다리판 및 초록 구슬 실시간 렌더링 함수
 window.drawBaseLadder = function(ballX = null, ballY = null) {
     const canvas = document.getElementById('ladder-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#ffafcc'; ctx.lineWidth = 5; ctx.lineCap = 'round';
     
-    ctx.strokeStyle = '#ffafcc';
-    ctx.lineWidth = 5;
-    ctx.lineCap = 'round';
-    
-    // 세로 기둥 2개 (거니줄 X=55, 유미줄 X=165)
-    ctx.beginPath();
-    ctx.moveTo(55, 10); ctx.lineTo(55, 170);
-    ctx.moveTo(165, 10); ctx.lineTo(165, 170);
-    ctx.stroke();
-    
+    // 세로 기둥 2개
+    ctx.beginPath(); ctx.moveTo(55, 10); ctx.lineTo(55, 170); ctx.moveTo(165, 10); ctx.lineTo(165, 170); ctx.stroke();
     // 가로 다리 3개
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ladderBridges.forEach(y => {
-        ctx.moveTo(55, y);
-        ctx.lineTo(165, y);
-    });
-    ctx.stroke();
+    ctx.lineWidth = 4; ctx.beginPath();
+    ladderBridges.forEach(y => { ctx.moveTo(55, y); ctx.lineTo(165, y); }); ctx.stroke();
     
-    // 🟢 [색상 교정 완료] 팀장님이 픽하신 산뜻하고 직관적인 초록색 구슬 렌더링!
+    // 🟢 초록색 구슬 렌더링
     if (ballX !== null && ballY !== null) {
-        ctx.fillStyle = '#4CAF50'; // 선명한 그린 컬러 🟢
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = '#2E7D32';
-        ctx.beginPath();
-        ctx.arc(ballX, ballY, 9, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0; // 그림자 초기화
+        ctx.fillStyle = '#4CAF50'; ctx.shadowBlur = 8; ctx.shadowColor = '#2E7D32';
+        ctx.beginPath(); ctx.arc(ballX, ballY, 9, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
     }
 };
 
-// 🚀 2. 좌우 수평 이동이 포함된 프레임 컨트롤 메인 스크립트
+
+// 👀 1-2. [강제 애니메이션 업그레이드] 늦게 들어와도 무조건 구슬이 굴러가는 사다리 리스너
+window.startLadderRealtimeListener = async function() {
+    if (ladderDbListener) return;
+    try {
+        const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        
+        ladderDbListener = onSnapshot(doc(window.db, "games", "ladderMatch"), (docSnap) => {
+            const btn = document.getElementById('ladder-btn');
+            const resBox = document.getElementById('ladder-result');
+            if (!resBox) return;
+
+            // 서버에 데이터가 아예 없으면 (리셋 상태) UI 초기화 🧼
+            if (!docSnap.exists()) {
+                if (btn) btn.disabled = false;
+                resBox.innerText = "과연 벌칙의 주인공은 누가 될 것인가?! 🔥";
+                resBox.style.cssText = "font-weight: 900; font-size: 1.15rem; color: #ff4d6d; text-align: center; min-height: 24px; margin: 2px 0;";
+                window.drawBaseLadder();
+                return;
+            }
+
+            const data = docSnap.data();
+            
+            // 🚀 [핵심 교정] 현재 게임 상태가 'spinning'이기만 하면, 
+            // 내가 방에 방금 막 들어와서 구슬이 안 달리고 있을 때(`!isLadderRunning`) 무조건 물리 엔진 시동!!
+            if (data.status === 'spinning') {
+                if (!isLadderRunning) {
+                    window.runLocalLadderPhysics(data.startPositions, data.penaltyText);
+                }
+            }
+        });
+    } catch (e) { console.error("사다리 리스너 오류:", e); }
+};
+
+// 🚀 1-3. [서버 점화기] 내가 버튼을 누르면 서버에 신호를 쏘아 양쪽 폰을 동시 출발시킴
 window.startLadderGame = function() {
     if (isLadderRunning) return;
     
+    const penaltyText = document.getElementById('ladder-single-input').value.trim() || "운명의 벌칙";
+    
+    // 무작위 데이터 미리 선점 (어느 기둥에서 출발할지 결정)
+    const startPositions = [55, 165];
+    const chosenStartX = startPositions[Math.floor(Math.random() * startPositions.length)];
+
+    // 서버에 '야! 다들 출발해!' 하고 데이터 기록 쏘기 ☁️
+    setTimeout(async () => {
+        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        await setDoc(doc(window.db, "games", "ladderMatch"), {
+            status: 'spinning',
+            startPositions: chosenStartX,
+            penaltyText: penaltyText
+        });
+    }, 0);
+};
+
+// 🏃‍♂️ 1-4. [실제 무빙 물리 엔진] 양쪽 핸드폰 화면에서 동시에 초록 구슬을 굴리는 함수
+window.runLocalLadderPhysics = function(startX, penaltyText) {
     const btn = document.getElementById('ladder-btn');
     if (btn) btn.disabled = true;
     isLadderRunning = true;
-    
-    // 결과 전광판 초기화 및 대기 모드
-    const resBox = document.getElementById('ladder-result');
-    resBox.style.background = "transparent";
-    resBox.style.padding = "0";
-    resBox.style.borderRadius = "0";
-    
-    const penaltyText = document.getElementById('ladder-single-input').value.trim() || "운명의 사다리";
-    // 🎯 안내 멘트 옆에 붙는 원형 이모티콘도 센스 있게 초록색(🟢)으로 바인딩 완료!
-    resBox.innerHTML = `🟢 [${penaltyText}] 하강 중...`;
 
-    // 랜덤 출발 기둥 선정 (55: 거니측, 165: 유미측)
-    const startPositions = [55, 165];
-    let currentX = startPositions[Math.floor(Math.random() * startPositions.length)];
+    const resBox = document.getElementById('ladder-result');
+    resBox.style.background = "transparent"; resBox.style.padding = "0"; resBox.style.borderRadius = "0";
+    resBox.innerHTML = `🟢 벌칙 [${penaltyText}]이(가) 하강 중...`;
+
+    let currentX = startX;
     let currentY = 10;
-    
-    // 상태 매니저 (0: 수직 하강 모드, 1: 가로 다리 좌우 이동 모드)
     let moveMode = 0; 
     let targetX = currentX;
-    let crossBridgeY = -1; // 이미 건넌 다리 중복 체크 방지용 가드
+    let crossBridgeY = -1;
 
     const timer = setInterval(() => {
-        
-        // 🔹 [모드 0] 수직 하강 중일 때
         if (moveMode === 0) {
-            currentY += 2.2; // 쫄깃한 속도로 천천히 하강
-            
-            // 가로 다리 세로 좌표와 딱 만났는지 체크!
+            currentY += 2.2; // 팀장님이 고치신 2.2 고속 튜닝 스피드!⚡
             ladderBridges.forEach(y => {
                 if (Math.abs(currentY - y) < 2.2 && crossBridgeY !== y) {
-                    currentY = y; // 세로 좌표 자석 고정
-                    moveMode = 1; // 🔀 즉시 "좌우 수평 이동 모드"로 스위칭!
-                    crossBridgeY = y; // 이 다리는 방금 건넜다고 장부에 마킹
-                    targetX = currentX === 55 ? 165 : 55; // 목적지 반대편 기둥 설정
+                    currentY = y; moveMode = 1; crossBridgeY = y;
+                    targetX = currentX === 55 ? 165 : 55;
                 }
             });
-        } 
-        // 🔸 [모드 1] 가로 다리 타고 수평으로 이동 중일 때 (리얼 수평 무빙)
-        else if (moveMode === 1) {
-            if (currentX < targetX) {
-                currentX += 2; // 오른쪽으로 이동
-                if (currentX >= targetX) { currentX = targetX; moveMode = 0; } // 다 건넜으면 다시 하강 모드로!
-            } else if (currentX > targetX) {
-                currentX -= 2; // 왼쪽으로 이동
-                if (currentX <= targetX) { currentX = targetX; moveMode = 0; } // 다 건넜으면 다시 하강 모드로!
-            }
+        } else if (moveMode === 1) {
+            if (currentX < targetX) { currentX += 2; if (currentX >= targetX) { currentX = targetX; moveMode = 0; } }
+            else if (currentX > targetX) { currentX -= 2; if (currentX <= targetX) { currentX = targetX; moveMode = 0; } }
         }
-        
-        // 프레임 리드로잉
+
         window.drawBaseLadder(currentX, currentY);
-        
-        // 🏁 바닥 종착지(170) 도달 시 최종 상황 정산
+
         if (currentY >= 170) {
             clearInterval(timer);
-            
-            let winnerText = "";
-            let bgColor = "";
-            let textColor = "";
-            
-            // 🎯 [컬러 매칭 스위치] 거니=노랑(💛), 유미=핑크(💖) 결과창 커스텀 컬러링 기믹 적용
+            let winnerText = "", bgColor = "", textColor = "";
+
             if (currentX === 55) {
-                winnerText = "💥 거니 당첨!! 👦";
-                bgColor = "#FFF9C4";   // 거니 전용 화사한 파스텔 노랑 (💛)
-                textColor = "#F57F17";  // 딥 옐로우 브라운
+                winnerText = "💥 거니 당첨!! 👦"; bgColor = "#FFF9C4"; textColor = "#F57F17";
             } else {
-                winnerText = "👑 유미 당첨!! 👧";
-                bgColor = "#FCE4EC";   // 유미 전용 화사한 파스텔 핑크 (💖)
-                textColor = "#C2185B";  // 사랑스러운 핫핑크
+                winnerText = "👑 유미 당첨!! 👧"; bgColor = "#FCE4EC"; textColor = "#C2185B";
             }
-            
-            // 결과창 레이아웃 박스 이펙팅 ✨
-            resBox.style.cssText = `
-                width: 100%;
-                background: ${bgColor};
-                color: ${textColor};
-                padding: 10px;
-                border-radius: 12px;
-                font-weight: 900;
-                text-align: center;
-                box-sizing: border-box;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-                transition: 0.3s ease-in-out;
-            `;
-            
-            resBox.innerHTML = `
-                <span style="font-size:1.25rem;">${winnerText}</span><br>
-                <span style="color:#444; font-size:0.85rem; font-weight:bold;">[ ${penaltyText} ] 수행하기! 힇히 🤣</span>
-            `;
-            
+
+            resBox.style.cssText = `width: 100%; background: ${bgColor}; color: ${textColor}; padding: 10px; border-radius: 12px; font-weight: 900; text-align: center; box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.05);`;
+            resBox.innerHTML = `<span style="font-size:1.25rem;">${winnerText}</span><br><span style="color:#444; font-size:0.85rem; font-weight:bold;">[ ${penaltyText} ] 수행하기! 힇히 🤣</span>`;
+
             isLadderRunning = false;
-            if (btn) btn.disabled = false;
         }
     }, 15);
 };
-
-// 🔄 3. 사다리 리셋 시 전광판 컬러도 투명하게 백업 클리어
-const originalBackToGameLobbyForLadder = window.backToGameLobby;
-window.backToGameLobby = function() {
-    if (originalBackToGameLobbyForLadder) originalBackToGameLobbyForLadder();
     
-    isLadderRunning = false;
-    const btn = document.getElementById('ladder-btn');
-    if (btn) btn.disabled = false;
-    
-    const resBox = document.getElementById('ladder-result');
-    if (resBox) {
-        resBox.innerText = "두구두구두구...! 🔥";
-        resBox.style.cssText = "font-weight: 900; font-size: 1.15rem; color: #ff4d6d; text-align: center; min-height: 24px; margin: 2px 0;";
-    }
-    setTimeout(() => { window.drawBaseLadder(); }, 100);
-};
-
 // =======================================================
 // ✌️ [완벽 연동 및 선택 고정] 거니 💛 유미 실시간 가위바위보 엔진
 // =======================================================
@@ -3862,77 +3831,122 @@ window.resetRSPMatchOnly = async function() {
     
     
 // =======================================================
-// 🎡 [디자인 피드백 피팅 완료] 거니 & 유미 룰렛 돌림판 엔진
+// 🎡 [실시간 멀티플레이 네트워크] 거니 💛 유미 커스텀 룰렛 엔진
 // =======================================================
-let wheelRotationValue = 0; 
+let isWheelSpinning = false;
+let wheelDbListener = null;
 
-// ✍️ 1. 타이핑 동기화 함수
+// ✍️ 2-1. 내 눈앞의 인풋창 문구를 룰렛 원판 조각 위에 자석 동기화해 주는 함수
 window.syncWheelText = function(index) {
-    const inputVal = document.getElementById(`wheel-input-${index}`).value;
-    const txtNode = document.getElementById(`wheel-txt-${index}`);
-    if (txtNode) {
-        txtNode.innerText = inputVal.length > 4 ? inputVal.substring(0, 4) + ".." : inputVal || `칸-${index+1}`;
+    const inputVal = document.getElementById(`wheel-input-${index}`).value.trim();
+    const txtDiv = document.getElementById(`wheel-txt-${index}`);
+    if (txtDiv) txtDiv.innerText = inputVal || `${index + 1}번 벌칙`;
+    
+    // 내가 글자를 타이핑할 때마다 서버에 실시간 백업 전송 (상대방 판 갱신용)
+    if (!isWheelSpinning) {
+        setTimeout(async () => {
+            const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+            await setDoc(doc(window.db, "games", "wheelMatch"), {
+                [`text_${index}`]: inputVal
+            }, { merge: true });
+        }, 0);
     }
 };
 
-// 🚀 2. 돌림판 메인 회전 구동 함수
+// 👀 2-2. [실시간 텔레파시 리스너] 상대방이 돌리거나 텍스트를 고칠 때 100% 동기화
+window.startWheelRealtimeListener = async function() {
+    if (wheelDbListener) return;
+    try {
+        const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        
+        wheelDbListener = onSnapshot(doc(window.db, "games", "wheelMatch"), (docSnap) => {
+            const wheelBtn = document.getElementById('wheel-btn');
+            const wheelResult = document.getElementById('wheel-result');
+            const wheelGraphic = document.getElementById('wheel-graphic');
+            
+            if (!wheelGraphic || !wheelResult) return;
+
+            if (!docSnap.exists()) {
+                if (wheelBtn) wheelBtn.disabled = false;
+                wheelResult.innerText = "벌칙이나 내기를 입력해봐! ✍️";
+                wheelGraphic.style.transform = "rotate(0deg)";
+                return;
+            }
+
+            const data = docSnap.data();
+
+            // 1. 상대방이 입력 중인 실시간 텍스트 동기화 수신
+            for (let i = 0; i < 4; i++) {
+                if (data[`text_${i}`] !== undefined) {
+                    const inputField = document.getElementById(`wheel-input-${i}`);
+                    const txtDiv = document.getElementById(`wheel-txt-${i}`);
+                    if (document.activeElement !== inputField) { // 내가 입력 중이 아닐 때만 덮어쓰기
+                        inputField.value = data[`text_${i}`];
+                    }
+                    txtDiv.innerText = data[`text_${i}`] || `${i + 1}번 벌칙`;
+                }
+            }
+
+            // 2. 🚀 한쪽 폰에서 돌리기를 작동시키면 양쪽 폰 원판 동시 회전 돌격!!
+            if (data.status === 'spinning' && !isWheelSpinning) {
+                window.runLocalWheelPhysics(data.targetAngle, data.winnerPrize);
+            }
+        });
+    } catch (e) { console.error("룰렛 리스너 오류:", e); }
+};
+
+// 🚀 2-3. [서버 점화기] 내가 돌리기 버튼을 누르면 당첨 각도를 서버로 번개처럼 사출
 window.spinWheel = function() {
-    const btn = document.getElementById('wheel-btn');
-    if (btn.disabled) return;
-    btn.disabled = true; // 중복 터치 안전 잠금 🔒
+    if (isWheelSpinning) return;
 
-    const prizes = [
-        document.getElementById('wheel-input-0').value.trim() || "1번 보상",
-        document.getElementById('wheel-input-1').value.trim() || "2번 보상",
-        document.getElementById('wheel-input-2').value.trim() || "3번 보상",
-        document.getElementById('wheel-input-3').value.trim() || "4번 보상"
+    // 최종 당첨될 아이템 픽셀 각도 미리 계산
+    const randomItems = [
+        { index: 0, prize: document.getElementById('wheel-input-0').value, baseAngle: 270 }, // 1시 방향 (분홍)
+        { index: 1, prize: document.getElementById('wheel-input-1').value, baseAngle: 180 }, // 4시 방향 (주황)
+        { index: 2, prize: document.getElementById('wheel-input-2').value, baseAngle: 90  }, // 7시 방향 (연두)
+        { index: 3, prize: document.getElementById('wheel-input-3').value, baseAngle: 0   }  // 10시 방향 (하늘)
     ];
+    
+    const winner = randomItems[Math.floor(Math.random() * randomItems.length)];
+    const targetRotation = (3600 - winner.baseAngle) + Math.floor(Math.random() * 50 + 20); 
 
-    const randomIndex = Math.floor(Math.random() * prizes.length);
-    
-    // 🎯 [경계선 탈출 수학 공식] 글자가 칸 한가운데(45도 갭) 배치되었으므로 바늘 멈춤 축 타겟팅 각도를 정확하게 재조정합니다.
-    // 각 칸의 중심부가 12시 바늘(👇)에 스나이핑 정렬되는 물리 절대 각도판!
-    const targetDegrees = [315, 225, 135, 45]; 
-    const baseTarget = targetDegrees[randomIndex];
-    
-    // 최소 5바퀴 회전 후 당첨 중심점으로 부드럽게 감속 이펙트
-    wheelRotationValue += 1800 + (baseTarget - (wheelRotationValue % 360)); 
-    
-    const wheel = document.getElementById('wheel-graphic');
-    if (wheel) {
-        wheel.style.transform = `rotate(${wheelRotationValue}deg)`;
-    }
-    
-    document.getElementById('wheel-result').innerHTML = "도오오올아갑니다아아아~! 🌀";
+    // 서버에 회전 신호 전송!
+    setTimeout(async () => {
+        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        await setDoc(doc(window.db, "games", "wheelMatch"), {
+            status: 'spinning',
+            targetAngle: targetRotation,
+            winnerPrize: winner.prize || `${winner.index + 1}번 벌칙`
+        }, { merge: true });
+    }, 0);
+};
 
+// 🎡 2-4. [리얼 회전 물리 엔진] 양쪽 핸드폰 화면에서 동시에 똑같은 각도로 룰렛을 돌리는 기믹
+window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
+    const wheelBtn = document.getElementById('wheel-btn');
+    if (wheelBtn) wheelBtn.disabled = true;
+    isWheelSpinning = true;
+
+    const wheelGraphic = document.getElementById('wheel-graphic');
+    const wheelResult = document.getElementById('wheel-result');
+
+    wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
+    wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
+
+    // 3초간 화려하게 도는 애니메이션 관람 후 정산
     setTimeout(() => {
-        document.getElementById('wheel-result').innerHTML = `🎯 당첨: <span style="color:#d32f2f;">[ ${prizes[randomIndex]} ]</span>`;
-        btn.disabled = false; // 🔄 다시하기 버튼 없이 이 버튼으로 무한 연속 뽑기 가동 가능! ⭐
-    }, 3000); 
+        wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
+        isWheelSpinning = false;
+    }, 3000);
 };
 
-// 🔄 3. 현 위치 리셋기 (원판 각도 초기화용)
-window.resetWheelMatch = function() {
-    wheelRotationValue = 0;
-    const wheel = document.getElementById('wheel-graphic');
-    if (wheel) wheel.style.transform = "rotate(0deg)";
-    document.getElementById('wheel-result').innerText = "벌칙이나 내기를 입력해봐! ✍️";
+// 🔄 2-5. 룰렛 전용 서버 리셋 스위치
+window.resetWheelMatch = async function() {
+    try {
+        const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        await deleteDoc(doc(window.db, "games", "wheelMatch"));
+    } catch(e) { console.error("룰렛 리셋 에러:", e); }
 };
-
-// 🔄 4. 로비 클리어 연동 스위치
-const originalBackToGameLobbyForWheel = window.backToGameLobby;
-window.backToGameLobby = function() {
-    if (originalBackToGameLobbyForWheel) originalBackToGameLobbyForWheel();
-    window.resetWheelMatch();
-    setTimeout(() => {
-        for(let i=0; i<4; i++) { window.syncWheelText(i); }
-    }, 50);
-};
-
-// 🚀 페이지 최초 구동 시 룰렛 텍스트 자석 배치 자동 발동
-setTimeout(() => {
-    for(let i=0; i<4; i++) { if(document.getElementById(`wheel-input-${i}`)) window.syncWheelText(i); }
-}, 500);
     
 </script>       
 </body>
