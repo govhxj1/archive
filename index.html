@@ -690,16 +690,47 @@
     <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; flex-shrink: 0;">🔙 게임 선택으로</button>
 </div>
 
-        <div id="game-wheel-view" style="display: none; flex-direction: column; height: 100%;">
-            <span style="color: #1565c0; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px;">🎡 두근두근 룰렛 돌림판</span>
-            <div style="flex: 1; background: #e3f2fd; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
-                <div id="wheel-graphic" style="width: 140px; height: 140px; border-radius: 50%; border: 8px solid #64b5f6; background: conic-gradient(#ffadad 0% 25%, #ffd6a5 25% 50%, #caffbf 50% 75%, #9bf6ff 75% 100%); transition: transform 2s cubic-bezier(0.1, 0.8, 0.3, 1); display: flex; align-items: center; justify-content: center; font-size: 2rem;">🎯</div>
-                <div style="font-size: 0.8rem; color: #1e88e5; font-weight: bold;">[당첨 후보: 안마해주기 / 뽀뽀 / 소원권 / 맛있는거사주기]</div>
-                <button onclick="spinWheel()" id="wheel-btn" style="padding: 12px 25px; background: #1976d2; color: white; border: none; border-radius: 20px; font-weight: 900; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">룰렛 힘차게 돌리기! 🚀</button>
-                <div id="wheel-result" style="font-weight: 900; font-size: 1.2rem; color: #0d47a1; min-height: 24px;"></div>
+        <div id="game-wheel-view" style="display: none; flex-direction: column; height: 100%; overflow-y: auto;">
+    <span style="color: #1565c0; font-weight: 900; font-size: 1.1rem; margin-bottom: 10px; flex-shrink: 0;">🎡 두근두근 커스텀 돌림판</span>
+    
+    <div style="flex: 1; background: #e3f2fd; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 15px; box-sizing: border-box;">
+        
+        <div style="position: relative; width: 160px; height: 160px; margin-top: 5px; flex-shrink: 0;">
+            <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 1.6rem; z-index: 10; color: #e53935;">👇</div>
+            
+            <div id="wheel-graphic" style="width: 100%; height: 100%; border-radius: 50%; border: 6px solid #64b5f6; background: conic-gradient(#ffadad 0% 25%, #ffd6a5 25% 50%, #caffbf 50% 75%, #9bf6ff 75% 100%); transition: transform 3s cubic-bezier(0.15, 0.85, 0.35, 1); position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1); box-sizing: border-box;">
+                <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 900; color: #444;" id="wheel-txt-0">안마</div>
+                <div style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%) rotate(90deg); font-size: 0.75rem; font-weight: 900; color: #444;" id="wheel-txt-1">뽀뽀</div>
+                <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%) rotate(180deg); font-size: 0.75rem; font-weight: 900; color: #444;" id="wheel-txt-2">소원권</div>
+                <div style="position: absolute; top: 50%; left: 15px; transform: translateY(-50%) rotate(-90deg); font-size: 0.75rem; font-weight: 900; color: #444;" id="wheel-txt-3">야식쏘기</div>
             </div>
-            <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer;">🔙 게임 선택으로</button>
         </div>
+
+        <div id="wheel-result" style="font-weight: 900; font-size: 1.25rem; color: #0d47a1; text-align: center; min-height: 24px; margin: 2px 0;">벌칙이나 내기를 입력해봐! ✍️</div>
+
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 12px; box-sizing: border-box;">
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="wheel-input-0" value="시원한 안마해주기" oninput="syncWheelText(0)" placeholder="1번 조항" style="flex: 1; padding: 8px; border: 1px solid #9bf6ff; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center;">
+                <input type="text" id="wheel-input-1" value="달콤한 볼 뽀뽀 쫍" oninput="syncWheelText(1)" placeholder="2번 조항" style="flex: 1; padding: 8px; border: 1px solid #ffadad; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center;">
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="wheel-input-2" value="무적의 슈퍼 소원권" oninput="syncWheelText(2)" placeholder="3번 조항" style="flex: 1; padding: 8px; border: 1px solid #ffd6a5; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center;">
+                <input type="text" id="wheel-input-3" value="맛있는 야식 쏘기" oninput="syncWheelText(3)" placeholder="4번 조항" style="flex: 1; padding: 8px; border: 1px solid #caffbf; border-radius: 8px; font-size: 0.8rem; font-weight: bold; text-align: center;">
+            </div>
+        </div>
+
+        <div style="width: 100%; display: flex; gap: 10px; flex-shrink: 0;">
+            <button onclick="spinWheel()" id="wheel-btn" style="flex: 2; height: 45px; background: #1976d2; color: white; border: none; border-radius: 12px; font-weight: 900; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);">
+                🚀 룰렛 힘차게 돌리기!
+            </button>
+            <button onclick="resetWheelMatch()" id="wheel-reset-btn" style="flex: 1; height: 45px; background: #fff; color: #1976d2; border: 2px solid #1976d2; border-radius: 12px; font-weight: 900; font-size: 0.85rem; cursor: pointer; display: none;">
+                🔄 다시하기
+            </button>
+        </div>
+    </div>
+    
+    <button onclick="backToGameLobby()" style="margin-top: 15px; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; flex-shrink: 0;">🔙 게임 선택으로</button>
+</div>
 
     </div>
 </div>
@@ -3633,28 +3664,93 @@ window.backToGameLobby = function() {
     if (statusTitle) statusTitle.innerText = "먼저 플레이어를 골라줘! 👆";
 };
 
-// 🎡 [3번 게임] 돌림판 회전 애니메이션 연산 로직
-let currentRotation = 0;
+// =======================================================
+// 🎡 [커스텀 대개조 버전] 거니 & 유미 룰렛 돌림판 엔진
+// =======================================================
+let wheelRotationValue = 0; // 누적 회전 각도값 기록계
+
+// ✍️ 1. 인풋창에 타이핑하는 대로 룰렛 원판 위에 글자를 쪼그맣게 실시간 동기화해 주는 기믹
+window.syncWheelText = function(index) {
+    const inputVal = document.getElementById(`wheel-input-${index}`).value;
+    const txtNode = document.getElementById(`wheel-txt-${index}`);
+    if (txtNode) {
+        // 글자가 너무 길면 원판 밖으로 터지므로 딱 4글자 제한 컷 UX 발동!
+        txtNode.innerText = inputVal.length > 4 ? inputVal.substring(0, 4) + ".." : inputVal || `공란-${index+1}`;
+    }
+};
+
+// 🚀 2. 돌림판 메인 회전 구동 함수
 window.spinWheel = function() {
     const btn = document.getElementById('wheel-btn');
-    btn.disabled = true; // 중복 클릭 방지
+    const resetBtn = document.getElementById('wheel-reset-btn');
     
-    const prizes = ["💆‍♀️ 시원한 안마해주기!", "💋 달콤한 볼 뽀뽀 쫍!", "🏆 무적의 슈퍼 소원권!", "🍕 맛있는거 쏘기!"];
+    if (btn.disabled) return;
+    btn.disabled = true; // 가동 중 중복 클릭 차단 🔒
+    if (resetBtn) resetBtn.style.display = "none"; // 회전 중 리셋 버튼 봉인
+
+    // 4개 인풋창에 입력된 실제 진심 멘트 목록 수집
+    const prizes = [
+        document.getElementById('wheel-input-0').value.trim() || "1번 보상",
+        document.getElementById('wheel-input-1').value.trim() || "2번 보상",
+        document.getElementById('wheel-input-2').value.trim() || "3번 보상",
+        document.getElementById('wheel-input-3').value.trim() || "4번 보상"
+    ];
+
+    // 🎲 0, 1, 2, 3 중 랜덤 당첨 번호 사전 추출
     const randomIndex = Math.floor(Math.random() * prizes.length);
     
-    // 회전 각도 연산 (기본 3바퀴 이상 강하게 회전 후 당첨 구역 안착)
-    const extraDegree = randomIndex * 90 + 45; // 4등분 각도 세팅
-    currentRotation += 1440 + extraDegree; 
+    // 🎯 [정밀 수학 연산] 12시 방향 바늘(👇)에 정확히 당첨 구역이 걸리도록 보정 각도를 연산합니다.
+    // 룰렛 회전 방향과 바늘 정렬 보정값 매칭 (0번: 0도 중심, 3번: 90도 중심, 2번: 180도 중심, 1번: 270도 중심)
+    const targetDegrees = [0, 270, 180, 90]; 
+    const baseTarget = targetDegrees[randomIndex];
+    
+    // 기본 최소 5바퀴(1800도) 이상 짜릿하게 회전 연출 부여
+    wheelRotationValue += 1800 + (baseTarget - (wheelRotationValue % 360)) + (Math.random() * 20 - 10); 
     
     const wheel = document.getElementById('wheel-graphic');
-    wheel.style.transform = `rotate(${currentRotation}deg)`;
-    document.getElementById('wheel-result').innerText = "도오오올아갑니다아아아~! 🌀";
+    if (wheel) {
+        wheel.style.transform = `rotate(${wheelRotationValue}deg)`;
+    }
+    
+    document.getElementById('wheel-result').innerHTML = "도오오올아갑니다아아아~! 🌀";
 
+    // 🕒 3초간의 스릴 넘치는 회전 애니메이션 종료 후 시상식 오픈!
     setTimeout(() => {
-        document.getElementById('wheel-result').innerText = `🎯 결과: [ ${prizes[randomIndex]} ]`;
+        document.getElementById('wheel-result').innerHTML = `🎯 당첨: <span style="color:#d32f2f;">[ ${prizes[randomIndex]} ]</span>`;
         btn.disabled = false;
-    }, 2000); // 애니메이션 2초 대기 후 결과 매칭
+        if (resetBtn) resetBtn.style.display = "inline-block"; // 🎉 리셋 원터치 버튼 등장!
+    }, 3000); 
 };
+
+// 🔄 3. 현 위치에서 원판 각도와 결과만 싹 지워주는 미니 리셋기
+window.resetWheelMatch = function() {
+    wheelRotationValue = 0;
+    const wheel = document.getElementById('wheel-graphic');
+    if (wheel) wheel.style.transform = "rotate(0deg)";
+    
+    document.getElementById('wheel-result').innerText = "벌칙이나 내기를 입력해봐! ✍️";
+    const resetBtn = document.getElementById('wheel-reset-btn');
+    if (resetBtn) resetBtn.style.display = "none";
+};
+
+// 🔄 4. 로비 나가기 터치 시 완벽 연동 클리어 매니저 (기존 backToGameLobby 밑에 똑같이 한 줄 덧대기)
+const originalBackToGameLobbyForWheel = window.backToGameLobby;
+window.backToGameLobby = function() {
+    if (originalBackToGameLobbyForWheel) originalBackToGameLobbyForWheel();
+    
+    // 돌림판 전용 리셋 구동
+    window.resetWheelMatch();
+    
+    // 원판 위에 글자들 기본 세팅값으로 복구해 두기
+    setTimeout(() => {
+        for(let i=0; i<4; i++) { window.syncWheelText(i); }
+    }, 50);
+};
+
+// 🚀 최초 다이어리 로딩 시점에 원판 위에 디폴트 글자 새겨두기 자동 발동
+setTimeout(() => {
+    for(let i=0; i<4; i++) { if(document.getElementById(`wheel-input-${i}`)) window.syncWheelText(i); }
+}, 500);
     
 </script>       
 </body>
