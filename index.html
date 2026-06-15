@@ -3443,20 +3443,26 @@ window.closeGameOverlay = function() {
     if (gameOverlay) gameOverlay.style.display = 'none'; // 완전히 숨김 처리
 };
 
-// 3. 미니게임 로비 <-> 개별 게임 간의 화면 스위칭 매니저 🔄
-window.switchGameView = function(type) {
+    // 3. 미니게임 로비 <-> 개별 게임 간의 화면 스위칭 매니저 🔄
+    window.switchGameView = function(type) {
     document.getElementById('game-lobby-view').style.display = 'none';
     document.getElementById('game-ladder-view').style.display = 'none';
     document.getElementById('game-rsp-view').style.display = 'none';
     document.getElementById('game-wheel-view').style.display = 'none';
     
     if (type === 'ladder') document.getElementById('game-ladder-view').style.display = 'flex';
-    if (type === 'rsp') document.getElementById('game-rsp-view').style.display = 'flex';
+    
+    // 🎯 가위바위보 버튼을 누르고 게임에 진입하는 순간 서버 실시간 텔레파시 리스너 온! ⚡
+    if (type === 'rsp') {
+        document.getElementById('game-rsp-view').style.display = 'flex';
+        if (window.startRSPRealtimeListener) window.startRSPRealtimeListener();
+    }
+    
     if (type === 'wheel') document.getElementById('game-wheel-view').style.display = 'flex';
 };
 
-// 4. [중복 제거 완결판] 게임 선택 목록(로비)으로 돌아갈 때 가동되는 통합 청소 엔진 🧹
-window.backToGameLobby = function() {
+    // 4. [실시간 네트워크 연동판] 게임 선택 목록(로비)으로 돌아갈 때 가동되는 통합 청소 엔진 🧹
+    window.backToGameLobby = function() {
     document.getElementById('game-lobby-view').style.display = 'flex';
     document.getElementById('game-ladder-view').style.display = 'none';
     document.getElementById('game-rsp-view').style.display = 'none';
@@ -3466,32 +3472,25 @@ window.backToGameLobby = function() {
     const ladderRes = document.getElementById('ladder-result');
     if (ladderRes) {
         ladderRes.innerText = "사다리의 주인공은 누가 될 것인가?! 🔥";
-        // 아까 입혀둔 커스텀 컬러 박스 스타일 초기화 🧼
         ladderRes.style.cssText = "font-weight: 900; font-size: 1.15rem; color: #ff4d6d; text-align: center; min-height: 24px; margin: 2px 0;";
     }
-    // 초록 구슬 도화지 깨끗하게 리드로잉 🟢
     if (window.drawBaseLadder) window.drawBaseLadder();
 
-    // ✌️ 4-2. 가위바위보 2인용 엔진 리셋 연동
-    if (window.resetRSPMatchOnly) {
-        window.resetRSPMatchOnly();
-    } else {
-        // 백업용 예외 처리 방어막
-        const statusTitle = document.getElementById('rsp-status-title');
-        if (statusTitle) statusTitle.innerText = "먼저 플레이어를 골라줘! 👆";
-        const readyBox = document.getElementById('rsp-readiness');
-        if (readyBox) readyBox.innerText = "거니: ❌ 대기중 | 유미: ❌ 대기중";
-        const vsBox = document.getElementById('rsp-match-vs');
-        if (vsBox) vsBox.style.display = "none";
-        const finalRes = document.getElementById('rsp-final-result');
-        if (finalRes) finalRes.innerText = "";
-    }
+    // ✌️ 4-2. [정밀 수술 구역] 가위바위보 네트워크용 화면 리셋
+    // 💡 목록으로 뒤로가기 할 때는 '기록 보존'을 위해 파이어베이스 서버 데이터를 강제로 지우지 않습니다!
+    // 대신 현재 폰 화면의 대결 오픈 전광판과 결과창만 깔끔하게 가려줍니다. 🧼
+    const vsBox = document.getElementById('rsp-match-vs');
+    const resetBtn = document.getElementById('rsp-reset-btn');
+    const finalRes = document.getElementById('rsp-final-result');
+    
+    if (vsBox) vsBox.style.display = "none";
+    if (resetBtn) resetBtn.style.display = "none";
+    if (finalRes) finalRes.innerText = "";
     
     // 🎡 4-3. 돌림판 룰렛 정밀 리셋 연동
     if (window.resetWheelMatch) {
         window.resetWheelMatch();
     } else {
-        // 백업용 예외 처리 방어막
         const wheelResult = document.getElementById('wheel-result');
         if (wheelResult) wheelResult.innerText = "돌림판을 채워줘! ✍️";
         const wheelGraphic = document.getElementById('wheel-graphic');
@@ -3669,172 +3668,156 @@ window.backToGameLobby = function() {
 };
 
 // =======================================================
-// ✌️ [2인용 시스템 대개조] 거니 & 유미 가위바위보 엔진
+// ✌️ [실시간 멀티플레이 네트워크] 거니 💛 유미 가위바위보 엔진
 // =======================================================
-let rspCurrentPlayer = null; // 현재 버튼을 누를 사람 ('거니' 또는 '유미')
-let geonnyChoice = null;     // 거니가 낸 패
-let yumiChoice = null;       // 유미가 낸 패
+let rspCurrentPlayer = null; 
+let rspDbListener = null; // 실시간 서버 감시용 리스너 주소록
 
-// 👤 1. 플레이어 선택 함수 (거니 혹은 유미 버튼 클릭 시)
+// 👤 1. 플레이어 선택 함수
 window.selectRSPPlayer = function(player) {
-    // 이미 패를 낸 사람은 다시 선택 불가 방어막
-    if (player === '거니' && geonnyChoice) { alert("거니는 이미 패를 골랐어! 유미 차례야 💛"); return; }
-    if (player === '유미' && yumiChoice) { alert("유미는 이미 패를 골랐어! 거니 차례야 👦"); return; }
-
     rspCurrentPlayer = player;
     
-    // UI 포커스 스타일링 🎨
     const btnGeonny = document.getElementById('rsp-player-geonny');
     const btnYumi = document.getElementById('rsp-player-yumi');
     
     if (player === '거니') {
         btnGeonny.style.cssText = "flex: 1; padding: 10px; background: #e8f5e9; border: 2px solid #2e7d32; border-radius: 10px; font-weight: 900; font-size: 0.9rem; color: #2e7d32; cursor: pointer;";
-        if(!yumiChoice) btnYumi.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
-        document.getElementById('rsp-status-title').innerText = "👦 거니야, 비밀리에 패를 골라줘!";
+        document.getElementById('rsp-status-title').innerText = "👦 거니야, 내고 싶은 패를 골라줘!";
     } else {
         btnYumi.style.cssText = "flex: 1; padding: 10px; background: #e8f5e9; border: 2px solid #2e7d32; border-radius: 10px; font-weight: 900; font-size: 0.9rem; color: #2e7d32; cursor: pointer;";
-        if(!geonnyChoice) btnGeonny.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
-        document.getElementById('rsp-status-title').innerText = "👧 유미야, 비밀리에 패를 골라줘!";
+        document.getElementById('rsp-status-title').innerText = "👧 유미야, 내고 싶은 패를 골라줘!";
     }
 
-    // 가위바위보 패널 활성화 🔓
     const panel = document.getElementById('rsp-choice-panel');
-    panel.style.pointerEvents = "auto";
-    panel.style.opacity = "1";
+    if (panel) { panel.style.pointerEvents = "auto"; panel.style.opacity = "1"; }
 };
 
-// 👊 2. 가위바위보 패 선택 제출 함수
-window.submitRSPChoice = function(hand) {
+// 👊 2. 패 선택 시 파이어베이스 서버에 즉시 전송 및 영구 기록 ☁️
+window.submitRSPChoice = async function(hand) {
     if (!rspCurrentPlayer) { alert("누가 낼지 플레이어를 먼저 선택해줘! 👆"); return; }
 
-    if (rspCurrentPlayer === '거니') {
-        geonnyChoice = hand;
-        document.getElementById('rsp-player-geonny').style.cssText = "flex: 1; padding: 10px; background: #c8e6c9; border: 2px solid #81c784; border-radius: 10px; font-weight: 900; font-size: 0.9rem; color: #2e7d32; opacity: 0.6; cursor: default;";
-    } else if (rspCurrentPlayer === '유미') {
-        yumiChoice = hand;
-        document.getElementById('rsp-player-yumi').style.cssText = "flex: 1; padding: 10px; background: #c8e6c9; border: 2px solid #81c784; border-radius: 10px; font-weight: 900; font-size: 0.9rem; color: #2e7d32; opacity: 0.6; cursor: default;";
-    }
+    try {
+        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        
+        // 파이어베이스 'rspMatch' 문서에 내 닉네임 칸에 패를 박아버립니다! (새로고침 해도 안 날아감)
+        const fieldName = rspCurrentPlayer === '거니' ? 'geonny' : 'yumi';
+        
+        await setDoc(doc(window.db, "games", "rspMatch"), {
+            [fieldName]: hand
+        }, { merge: true });
 
-    // 대기 현황판 실시간 갱신 📊
-    updateRSPReadiness();
+        alert(`🎯 ${rspCurrentPlayer} 패 등록 완료!\n상대방이 고를 때까지 잠시만 기다려줘! 🤫`);
+        
+        rspCurrentPlayer = null;
+        const panel = document.getElementById('rsp-choice-panel');
+        if (panel) { panel.style.pointerEvents = "none"; panel.style.opacity = "0.4"; }
+        document.getElementById('rsp-status-title').innerText = "상대방 플레이어 선택 대기 중... ⌛";
 
-    // 패널 다시 잠그기 및 플레이어 리셋
-    rspCurrentPlayer = null;
-    const panel = document.getElementById('rsp-choice-panel');
-    panel.style.pointerEvents = "none";
-    panel.style.opacity = "0.4";
-    document.getElementById('rsp-status-title').innerText = "상대방 플레이어를 선택해줘! 👆";
-
-    // 🎯 [핵심] 두 명 다 클릭 완료했다면 즉시 결과창 오픈! ⭐
-    if (geonnyChoice && yumiChoice) {
-        calculateRSPResult();
+    } catch (e) {
+        console.error("가위바위보 제출 에러:", e);
+        alert("서버 전송에 실패했어 😢 다시 시도해줘!");
     }
 };
 
-// 📊 3. 대기 현황판 텍스트 업데이트 헬퍼
-function updateRSPReadiness() {
-    const gStatus = geonnyChoice ? "✅ 완료" : "❌ 대기중";
-    const yStatus = yumiChoice ? "✅ 완료" : "❌ 대기중";
-    document.getElementById('rsp-readiness').innerText = `거니: ${gStatus} | 유미: ${yStatus}`;
-}
+// 👀 3. [핵심 가젯] 두 사람의 핸드폰 화면을 실시간으로 동기화시켜 주는 텔레파시 리스너
+window.startRSPRealtimeListener = async function() {
+    if (rspDbListener) return;
 
-// 🏆 4. 최종 결과 판정 및 결과창 표출 엔진 (리셋 버튼 활성화 기능 추가)
-function calculateRSPResult() {
-    const title = document.getElementById('rsp-status-title');
-    const vsBox = document.getElementById('rsp-match-vs');
-    const resultText = document.getElementById('rsp-final-result');
-    const resetBtn = document.getElementById('rsp-reset-btn'); // 🎯 리셋 버튼 포착
+    try {
+        const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        
+        rspDbListener = onSnapshot(doc(window.db, "games", "rspMatch"), (docSnap) => {
+            const btnGeonny = document.getElementById('rsp-player-geonny');
+            const btnYumi = document.getElementById('rsp-player-yumi');
+            const readyBox = document.getElementById('rsp-readiness');
+            
+            if (!btnGeonny || !btnYumi || !readyBox) return;
 
-    title.innerText = "🎉 대결 결과 오픈! 🎉";
-    
-    if (vsBox) {
-        vsBox.innerText = `👦 ${geonnyChoice} VS ${yumiChoice} 👧`;
-        vsBox.style.display = "block";
+            if (!docSnap.exists()) {
+                btnGeonny.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
+                btnYumi.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
+                readyBox.innerText = "거니: ❌ 대기중 | 유미: ❌ 대기중";
+                return;
+            }
+
+            const data = docSnap.data();
+            const gChoice = data.geonny || null;
+            const yChoice = data.yumi || null;
+
+            if (gChoice) {
+                btnGeonny.style.cssText = "flex: 1; padding: 10px; background: #c8e6c9; border: 2px solid #81c784; border-radius: 10px; font-weight: 900; font-size: 0.9rem; color: #2e7d32; opacity: 0.7; cursor: default;";
+            } else {
+                btnGeonny.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
+            }
+
+            if (yChoice) {
+                btnYumi.style.cssText = "flex: 1; padding: 10px; background: #c8e6c9; border: 2px solid #81c784; border-radius: 10px; font-weight: 900; font-size: 0.9rem; color: #2e7d32; opacity: 0.7; cursor: default;";
+            } else {
+                btnYumi.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
+            }
+
+            readyBox.innerText = `거니: ${gChoice ? "✅ 완료" : "❌ 대기중"} | 유미: ${yChoice ? "✅ 완료" : "❌ 대기중"}`;
+
+            if (gChoice && yChoice) {
+                const title = document.getElementById('rsp-status-title');
+                const vsBox = document.getElementById('rsp-match-vs');
+                const resultText = document.getElementById('rsp-final-result');
+                const resetBtn = document.getElementById('rsp-reset-btn');
+
+                if (title) title.innerText = "🎉 대결 결과 오픈! 🎉";
+                if (vsBox) {
+                    vsBox.innerText = `👦 ${gChoice} VS ${yChoice} 👧`;
+                    vsBox.style.display = "block";
+                }
+
+                if (resultText) {
+                    if (gChoice === yChoice) {
+                        resultText.innerText = "🤝 서로 통했다! 무승부! 💛";
+                        resultText.style.color = "#666";
+                    } else if (
+                        (gChoice === '👊' && yChoice === '✌️') ||
+                        (gChoice === '✌️' && yChoice === '🖐️') ||
+                        (gChoice === '🖐️' && yChoice === '👊')
+                    ) {
+                        resultText.innerText = "👑 거니 승리! 유미 소원 들어주기~! 😜";
+                        resultText.style.color = "#1565c0";
+                    } else {
+                        resultText.innerText = "🏆 유미 승리!! 거니 납작 엎드려라~ 힇히 💖";
+                        resultText.style.color = "#e53935";
+                    }
+                }
+                if (resetBtn) resetBtn.style.display = "inline-block";
+            }
+        });
+    } catch (e) {
+        console.error("실시간 가위바위보 리스너 작동 오류:", e);
     }
-
-    // 승패 판정
-    if (geonnyChoice === yumiChoice) {
-        resultText.innerText = "🤝 서로 통했다! 무승부! 💛";
-        resultText.style.color = "#666";
-    } else if (
-        (geonnyChoice === '👊' && yumiChoice === '✌️') ||
-        (geonnyChoice === '✌️' && yumiChoice === '🖐️') ||
-        (geonnyChoice === '🖐️' && yumiChoice === '👊')
-    ) {
-        resultText.innerText = "👑 거니 승리!😜";
-        resultText.style.color = "#1565c0";
-    } else {
-        resultText.innerText = "🏆 유미 승리!😜";
-        resultText.style.color = "#e53935";
-    }
-
-    // 🎯 [핵심] 결과가 나오면 한가운데 리셋 버튼을 스르륵 오픈!
-    if (resetBtn) resetBtn.style.display = "inline-block";
-}
-
-// 🔄 4-5. [신규 기능] 오락실 안 나가고 현 위치에서 '가위바위보만' 즉시 리셋하는 전용 기계
-window.resetRSPMatchOnly = function() {
-    rspCurrentPlayer = null;
-    geonnyChoice = null;
-    yumiChoice = null;
-    
-    const btnGeonny = document.getElementById('rsp-player-geonny');
-    const btnYumi = document.getElementById('rsp-player-yumi');
-    const vsBox = document.getElementById('rsp-match-vs');
-    const resetBtn = document.getElementById('rsp-reset-btn');
-    
-    if (btnGeonny) btnGeonny.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
-    if (btnYumi) btnYumi.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
-    if (vsBox) vsBox.style.display = "none";
-    if (resetBtn) resetBtn.style.display = "none"; // 🎯 다시 게임 시작하니 리셋 버튼은 임시 봉인!
-    
-    const panel = document.getElementById('rsp-choice-panel');
-    if (panel) { panel.style.pointerEvents = "none"; panel.style.opacity = "0.4"; }
-    
-    const readyBox = document.getElementById('rsp-readiness');
-    if (readyBox) readyBox.innerText = "거니: ❌ 대기중 | 유미: ❌ 대기중";
-    
-    const finalRes = document.getElementById('rsp-final-result');
-    if (finalRes) finalRes.innerText = "";
-    
-    const statusTitle = document.getElementById('rsp-status-title');
-    if (statusTitle) statusTitle.innerText = "먼저 플레이어를 골라줘! 👆";
 };
 
-// 🔄 5. 로비로 나갈 때 전체 리셋해 주던 기존 함수도 싱크 매칭 수정
-const originalBackToGameLobby = window.backToGameLobby;
-window.backToGameLobby = function() {
-    if (originalBackToGameLobby) originalBackToGameLobby();
-    
-    // 혹시라도 남아있을 리셋 버튼까지 확실하게 클리어
-    const resetBtn = document.getElementById('rsp-reset-btn');
-    if (resetBtn) resetBtn.style.display = "none";
-    
-    rspCurrentPlayer = null;
-    geonnyChoice = null;
-    yumiChoice = null;
-    
-    const btnGeonny = document.getElementById('rsp-player-geonny');
-    const btnYumi = document.getElementById('rsp-player-yumi');
-    const vsBox = document.getElementById('rsp-match-vs');
-    
-    if (btnGeonny) btnGeonny.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
-    if (btnYumi) btnYumi.style.cssText = "flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;";
-    if (vsBox) vsBox.style.display = "none";
-    
-    const panel = document.getElementById('rsp-choice-panel');
-    if (panel) { panel.style.pointerEvents = "none"; panel.style.opacity = "0.4"; }
-    
-    const readyBox = document.getElementById('rsp-readiness');
-    if (readyBox) readyBox.innerText = "거니: ❌ 대기중 | 유미: ❌ 대기중";
-    
-    const finalRes = document.getElementById('rsp-final-result');
-    if (finalRes) finalRes.innerText = "";
-    
-    const statusTitle = document.getElementById('rsp-status-title');
-    if (statusTitle) statusTitle.innerText = "먼저 플레이어를 골라줘! 👆";
+// 🔄 4. 서버 데이터까지 통째로 날려주는 무결점 2인용 리셋기
+window.resetRSPMatchOnly = async function() {
+    try {
+        const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        
+        await deleteDoc(doc(window.db, "games", "rspMatch"));
+        
+        const vsBox = document.getElementById('rsp-match-vs');
+        const resetBtn = document.getElementById('rsp-reset-btn');
+        const finalRes = document.getElementById('rsp-final-result');
+        const statusTitle = document.getElementById('rsp-status-title');
+        
+        if (vsBox) vsBox.style.display = "none";
+        if (resetBtn) resetBtn.style.display = "none";
+        if (finalRes) finalRes.innerText = "";
+        if (statusTitle) statusTitle.innerText = "먼저 플레이어를 골라줘! 👆";
+        
+        const panel = document.getElementById('rsp-choice-panel');
+        if (panel) { panel.style.pointerEvents = "none"; panel.style.opacity = "0.4"; }
+    } catch(e) {
+        console.error("가위바위보 리셋 에러:", e);
+    }
 };
-
+    
 // =======================================================
 // 🎡 [디자인 피드백 피팅 완료] 거니 & 유미 룰렛 돌림판 엔진
 // =======================================================
