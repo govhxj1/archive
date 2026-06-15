@@ -2974,6 +2974,7 @@ window.updateDdayMissionUI = function() {
     }
 };
 
+// 🧸 [유미 전용 힐링 팝업 버전]
 window.handleDdayMission = async function() {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -2981,7 +2982,7 @@ window.handleDdayMission = async function() {
     const isPast = dateMission.targetDate && new Date(dateMission.targetDate) < now;
     if (!dateMission.targetDate || isPast) {
         // 🔒 관리자 창은 안 뜨고, 유미가 누르면 심쿵할 멘트 하나만 깔끔하게 뿜어줍니다!
-        alert("🗓️ 아직 다음 데이트가 안정해졌나봐!\n\n 나두 보구싶으니까 조금만 기다려줘 희히 💛");
+        alert("🗓️ 아직 다음 데이트가 예약되지 않았어!\n\n거니 팀장님이 열심히 계획 중이니까 조금만 기다려줘 희히 💛");
         return;
     }
     
@@ -2994,6 +2995,7 @@ window.handleDdayMission = async function() {
     } else if (diff === 0) {
         alert(`✨ TODAY IS D-DAY! ✨\n\n"${dateMission.message}"`);
     }
+};
 
 // UI 업데이트 함수 (상태에 따라 버튼 색상 자동 변경)
     
