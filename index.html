@@ -638,10 +638,10 @@
                 미니게임 닫기
             </button>
         </div> <div id="game-ladder-view" style="display: none; flex-direction: column; height: 100%; overflow-y: auto;">
-            <span style="color: #ff4d6d; font-weight: 900; font-size: 1.1rem; margin-bottom: 8px; flex-shrink: 0;">🪜 거니 💛 유미 복불복 사다리</span>
+            <span style="color: #ff4d6d; font-weight: 900; font-size: 1.1rem; margin-bottom: 8px; flex-shrink: 0;">복불복 사다리</span>
             <div style="flex: 1; background: #fff0f3; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-sizing: border-box;">
                 <div style="width: 100%; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box; flex-shrink: 0; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 12px;">
-                    <span style="font-size: 0.8rem; color: #ff4d6d; font-weight: bold; text-align: center;">👇 이번판의 상품! 🎁</span>
+                    <span style="font-size: 0.8rem; color: #ff4d6d; font-weight: bold; text-align: center;">이번판의 상품! 🎁</span>
                     <input type="text" id="ladder-single-input" value="뽀뽀하기!" placeholder="이번 사다리타기 상품은?!" style="width: 100%; padding: 8px; border: 1px solid #ffafcc; border-radius: 8px; font-size: 0.85rem; font-weight: bold; text-align: center; box-sizing: border-box;">
                 </div>
                 <div style="position: relative; width: 220px; height: 180px; background: #fff; border-radius: 12px; border: 2px solid #ffafcc; box-shadow: inset 0 2px 8px rgba(0,0,0,0.05); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
@@ -662,7 +662,7 @@
                 목록으로
             </button>
         </div> <div id="game-rsp-view" style="display: none; flex-direction: column; height: 100%;">
-            <span style="color: #2e7d32; font-weight: 900; font-size: 1.1rem; margin-bottom: 10px;">✌️ 거니 VS 유미 가위바위보</span>
+            <span style="color: #2e7d32; font-weight: 900; font-size: 1.1rem; margin-bottom: 10px;">운명의 가위바위보</span>
             <div style="flex: 1; background: #f1f8e9; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
                 <div style="display: flex; justify-content: center; gap: 15px; flex-shrink: 0;">
                     <button id="rsp-player-geonny" onclick="selectRSPPlayer('거니')" style="flex: 1; padding: 10px; background: #fff; border: 2px solid #ccc; border-radius: 10px; font-weight: 900; font-size: 0.9rem; cursor: pointer;">👦 거니 선택</button>
@@ -685,7 +685,7 @@
                 목록으로
             </button>
         </div> <div id="game-wheel-view" style="display: none; flex-direction: column; height: 100%; overflow-y: auto;">
-            <span style="color: #1565c0; font-weight: 900; font-size: 1.1rem; margin-bottom: 8px; flex-shrink: 0;">🎡 두근두근 돌림판</span>
+            <span style="color: #1565c0; font-weight: 900; font-size: 1.1rem; margin-bottom: 8px; flex-shrink: 0;">두근두근 돌림판</span>
             <div style="flex: 1; background: #e3f2fd; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-sizing: border-box;">
                 <div style="position: relative; width: 160px; height: 160px; margin-top: 5px; flex-shrink: 0;">
                     <div style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 1.6rem; z-index: 10; color: #e53935;">👇</div>
@@ -3580,11 +3580,11 @@ window.startLadderGame = function() {
         
         // 🔹 [모드 0] 수직 하강 중일 때
         if (moveMode === 0) {
-            currentY += 1.5; // 쫄깃한 속도로 천천히 하강
+            currentY += 2.2; // 쫄깃한 속도로 천천히 하강
             
             // 가로 다리 세로 좌표와 딱 만났는지 체크!
             ladderBridges.forEach(y => {
-                if (Math.abs(currentY - y) < 1.5 && crossBridgeY !== y) {
+                if (Math.abs(currentY - y) < 2.2 && crossBridgeY !== y) {
                     currentY = y; // 세로 좌표 자석 고정
                     moveMode = 1; // 🔀 즉시 "좌우 수평 이동 모드"로 스위칭!
                     crossBridgeY = y; // 이 다리는 방금 건넜다고 장부에 마킹
