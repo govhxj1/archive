@@ -683,7 +683,7 @@
 </div>
 
 <div id="surprise-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-    <div class="surprise-box" style="background: #fff; width: 85%; max-width: 340px; height: 75vh; max-height: 600px; padding: 25px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; box-sizing: border-box;">
+    <div class="surprise-box" style="background: #fff; width: 88%; max-width: 350px; height: 75vh; max-height: 600px; padding: 20px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; box-sizing: border-box;">
         
         <div id="letter-list-view" style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
             <span class="surprise-title" style="color: #ff8fab; font-weight: 900; font-size: 1.2rem; margin-bottom: 5px; flex-shrink: 0;">📚 거니의 비밀 편지 책장 🌠</span>
@@ -692,22 +692,27 @@
             <div id="surprise-menu-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 5px; -webkit-overflow-scrolling: touch;">
                 </div>
             
-            <button class="confirm-btn btn-delete" onclick="closeSurprise()" style="margin-top: 15px; font-size: 1rem; padding: 12px; background: #eee; color: #666; border-radius: 12px; flex-shrink: 0; border: none; cursor: pointer;">🚪 책장 문 닫기</button>
+            <button onclick="closeSurprise()" style="margin-top: 15px; width: 100%; height: 45px; background: #eee; color: #666; border: none; border-radius: 12px; font-weight: 900; font-size: 0.9rem; cursor: pointer; flex-shrink: 0; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
+                🚪 책장 문 닫기
+            </button>
         </div>
 
         <div id="letter-content-view" style="display: none; flex-direction: column; height: 100%; overflow: hidden;">
-            <span class="surprise-title" id="opened-letter-title" style="color: #ff8fab; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">💌 편지 읽는 중...</span>
+            <span class="surprise-title" id="opened-letter-title" style="color: #ff8fab; font-weight: 900; font-size: 1.1rem; margin-bottom: 12px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">💌 편지 읽는 중...</span>
             
-            <div class="surprise-msg-container" style="background: var(--bg-pink); border-radius: 15px; padding: 15px; flex: 1; overflow-y: auto; text-align: left; -webkit-overflow-scrolling: touch; box-sizing: border-box;">
-                <div class="surprise-msg" id="opened-letter-body" style="color: var(--text-dark); font-weight: 500; font-size: 0.9rem; line-height: 1.8; word-break: break-all; white-space: pre-wrap;">
+            <div class="surprise-msg-container" style="background: var(--bg-pink); border-radius: 15px; padding: 18px; flex: 1; overflow-y: auto; text-align: left; -webkit-overflow-scrolling: touch; box-sizing: border-box;">
+                <div class="surprise-msg" id="opened-letter-body" style="color: var(--text-dark); font-weight: 500; font-size: 0.95rem; line-height: 1.8; word-break: break-all; white-space: pre-wrap;">
                     </div>
             </div>
             
-            <button class="confirm-btn btn-delete" onclick="backToLetterList()" style="margin-top: 15px; font-size: 1rem; padding: 12px; background: var(--point-pink); color: white; border-radius: 12px; flex-shrink: 0; border: none; cursor: pointer;">🔙 목록으로 돌아가기</button>
+            <button onclick="backToLetterList()" style="margin-top: 15px; width: 100%; height: 45px; background: var(--point-pink); color: white; border: none; border-radius: 12px; font-weight: 900; font-size: 0.95rem; cursor: pointer; flex-shrink: 0; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 10px rgba(255, 143, 171, 0.2);">
+                🔙 목록으로 돌아가기
+            </button>
         </div>
 
     </div>
 </div>
+    
 
 <div id="menu-secret-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div class="surprise-box" style="background: #fffbe6; border: 3px solid #ffde59; width: 85%; max-width: 340px; padding: 20px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
