@@ -2639,15 +2639,15 @@ window.backToLetterList = function() {
 };
 
 
-heartTrigger = document.getElementById('secret-heart-trigger');
-if (heartTrigger) {
-    heartTrigger.onclick = () => {
+// 🪄 const 선언도, 대입(=)도 안 쓰고 직접 이벤트를 꽂아버리는 무적의 진압 공식! ⭐
+if (document.getElementById('secret-heart-trigger')) {
+    document.getElementById('secret-heart-trigger').onclick = () => {
         secretClickCount++;
         if (secretClickCount === 5) { 
             const surpriseOverlay = document.getElementById('surprise-overlay');
             if (surpriseOverlay) {
-                renderLetterList(); // 뼈대 리스트 먼저 렌더링하고
-                surpriseOverlay.style.display = 'flex'; // 오버레이 팝업 가동!
+                renderLetterList(); // 📚 편지 책장 리스트 렌더링
+                surpriseOverlay.style.display = 'flex'; // 팝업창 가동!
             }
             secretClickCount = 0; 
         }
