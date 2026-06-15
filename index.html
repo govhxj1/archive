@@ -3435,7 +3435,7 @@ window.closeGameOverlay = function() {
     if (gameOverlay) gameOverlay.style.display = 'none';
 };
 
-// 🔀 3. [완벽 결합] 화면 스위칭 매니저 (중복 제거 및 진입 시 서버 스캔 고정 엔진)
+// 🔀 3. [UX 피로도 해결판] 화면 스위칭 매니저 (재진입 시 애니메이션 스킵 및 결과 즉시 고정)
 window.switchGameView = function(type) {
     // ① 화면 레이아웃 싹 가려주기 🧼
     document.getElementById('game-lobby-view').style.display = 'none';
@@ -3443,7 +3443,7 @@ window.switchGameView = function(type) {
     document.getElementById('game-rsp-view').style.display = 'none';
     document.getElementById('game-wheel-view').style.display = 'none';
     
-    // ② 버튼 먹통 방지 전역 자물쇠 강제 해제 안전핀 🔓
+    // ② 버튼 먹통 방지 안전핀 해제 🔓
     window.isLadderRunning = false;
     window.isWheelSpinning = false;
 
@@ -3453,7 +3453,7 @@ window.switchGameView = function(type) {
     const wheelBtn = document.getElementById('wheel-btn');
     if (wheelBtn) wheelBtn.disabled = false;
 
-    // ③ 나갔다 다시 들어왔을 때 서버 데이터 백업 복원 스캔 🔍
+    // ③ [핵심 UX 수술] 나갔다 다시 들어왔을 때는 애니메이션 스킵하고 결과만 즉시 표출! 🔍
     setTimeout(async () => {
         try {
             const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
@@ -3462,10 +3462,11 @@ window.switchGameView = function(type) {
             if (type === 'ladder') {
                 const snap = await getDoc(doc(window.db, "games", "ladderMatch"));
                 if (snap.exists() && snap.data().status === 'spinning') {
-                    window.runLocalLadderPhysics(snap.data().startPositions, snap.data().penaltyText);
+                    // 🪄 [UX 스킵] 물리 무빙 엔진 대신 결과창 즉시 렌더링 함수 강제 호출!
+                    window.showLadderResultDirectly(snap.data().startPositions, snap.data().penaltyText);
                 }
             }
-            // ✌️ 가위바위보방 재진입 검사
+            // ✌️ 가위바위보방 재진입 검사 (기존 그대로 고정)
             else if (type === 'rsp') {
                 const snap = await getDoc(doc(window.db, "games", "rspMatch"));
                 if (snap.exists() && snap.data().geonny && snap.data().yumi) {
@@ -3476,13 +3477,14 @@ window.switchGameView = function(type) {
             else if (type === 'wheel') {
                 const snap = await getDoc(doc(window.db, "games", "wheelMatch"));
                 if (snap.exists() && snap.data().status === 'spinning') {
-                    window.runLocalWheelPhysics(snap.data().targetAngle, snap.data().winnerPrize);
+                    // 🪄 [UX 스킵] 3초 동안 도는 연출 생략하고 원판 각도 세팅 및 결과창 즉시 표출!
+                    window.showWheelResultDirectly(snap.data().targetAngle, snap.data().winnerPrize);
                 }
             }
         } catch(e) { console.error("방 진입 실시간 서버 스캔 실패:", e); }
     }, 10);
 
-    // ④ 실시간 연동 감시 카메라 작동
+    // ④ 실시간 연동 감시 카메라는 배경에서 계속 대기 (새 게임 시작 시 감지용)
     if (type === 'ladder' && window.startLadderRealtimeListener) window.startLadderRealtimeListener();
     if (type === 'rsp' && window.startRSPRealtimeListener) window.startRSPRealtimeListener();
     if (type === 'wheel' && window.startWheelRealtimeListener) window.startWheelRealtimeListener();
@@ -3532,6 +3534,42 @@ window.backToGameLobby = function() {
     if (wheelGraphic) wheelGraphic.style.transform = "rotate(0deg)";
     
     for (let i = 0; i < 4; i++) { if (window.syncWheelText) window.syncWheelText(i); }
+};
+
+    // =======================================================
+// 🪄 [UX 스킵 가젯] 재진입 시 애니메이션 없이 즉시 결과를 꽂아주는 헬퍼
+// =======================================================
+
+// 사다리 즉시 정산 복원
+window.showLadderResultDirectly = function(startX, penaltyText) {
+    const resBox = document.getElementById('ladder-result');
+    if (!resBox) return;
+    
+    // 구슬은 최종 목적지(바닥)에 고정 렌더링
+    let endX = startX;
+    // 사다리 3번 다리 꺾임 물리 대리 연산 (기존 다리 위치 기반 최종 목적지 역추적)
+    // 40, 85, 130 다리를 만나면 무조건 교체되므로 홀수번(3번) 교체되어 무조건 반대편으로 감!
+    endX = startX === 55 ? 165 : 55;
+
+    window.drawBaseLadder(endX, 170); // 바닥에 구슬 안착 고정
+
+    let winnerText = "", bgColor = "", textColor = "";
+    if (endX === 55) { winnerText = "💥 거니 당첨!! 👦"; bgColor = "#FFF9C4"; textColor = "#F57F17"; } 
+    else { winnerText = "👑 유미 당첨!! 👧"; bgColor = "#FCE4EC"; textColor = "#C2185B"; }
+
+    resBox.style.cssText = `width: 100%; background: ${bgColor}; color: ${textColor}; padding: 10px; border-radius: 12px; font-weight: 900; text-align: center; box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.05);`;
+    resBox.innerHTML = `<span style="font-size:1.25rem;">${winnerText}</span><br><span style="color:#444; font-size:0.85rem; font-weight:bold;">[ ${penaltyText} ] 수행하기! 힇히 🤣</span>`;
+};
+
+// 룰렛 즉시 정산 복원
+window.showWheelResultDirectly = function(targetAngle, winnerPrize) {
+    const wheelGraphic = document.getElementById('wheel-graphic');
+    const wheelResult = document.getElementById('wheel-result');
+    const wheelBtn = document.getElementById('wheel-btn');
+    
+    if (wheelGraphic) wheelGraphic.style.transform = `rotate(${targetAngle}deg)`; // 회전 생략하고 각도 즉시 강제 워프
+    if (wheelResult) wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
+    if (wheelBtn) wheelBtn.disabled = false;
 };
     
 
