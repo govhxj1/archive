@@ -3482,14 +3482,29 @@ window.switchGameView = function(type) {
                     window.executeRSPCalculation(snap.data().geonny, snap.data().yumi);
                 }
             }
-            // 🎡 룰렛방 재진입 검사
+            // 🎡 룰렛방 재진입 검사 (마지막 4개 벌칙 문구 무조건 기억 연동)
             else if (type === 'wheel') {
                 const snap = await getDoc(doc(window.db, "games", "wheelMatch"));
-                if (snap.exists() && snap.data().status === 'spinning') {
-                    // 🪄 [UX 스킵] 3초 동안 도는 연출 생략하고 원판 각도 세팅 및 결과창 즉시 표출!
-                    window.showWheelResultDirectly(snap.data().targetAngle, snap.data().winnerPrize);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    
+                    // ① 🚨 [UX 버그 원천 차단] 룰렛 결과 유무와 상관없이, 일단 서버에 저장된 마지막 4개 입력칸 글자부터 무조건 복원!
+                    for (let i = 0; i < 4; i++) {
+                        if (data[`text_${i}`] !== undefined) {
+                            const inputField = document.getElementById(`wheel-input-${i}`);
+                            const txtDiv = document.getElementById(`wheel-txt-${i}`);
+                            if (inputField) inputField.value = data[`text_${i}`];
+                            if (txtDiv) txtDiv.innerText = data[`text_${i}`] || `${i + 1}번 벌칙`;
+                        }
+                    }
+                    
+                    // ② 만약 이미 완료된 경기 상태('spinning')라면 결과판과 원판 각도까지 완벽 고정 표출!
+                    if (data.status === 'spinning') {
+                        window.showWheelResultDirectly(data.targetAngle, data.winnerPrize);
+                    }
                 }
             }
+            
         } catch(e) { console.error("방 진입 실시간 서버 스캔 실패:", e); }
     }, 10);
 
