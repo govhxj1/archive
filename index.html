@@ -4024,11 +4024,11 @@ window.resetRSPMatchOnly = async function() {
     
     
 // =======================================================
-// 🎡 [오차 0% + 연속 애니메이션 완결판] 거니 💛 유미 커스텀 룰렛 엔진
+// 🎡 [우주 최종형 · 연속 회전 보장] 거니 💛 유미 룰렛 엔진
 // =======================================================
-window.isWheelSpinning = false; // 🚨 [자물쇠 대통합] window 전역 객체로 일치시킵니다!
+window.isWheelSpinning = false; // 전역 자물쇠
 let wheelDbListener = null; 
-window.lastSpinTime = 0; // 중복 실행 방지 타임스탬프 저장소
+window.isLocalClickTriggered = false; // 🚨 [새로고침 오작동 완파 열쇠] 내가 직접 버튼을 눌렀을 때만 애니메이션을 허용하는 플래그
 
 // ✍️ 2-1. 입력창 글자를 세로형(줄바꿈)으로 자동 변환하여 원판에 실시간 매핑
 window.syncWheelText = function(index) {
@@ -4042,7 +4042,7 @@ window.syncWheelText = function(index) {
     }
 };
 
-// 👀 2-2. [과거 신호 차단 + 연속 애니메이션 보장] 룰렛 진입 및 동기화 리스너
+// 👀 2-2. [복잡한 가드 전면 철거] 룰렛 진입 및 동기화 리스너
 window.startWheelRealtimeListener = async function() {
     if (wheelDbListener) return;
     try {
@@ -4065,12 +4065,6 @@ window.startWheelRealtimeListener = async function() {
                     inputField.value = data[`text_${i}`] !== undefined ? data[`text_${i}`] : defaultLabels[i];
                 }
                 window.syncWheelText(i); 
-            }
-            
-            // 🚨 [새로고침 가드 1] 방 진입 시점의 서버 타임스탬프를 lastSpinTime에 미리 구속시켜 둡니다!
-            // 이렇게 하면 새로고침하자마자 과거의 spinning 신호에 리스너가 오작동하는 걸 원천 차단합니다.
-            if (data.spinTriggerTime) {
-                window.lastSpinTime = data.spinTriggerTime;
             }
         }
 
@@ -4095,16 +4089,19 @@ window.startWheelRealtimeListener = async function() {
             }
 
             // 🚀 실시간 스핀 점화 신호 수신
-            if (data.status === 'spinning' && data.spinTriggerTime) {
-                // 🚨 [새로고침 가드 2] 방에 들어온 '이후'에 새로 눌러진 따끈따끈한 스핀 신호만 필터링합니다!
-                if (window.lastSpinTime < data.spinTriggerTime && !window.isWheelSpinning) {
-                    window.lastSpinTime = data.spinTriggerTime;
+            if (data.status === 'spinning') {
+                // 🚨 [사다리 메커니즘 100% 동기화] 복잡한 타임스탬프 대조를 빼버렸습니다!
+                // 오직 내가 버튼을 눌러서 로컬 트리거가 켜졌거나, 상대방 화면에서 돌렸을 때(내가 안 돌고 있을 때)만 작동!
+                if ((window.isLocalClickTriggered || !window.isWheelSpinning) && !window.isWheelSpinning) {
                     
                     // 돌기 시작하면 인풋창 일시 잠금
                     for (let i = 0; i < 4; i++) {
                         const inputField = document.getElementById(`wheel-input-${i}`);
                         if (inputField) inputField.disabled = true;
                     }
+                    
+                    // 로컬 트리거 소모 완료 후 회전 점화!
+                    window.isLocalClickTriggered = false; 
                     window.runLocalWheelPhysics(data.targetAngle, data.winnerPrize);
                 }
             }
@@ -4121,6 +4118,9 @@ window.spinWheel = async function() {
     
     if (wheelBtn) wheelBtn.disabled = true;
     if (wheelResult) wheelResult.innerText = "두구두구두구~! 🎡";
+
+    // 🚨 [핵심!] 내가 직접 버튼을 눌렀으므로 애니메이션 연출을 무조건 허용하라고 플래그를 먼저 선언합니다! ⭐
+    window.isLocalClickTriggered = true;
 
     const t0 = document.getElementById('wheel-input-0').value.trim() || "안마권";
     const t1 = document.getElementById('wheel-input-1').value.trim() || "뽀뽀권";
@@ -4140,10 +4140,8 @@ window.spinWheel = async function() {
 
     try {
         const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-        const uniqueTime = Date.now();
-        window.lastSpinTime = uniqueTime;
 
-        // 사다리식 강제 idle 튕기기 점화
+        // 사다리식 오버라이트 덮어쓰기 연출 점화 (merge를 제거하여 매번 완벽한 새 판으로 인식시킵니다!)
         await setDoc(doc(window.db, "games", "wheelMatch"), { status: 'idle' }, { merge: true });
         
         setTimeout(async () => {
@@ -4151,13 +4149,14 @@ window.spinWheel = async function() {
                 status: 'spinning',
                 targetAngle: finalTotalRotation,
                 winnerPrize: winner.prize,
-                spinTriggerTime: uniqueTime,
+                spinTriggerTime: Date.now(),
                 text_0: t0, text_1: t1, text_2: t2, text_3: t3
             }); 
         }, 50);
 
     } catch(e) { 
         console.error("룰렛 서버 전송 실패:", e); 
+        window.isLocalClickTriggered = false;
         if (wheelBtn) wheelBtn.disabled = false;
     }
 };
@@ -4169,17 +4168,17 @@ window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
     const wheelResult = document.getElementById('wheel-result');
 
     if (wheelBtn) wheelBtn.disabled = true;
-    window.isWheelSpinning = true; // 🔒 자물쇠 완벽 작동 온
+    window.isWheelSpinning = true; // 자물쇠 작동 온
 
     if (!wheelGraphic || !wheelResult) return;
 
-    // 이전 판의 CSS 기억 완전 세척
+    // 이전 판의 CSS 기억 완전 세척 및 원점 복귀
     wheelGraphic.style.removeProperty('transition'); 
     wheelGraphic.style.transition = "none";
     wheelGraphic.style.transform = "rotate(0deg)";
     wheelGraphic.offsetHeight; // 강제 리플로우
 
-    // 0.1초의 완벽한 시간차 숨고르기 후 대전환 3초 스핀 업그레이드 점화!
+    // 0.1초 숨고르기 후 웅장한 3초 스핀 강제 주입!
     setTimeout(() => {
         if (wheelResult) wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
         wheelGraphic.style.setProperty('transition', 'transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)');
@@ -4192,7 +4191,8 @@ window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
             wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
         }
         
-        window.isWheelSpinning = false; // 🔓 전역 자물쇠 완벽 오프!
+        window.isWheelSpinning = false; // 자물쇠 완벽 오프!
+        window.isLocalClickTriggered = false; // 트리거 청소
         if (wheelBtn) wheelBtn.disabled = false; 
         
         for (let i = 0; i < 4; i++) {
@@ -4248,6 +4248,7 @@ window.resetWheelMatch = async function() {
             wheelGraphic.style.transition = "none";
             wheelGraphic.style.transform = "rotate(0deg)";
         }
+        window.isLocalClickTriggered = false;
     } catch(e) { console.error("룰렛 리셋 에러:", e); }
 };
     
