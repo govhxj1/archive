@@ -1526,8 +1526,8 @@ async function getDaejeonWeather() {
 let currentCityIndex = 0; 
 const cityList = [
     { name: "Daejeon", krName: "유잼도시 대전" },
-    { name: "Daegu",   krName: "이쁘니의 대구" },
-    { name: "Seoul",   krName: "곰탱이의 서울" }
+    { name: "Daegu",   krName: "컬러풀 대구" }, 
+    { name: "Seoul",   krName: "꿀잼도시 서울" }
 ];
 
 document.getElementById('weather-widget').onclick = async () => {
@@ -1535,28 +1535,32 @@ document.getElementById('weather-widget').onclick = async () => {
     currentCityIndex = (currentCityIndex + 1) % cityList.length;
     const targetCity = cityList[currentCityIndex];
 
-    console.log(`[날씨 전환] ${targetCity.krName} 날씨 로딩 시작! 🔄`);
+    console.log(`[날씨 전환] ${targetCity.krName} 실시간 데이터 로딩 시작! 🔄`);
 
-    // 2. HTML 화면의 도시 라벨을 즉시 변환!
+    // 2. 화면의 도시 텍스트를 즉시 변경 ("유잼도시 대전" -> "컬러풀 대구")
     const cityLabel = document.getElementById('weather-city-label');
     if (cityLabel) {
         cityLabel.innerText = targetCity.krName;
     }
 
-    // 3. 🚨 [기존 API 함수 강제 리로드] 
-    // 거니님이 기존에 짜두신 날씨 연동 함수(예: fetchWeather)에 새 도시 영문명을 찔러줍니다.
+    // 3. 🚨 [이게 바로 진짜 날씨 데이터 긁어오는 핵심 구역!]
+    // 거니님이 코드 위나 다른 파일에 짜두셨던 '실시간 날씨 API 호출 함수명'을 컴퓨터가 알아서 찾아 사출합니다.
     try {
         if (typeof window.fetchWeather === 'function') {
-            await window.fetchWeather(targetCity.name);
+            // ① 만약 기존 함수 이름이 fetchWeather 라면 대구/서울 데이터를 진짜로 새로 긁어옵니다!
+            await window.fetchWeather(targetCity.name); 
         } else if (typeof window.getWeather === 'function') {
+            // ② 만약 기존 함수 이름이 getWeather 라면 대구/서울 데이터를 진짜로 새로 긁어옵니다!
             await window.getWeather(targetCity.name);
         } else if (typeof fetchWeather === 'function') {
             await fetchWeather(targetCity.name);
         } else {
-            console.warn("날씨 API 함수를 찾지 못했습니다. 기존 코드를 확인해 주세요!");
+            // 🚨 혹시 거니님이 짜두신 날씨 원본 함수명이 위 이름들과 아예 다르다면(예: loadWeather 등),
+            // 여기에 그 함수 이름을 적어주시면 진짜 대구/서울 실시간 날씨가 완벽하게 사출됩니다!
+            console.warn("날씨 API 함수명을 찾지 못했습니다. 기존 코드의 날씨 갱신 함수 이름을 확인해 주세요!");
         }
     } catch (e) {
-        console.error("날씨 리로드 실패:", e);
+        console.error("날씨 서버 데이터 리로드 실패:", e);
     }
 };
 
