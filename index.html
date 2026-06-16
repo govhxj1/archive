@@ -4104,9 +4104,16 @@ window.startWheelRealtimeListener = async function() {
     } catch (e) { console.error("룰렛 리스너 구동 실패:", e); }
 };
 
-// 🚀 2-3. [물리 각도 100% 매칭 완료] 돌리기 버튼 터치 시 당첨 연산 사출기
+// 🚀 2-3. [무한 연타 가동 보장] 돌리기 버튼 터치 시 당첨 연산 사출기
 window.spinWheel = async function() {
-    if (isWheelSpinning) return;
+    // 🚨 전역 자물쇠 상태를 window 객체로 명확하게 체크합니다.
+    if (window.isWheelSpinning) return;
+
+    const wheelBtn = document.getElementById('wheel-btn');
+    const wheelResult = document.getElementById('wheel-result');
+    
+    if (wheelBtn) wheelBtn.disabled = true;
+    if (wheelResult) wheelResult.innerText = "두구두구두구~! 🎡";
 
     // 인풋창 현재 글자 획득
     const t0 = document.getElementById('wheel-input-0').value.trim() || "안마권";
@@ -4114,7 +4121,7 @@ window.spinWheel = async function() {
     const t2 = document.getElementById('wheel-input-2').value.trim() || "소원권";
     const t3 = document.getElementById('wheel-input-3').value.trim() || "야식권";
 
-    // 🪄 [12시 바늘 물리 매칭] 원판이 시계방향으로 회전할 때, 12시 바늘 기준 각 칸의 정확한 정지 각도 범위 역산
+    // 12시 바늘 물리 매칭 범위 각도 역산
     const randomItems = [
         { prize: t0, minA: 275, maxA: 355 }, // 1번 분홍칸 (안마)
         { prize: t1, minA: 185, maxA: 265 }, // 2번 주황칸 (뽀뽀)
@@ -4122,20 +4129,16 @@ window.spinWheel = async function() {
         { prize: t3, minA: 5,   maxA: 85  }  // 4번 하늘칸 (야식)
     ];
     
-    // 무작위 당첨 조항 초이스
     const winner = randomItems[Math.floor(Math.random() * randomItems.length)];
-    
-    // 기본 7바퀴(2520도) 회전력을 더해 부드러운 룰렛 무빙 각도 빌드
     const targetRandomAngle = Math.floor(Math.random() * (winner.maxA - winner.minA)) + winner.minA;
     const finalTotalRotation = 2520 + targetRandomAngle; 
 
     try {
         const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-        
         const uniqueTime = Date.now();
         window.lastSpinTime = uniqueTime;
 
-        // 사다리 스타일 도입: 상태, 각도, 당첨 문구, 4개 인풋 글자까지 한 세트로 묶어서 서버에 영구 박제!
+        // 사다리 스타일 세트 박제
         await setDoc(doc(window.db, "games", "wheelMatch"), {
             status: 'spinning',
             targetAngle: finalTotalRotation,
@@ -4143,43 +4146,49 @@ window.spinWheel = async function() {
             spinTriggerTime: uniqueTime,
             text_0: t0, text_1: t1, text_2: t2, text_3: t3
         });
-    } catch(e) { console.error("룰렛 서버 전송 실패:", e); }
+    } catch(e) { 
+        console.error("룰렛 서버 전송 실패:", e); 
+        if (wheelBtn) wheelBtn.disabled = false;
+    }
 };
 
-// 🎡 2-4. [원점 동기화 리플로우 엔진] 3초간 시원하게 회전하는 물리 함수
+// 🎡 2-4. [회전 종료 즉시 자물쇠 완전 해제] 3초간 시원하게 회전하는 물리 함수
 window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
     const wheelBtn = document.getElementById('wheel-btn');
-    if (wheelBtn) wheelBtn.disabled = true;
-    isWheelSpinning = true;
-
     const wheelGraphic = document.getElementById('wheel-graphic');
     const wheelResult = document.getElementById('wheel-result');
+
+    if (wheelBtn) wheelBtn.disabled = true;
+    window.isWheelSpinning = true; // 🔒 전역 자물쇠 작동 온!
+
     if (!wheelGraphic || !wheelResult) return;
 
-    // 트랜지션 사슬 끄고 0도로 순간 복귀 강제 스냅
+    // 🧼 0도로 강제 스냅 복귀
     wheelGraphic.style.transition = "none";
     wheelGraphic.style.transform = "rotate(0deg)";
-    wheelGraphic.offsetHeight; // 🔥 브라우저 애니메이션 굳음 현상 박멸하는 특효약 리플로우!
+    wheelGraphic.offsetHeight; // 브라우저 애니메이션 리플로우 깨우기
 
-    // 0.03초 후 화려한 감속 회전 무빙 시작!
+    // 웅장하게 대전환 무빙 가동! 💫
     setTimeout(() => {
         wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
         wheelGraphic.style.transition = "transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)";
         wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
     }, 30);
 
-    // 3초 회전 관람 완료 후 최종 확정 정산
+    // ⏳ 3초 회전 연출 딱 끝나자마자 딜레이 없이 즉시 상태 초기화!
     setTimeout(() => {
         wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
-        isWheelSpinning = false;
-        if (wheelBtn) wheelBtn.disabled = false;
         
-        // 경기가 완벽히 끝났으므로 인풋창 자물쇠 다시 풀기! 🔓
+        // 🚨 [오류 진압 포인트] 전역 락 변수와 버튼 비활성화를 동시에 완벽하게 풀어줍니다! 🔓
+        window.isWheelSpinning = false; 
+        if (wheelBtn) wheelBtn.disabled = false; 
+        
+        // 인풋창 다시 활성화
         for (let i = 0; i < 4; i++) {
             const inputField = document.getElementById(`wheel-input-${i}`);
             if (inputField) inputField.disabled = false;
         }
-    }, 3050);
+    }, 3050); // 3.05초 후 정산창 오픈과 동시에 락 완전 해제!
 };
 
 // 🪄 2-5. [UX 복원 자물쇠 제거 완료] 재진입 시 멈춘 각도만 보여주는 복원 함수
