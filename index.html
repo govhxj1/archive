@@ -2651,6 +2651,27 @@ function setupHeartNotification() {
         const b = document.querySelector('.new-badge');
         if (b) b.remove();
     }
+
+    // 🚨 [여기에 추가!] 하트 본체든, 그 부모(감싸는 영역)든 어디를 눌러도 편지가 1방에 열리도록 이벤트를 박제합니다.
+    if (heartIcon) {
+        heartIcon.removeAttribute('onclick'); // 낡은 족쇄 제거
+        heartIcon.style.cursor = 'pointer';
+        
+        heartIcon.onclick = (e) => {
+            e.stopPropagation(); // 이벤트 꼬임 방지
+            const surpriseOverlay = document.getElementById('surprise-overlay');
+            if (surpriseOverlay) surpriseOverlay.style.display = 'flex';
+        };
+        
+        // 하트 부모 영역을 눌러도 열리도록 2중 방어선 구축
+        if (heartIcon.parentElement) {
+            heartIcon.parentElement.onclick = () => {
+                const surpriseOverlay = document.getElementById('surprise-overlay');
+                if (surpriseOverlay) surpriseOverlay.style.display = 'flex';
+            };
+        }
+    }
+} // 함수 끝나는 중괄호
 }
 
     // ==============================================
