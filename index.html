@@ -4104,9 +4104,9 @@ window.startWheelRealtimeListener = async function() {
     } catch (e) { console.error("룰렛 리스너 구동 실패:", e); }
 };
 
-// 🚀 2-3. [무한 연타 가동 보장] 돌리기 버튼 터치 시 당첨 연산 사출기
+// 🚀 2-3. [연속 애니메이션 100% 보장] 돌리기 버튼 터치 시 당첨 연산 사출기
 window.spinWheel = async function() {
-    // 🚨 전역 자물쇠 상태를 window 객체로 명확하게 체크합니다.
+    // 전역 자물쇠 상태 체크
     if (window.isWheelSpinning) return;
 
     const wheelBtn = document.getElementById('wheel-btn');
@@ -4138,14 +4138,22 @@ window.spinWheel = async function() {
         const uniqueTime = Date.now();
         window.lastSpinTime = uniqueTime;
 
-        // 사다리 스타일 세트 박제
-        await setDoc(doc(window.db, "games", "wheelMatch"), {
-            status: 'spinning',
-            targetAngle: finalTotalRotation,
-            winnerPrize: winner.prize,
-            spinTriggerTime: uniqueTime,
-            text_0: t0, text_1: t1, text_2: t2, text_3: t3
-        });
+        // 🚨 [연속 애니메이션 씹힘 버그 완파 포인트]
+        // 리스너가 "와! 데이터가 진짜 완전 새로 바뀌었다!"고 강하게 눈치챌 수 있도록, 
+        // status를 'idle'로 번개처럼 먼저 1회 바꾼 뒤에 spinning을 주입합니다. 사다리랑 똑같은 원리예요! 👍
+        await setDoc(doc(window.db, "games", "wheelMatch"), { status: 'idle' }, { merge: true });
+        
+        // 컴퓨터가 상태 변화를 인지할 시간(0.04초)을 준 뒤, 새 각도와 진짜 spinning 신호를 콰쾅 박아줍니다!
+        setTimeout(async () => {
+            await setDoc(doc(window.db, "games", "wheelMatch"), {
+                status: 'spinning',
+                targetAngle: finalTotalRotation,
+                winnerPrize: winner.prize,
+                spinTriggerTime: uniqueTime,
+                text_0: t0, text_1: t1, text_2: t2, text_3: t3
+            });
+        }, 40);
+
     } catch(e) { 
         console.error("룰렛 서버 전송 실패:", e); 
         if (wheelBtn) wheelBtn.disabled = false;
