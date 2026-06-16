@@ -4160,38 +4160,39 @@ window.spinWheel = async function() {
     }
 };
 
-// 🎡 2-4. [애니메이션 씹힘 완전 격파] 3초간 시원하게 회전하는 물리 함수
+// 🎡 2-4. [렌더링 굳음 버그 완전 박멸] 연속 회전 애니메이션 100% 보장 물리 엔진
 window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
     const wheelBtn = document.getElementById('wheel-btn');
     const wheelGraphic = document.getElementById('wheel-graphic');
     const wheelResult = document.getElementById('wheel-result');
 
     if (wheelBtn) wheelBtn.disabled = true;
-    window.isWheelSpinning = true; 
+    window.isWheelSpinning = true; // 🔒 전역 자물쇠 온
 
     if (!wheelGraphic || !wheelResult) return;
 
-    // 1. 🔥 [트랜지션 완전 리셋] 애니메이션 연출 사슬을 잠시 완전히 끊고 0도로 순간 복귀시킵니다.
+    // 🚨 [핵심 수술 1] 3초 동안 도는 애니메이션 옵션을 완전히 파괴하고 0도로 순간 복귀시킵니다.
     wheelGraphic.style.transition = "none";
     wheelGraphic.style.transform = "rotate(0deg)";
     
-    // 2. 🔥 [강제 렌더링 깨우기] 브라우저한테 0도로 돌아간 상태를 무조건 화면에 그리라고 강제 명령합니다.
+    // 💡 브라우저에게 "야, 군말 말고 0도로 돌아간 거 지금 즉시 화면에 갱신해!" 하고 강제 명령 내리기
     wheelGraphic.offsetHeight; 
 
-    // 3. 🔥 [핵심 수술: 브라우저 타이밍 동기화] 브라우저가 다음 화면을 그리는 완벽한 타이밍에 애니메이션을 주입합니다!
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
-            // 자바스크립트로 부드러운 감속 회전(Cubic-bezier) CSS 속성을 강제 주입!
-            wheelGraphic.style.transition = "transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)";
-            wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
-        });
-    });
+    // 🚨 [핵심 수술 2] 브라우저가 0도 원점 스냅을 완벽히 인지할 수 있도록 0.05초(50ms)의 미세한 물리적 숨고르기 딜레이를 줍니다.
+    // 이 시간차가 있어야만 첫 번째 판 각도 찌꺼기가 완전히 세척되고 두 번째 판 애니메이션이 똑바로 점화됩니다! ⭐
+    setTimeout(() => {
+        wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
+        
+        // 0도 고정이 확인된 시점에 화려한 Cubic-Bezier 가속도 엔진 탑재!
+        wheelGraphic.style.transition = "transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)";
+        wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
+    }, 50);
 
-    // 4. 3초간 화려한 스핀 관람 완료 후 최종 확정 정산
+    // 4. 3초간 힘찬 스핀 관람 완료 후 최종 정산
     setTimeout(() => {
         wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
         
+        // 경기 종료 즉시 모든 자물쇠 원터치 해제 🔓
         window.isWheelSpinning = false; 
         if (wheelBtn) wheelBtn.disabled = false; 
         
@@ -4200,7 +4201,7 @@ window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
             const inputField = document.getElementById(`wheel-input-${i}`);
             if (inputField) inputField.disabled = false;
         }
-    }, 3050); // 3.05초 후 정산창 오픈과 동시에 락 완전 해제!
+    }, 3100); // 3.1초 뒤 깔끔하게 루프 종료
 };
 
 
