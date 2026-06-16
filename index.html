@@ -4042,7 +4042,7 @@ window.syncWheelText = function(index) {
     }
 };
 
-// 👀 2-2. [실시간 락 해제 가드] 룰렛 진입 및 동기화 리스너
+// 👀 2-2. [과거 신호 차단 + 연속 애니메이션 보장] 룰렛 진입 및 동기화 리스너
 window.startWheelRealtimeListener = async function() {
     if (wheelDbListener) return;
     try {
@@ -4066,6 +4066,12 @@ window.startWheelRealtimeListener = async function() {
                 }
                 window.syncWheelText(i); 
             }
+            
+            // 🚨 [새로고침 가드 1] 방 진입 시점의 서버 타임스탬프를 lastSpinTime에 미리 구속시켜 둡니다!
+            // 이렇게 하면 새로고침하자마자 과거의 spinning 신호에 리스너가 오작동하는 걸 원천 차단합니다.
+            if (data.spinTriggerTime) {
+                window.lastSpinTime = data.spinTriggerTime;
+            }
         }
 
         // ③ 실시간 감시 시작
@@ -4075,7 +4081,7 @@ window.startWheelRealtimeListener = async function() {
 
             const data = docSnap.data();
             
-            // 🚨 [간섭 차단] 원판이 돌고 있는 중(`window.isWheelSpinning === true`)에는 텍스트 동기화를 일절 건너뜁니다!
+            // 원판이 돌고 있는 중에는 텍스트 동기화 간섭 끊기
             if (!window.isWheelSpinning) {
                 for (let i = 0; i < 4; i++) {
                     if (data[`text_${i}`] !== undefined) {
@@ -4090,8 +4096,8 @@ window.startWheelRealtimeListener = async function() {
 
             // 🚀 실시간 스핀 점화 신호 수신
             if (data.status === 'spinning' && data.spinTriggerTime) {
-                // 🚨 window.isWheelSpinning 자물쇠 구조로 정확하게 매칭 교정!
-                if (window.lastSpinTime !== data.spinTriggerTime && !window.isWheelSpinning) {
+                // 🚨 [새로고침 가드 2] 방에 들어온 '이후'에 새로 눌러진 따끈따끈한 스핀 신호만 필터링합니다!
+                if (window.lastSpinTime < data.spinTriggerTime && !window.isWheelSpinning) {
                     window.lastSpinTime = data.spinTriggerTime;
                     
                     // 돌기 시작하면 인풋창 일시 잠금
