@@ -693,11 +693,13 @@
                 <div style="position: relative; width: 160px; height: 160px; margin-top: 5px; flex-shrink: 0;">
                     <div style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 1.6rem; z-index: 10; color: #e53935;">👇</div>
                     <div id="wheel-graphic" style="width: 100%; height: 100%; border-radius: 50%; border: 6px solid #64b5f6; background: conic-gradient(#ffadad 0% 25%, #ffd6a5 25% 50%, #caffbf 50% 75%, #9bf6ff 75% 100%); transform: rotate(0deg); position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1); box-sizing: border-box;">
-                        <div style="position: absolute; top: 12px; left: 68%; transform: rotate(45deg); ...;" id="wheel-txt-0"></div>
-                        <div style="position: absolute; top: 68%; left: 88%; transform: rotate(135deg); ...;" id="wheel-txt-1"></div>
-                        <div style="position: absolute; top: 88%; left: 32%; transform: rotate(225deg); ...;" id="wheel-txt-2"></div>
-                        <div style="position: absolute; top: 32%; left: 12%; transform: rotate(315deg); ...;" id="wheel-txt-3"></div>
-                    </div>
+    
+                    <div style="position: absolute; top: 15px; left: 58%; transform: rotate(0deg); font-size: 0.65rem; font-weight: 900; color: #444; text-align: center; width: 35px; line-height: 1.1; word-break: break-all;" id="wheel-txt-0">안<br>마<br>권</div>
+                    <div style="position: absolute; top: 58%; left: 58%; transform: rotate(0deg); font-size: 0.65rem; font-weight: 900; color: #444; text-align: center; width: 35px; line-height: 1.1; word-break: break-all;" id="wheel-txt-1">뽀<br>뽀<br>권</div>
+                    <div style="position: absolute; top: 58%; left: 18%; transform: rotate(0deg); font-size: 0.65rem; font-weight: 900; color: #444; text-align: center; width: 35px; line-height: 1.1; word-break: break-all;" id="wheel-txt-2">소<br>원<br>권</div>
+                    <div style="position: absolute; top: 15px; left: 18%; transform: rotate(0deg); font-size: 0.65rem; font-weight: 900; color: #444; text-align: center; width: 35px; line-height: 1.1; word-break: break-all;" id="wheel-txt-3">야<br>식<br>권</div>
+                
+                </div>
                 </div>
                 <div id="wheel-result" style="font-weight: 900; font-size: 1.15rem; color: #0d47a1; text-align: center; min-height: 24px; margin: 2px 0;">돌림판을 채워줘!✍️</div>
                 
@@ -3559,13 +3561,18 @@ window.backToGameLobby = function() {
     if (finalRes) finalRes.innerText = "";
     
     // 룰렛 화면 가림막 정돈
+    // 룰렛 화면 가림막 및 인풋창 락 완전 강제 해제 스위치 🔓
     const wheelResult = document.getElementById('wheel-result');
     const wheelGraphic = document.getElementById('wheel-graphic');
     if (wheelResult) wheelResult.innerText = "돌림판을 채워줘! ✍️";
     if (wheelGraphic) wheelGraphic.style.transform = "rotate(0deg)";
     
-    for (let i = 0; i < 4; i++) { if (window.syncWheelText) window.syncWheelText(i); }
-};
+    for (let i = 0; i < 4; i++) { 
+        const inputField = document.getElementById(`wheel-input-${i}`);
+        if (inputField) inputField.disabled = false; // 🔓 완전 해제!
+        if (window.syncWheelText) window.syncWheelText(i); 
+    }
+}; // 함수 끝나는 괄호
 
     // =======================================================
 // 🪄 [UX 스킵 가젯] 재진입 시 애니메이션 없이 즉시 결과를 꽂아주는 헬퍼
@@ -4026,17 +4033,24 @@ window.syncWheelText = function(index) {
     const inputField = document.getElementById(`wheel-input-${index}`);
     const txtDiv = document.getElementById(`wheel-txt-${index}`);
     if (inputField && txtDiv) {
-        txtDiv.innerText = inputField.value.trim();
+        const rawVal = inputField.value.trim() || `벌칙${index+1}`;
+        // 🪄 [팀장님 꿀기믹] 글자 사이에 <br>을 강제로 주입해서 가로 글자를 세로(뽀\n뽀\n하\n기)로 빌드합니다!
+        txtDiv.innerHTML = rawVal.split("").join("<br>");
     }
 };
 
-// 👀 2-2. [강제 복원 및 애니메이션 복구 엔진]
+    
 window.startWheelRealtimeListener = async function() {
     if (wheelDbListener) return;
     try {
         const { doc, onSnapshot, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
-        // [입장 즉시 강제 복원] 리스너가 연결되기 전에 한 번 서버를 털어서 글자부터 꽂습니다!
+        // 🚨 [인풋 고정 버그 격파] 방에 들어오는 순간, 무조건 모든 인풋창의 잠금(disabled)을 먼저 활짝 풀어줍니다!
+        for (let i = 0; i < 4; i++) {
+            const inputField = document.getElementById(`wheel-input-${i}`);
+            if (inputField) inputField.disabled = false;
+        }
+
         const initialSnap = await getDoc(doc(window.db, "games", "wheelMatch"));
         if (initialSnap.exists()) {
             const data = initialSnap.data();
@@ -4045,7 +4059,14 @@ window.startWheelRealtimeListener = async function() {
                 const txtDiv = document.getElementById(`wheel-txt-${i}`);
                 if (data[`text_${i}`]) {
                     if (inputField) inputField.value = data[`text_${i}`];
-                    if (txtDiv) txtDiv.innerText = data[`text_${i}`];
+                    if (txtDiv) txtDiv.innerHTML = data[`text_${i}`].split("").join("<br>"); // 세로 복원
+                }
+            }
+            // 만약 이미 결과가 나온 판('spinning') 상태라면 인풋창을 다시 매너 잠금 처리
+            if (data.status === 'spinning') {
+                for (let i = 0; i < 4; i++) {
+                    const inputField = document.getElementById(`wheel-input-${i}`);
+                    if (inputField) inputField.disabled = true;
                 }
             }
         }
@@ -4056,10 +4077,14 @@ window.startWheelRealtimeListener = async function() {
 
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                // 🚀 spinning 신호 감지 시 애니메이션 즉시 재가동
                 if (data.status === 'spinning') {
                     if (window.lastSpinTime !== data.spinTriggerTime && !isWheelSpinning) {
                         window.lastSpinTime = data.spinTriggerTime;
+                        // 게임이 시작될 때도 인풋창을 잠가줍니다.
+                        for (let i = 0; i < 4; i++) {
+                            const inputField = document.getElementById(`wheel-input-${i}`);
+                            if (inputField) inputField.disabled = true;
+                        }
                         window.runLocalWheelPhysics(data.targetAngle, data.winnerPrize);
                     }
                 }
