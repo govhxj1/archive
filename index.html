@@ -4024,9 +4024,9 @@ window.resetRSPMatchOnly = async function() {
     
     
 // =======================================================
-// 🎡 [오차 0% + 락 해제 완결판] 거니 💛 유미 커스텀 룰렛 엔진
+// 🎡 [오차 0% + 연속 애니메이션 완결판] 거니 💛 유미 커스텀 룰렛 엔진
 // =======================================================
-let isWheelSpinning = false;
+window.isWheelSpinning = false; // 🚨 [자물쇠 대통합] window 전역 객체로 일치시킵니다!
 let wheelDbListener = null; 
 window.lastSpinTime = 0; // 중복 실행 방지 타임스탬프 저장소
 
@@ -4036,7 +4036,6 @@ window.syncWheelText = function(index) {
     const txtDiv = document.getElementById(`wheel-txt-${index}`);
     if (inputField && txtDiv) {
         const rawVal = inputField.value.trim();
-        // 글자가 있으면 한글자씩 세로로 쪼개고, 없으면 플레이스홀더 디폴트값 적용
         const defaultTexts = ["안마", "뽀뽀", "소원", "야식"];
         const finalVal = rawVal || defaultTexts[index];
         txtDiv.innerHTML = finalVal.split("").join("<br>");
@@ -4049,7 +4048,7 @@ window.startWheelRealtimeListener = async function() {
     try {
         const { doc, onSnapshot, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
-        // ① [진입 즉시 자물쇠 격파] 방에 들어오는 순간 무조건 인풋창 잠금(disabled)부터 활짝 풉니다!
+        // ① 진입 즉시 모든 인풋창 잠금(disabled) 해제
         for (let i = 0; i < 4; i++) {
             const inputField = document.getElementById(`wheel-input-${i}`);
             if (inputField) inputField.disabled = false;
@@ -4065,7 +4064,7 @@ window.startWheelRealtimeListener = async function() {
                 if (inputField) {
                     inputField.value = data[`text_${i}`] !== undefined ? data[`text_${i}`] : defaultLabels[i];
                 }
-                window.syncWheelText(i); // 원판 글자 세로형 동시 동기화
+                window.syncWheelText(i); 
             }
         }
 
@@ -4076,23 +4075,26 @@ window.startWheelRealtimeListener = async function() {
 
             const data = docSnap.data();
             
-            // 실시간 상대방 글자 동기화 (내가 타자 치는 중이 아닐 때만 수신)
-            for (let i = 0; i < 4; i++) {
-                if (data[`text_${i}`] !== undefined) {
-                    const inputField = document.getElementById(`wheel-input-${i}`);
-                    if (inputField && document.activeElement !== inputField) {
-                        inputField.value = data[`text_${i}`];
-                        window.syncWheelText(i);
+            // 🚨 [간섭 차단] 원판이 돌고 있는 중(`window.isWheelSpinning === true`)에는 텍스트 동기화를 일절 건너뜁니다!
+            if (!window.isWheelSpinning) {
+                for (let i = 0; i < 4; i++) {
+                    if (data[`text_${i}`] !== undefined) {
+                        const inputField = document.getElementById(`wheel-input-${i}`);
+                        if (inputField && document.activeElement !== inputField) {
+                            inputField.value = data[`text_${i}`];
+                            window.syncWheelText(i);
+                        }
                     }
                 }
             }
 
             // 🚀 실시간 스핀 점화 신호 수신
             if (data.status === 'spinning' && data.spinTriggerTime) {
-                if (window.lastSpinTime !== data.spinTriggerTime && !isWheelSpinning) {
+                // 🚨 window.isWheelSpinning 자물쇠 구조로 정확하게 매칭 교정!
+                if (window.lastSpinTime !== data.spinTriggerTime && !window.isWheelSpinning) {
                     window.lastSpinTime = data.spinTriggerTime;
                     
-                    // 돌기 시작하면 일시적으로 잠금
+                    // 돌기 시작하면 인풋창 일시 잠금
                     for (let i = 0; i < 4; i++) {
                         const inputField = document.getElementById(`wheel-input-${i}`);
                         if (inputField) inputField.disabled = true;
@@ -4114,13 +4116,11 @@ window.spinWheel = async function() {
     if (wheelBtn) wheelBtn.disabled = true;
     if (wheelResult) wheelResult.innerText = "두구두구두구~! 🎡";
 
-    // 인풋창 현재 글자 획득
     const t0 = document.getElementById('wheel-input-0').value.trim() || "안마권";
     const t1 = document.getElementById('wheel-input-1').value.trim() || "뽀뽀권";
     const t2 = document.getElementById('wheel-input-2').value.trim() || "소원권";
     const t3 = document.getElementById('wheel-input-3').value.trim() || "야식권";
 
-    // 12시 바늘 물리 매칭 범위 각도 역산
     const randomItems = [
         { prize: t0, minA: 275, maxA: 355 }, // 1번 분홍칸 (안마)
         { prize: t1, minA: 185, maxA: 265 }, // 2번 주황칸 (뽀뽀)
@@ -4137,21 +4137,17 @@ window.spinWheel = async function() {
         const uniqueTime = Date.now();
         window.lastSpinTime = uniqueTime;
 
-        // ① 사다리랑 100% 똑같이 merge 옵션을 켜서 idle 상태로 한번 튕겨주고,
+        // 사다리식 강제 idle 튕기기 점화
         await setDoc(doc(window.db, "games", "wheelMatch"), { status: 'idle' }, { merge: true });
         
-        // ② 0.05초 뒤에 사다리 코드처럼 { merge: true }를 완전히 빼버리고 새 데이터로 통째로 덮어씌웁니다! 🔒
         setTimeout(async () => {
             await setDoc(doc(window.db, "games", "wheelMatch"), {
                 status: 'spinning',
                 targetAngle: finalTotalRotation,
                 winnerPrize: winner.prize,
                 spinTriggerTime: uniqueTime,
-                text_0: t0,
-                text_1: t1,
-                text_2: t2,
-                text_3: t3
-            }); // 🚨 { merge: true } 제거! 사다리랑 완전 동일하게 설계!
+                text_0: t0, text_1: t1, text_2: t2, text_3: t3
+            }); 
         }, 50);
 
     } catch(e) { 
@@ -4160,80 +4156,78 @@ window.spinWheel = async function() {
     }
 };
 
-// 🎡 2-4. [렌더링 굳음 버그 완전 박멸] 연속 회전 애니메이션 100% 보장 물리 엔진
+// 🎡 2-4. [CSS 메모리 강제 세척 버전] 연속 애니메이션 100% 보장 물리 엔진
 window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
     const wheelBtn = document.getElementById('wheel-btn');
     const wheelGraphic = document.getElementById('wheel-graphic');
     const wheelResult = document.getElementById('wheel-result');
 
     if (wheelBtn) wheelBtn.disabled = true;
-    window.isWheelSpinning = true; // 🔒 전역 자물쇠 온
+    window.isWheelSpinning = true; // 🔒 자물쇠 완벽 작동 온
 
     if (!wheelGraphic || !wheelResult) return;
 
-    // 🚨 [핵심 수술 1] 3초 동안 도는 애니메이션 옵션을 완전히 파괴하고 0도로 순간 복귀시킵니다.
+    // 이전 판의 CSS 기억 완전 세척
+    wheelGraphic.style.removeProperty('transition'); 
     wheelGraphic.style.transition = "none";
     wheelGraphic.style.transform = "rotate(0deg)";
-    
-    // 💡 브라우저에게 "야, 군말 말고 0도로 돌아간 거 지금 즉시 화면에 갱신해!" 하고 강제 명령 내리기
-    wheelGraphic.offsetHeight; 
+    wheelGraphic.offsetHeight; // 강제 리플로우
 
-    // 🚨 [핵심 수술 2] 브라우저가 0도 원점 스냅을 완벽히 인지할 수 있도록 0.05초(50ms)의 미세한 물리적 숨고르기 딜레이를 줍니다.
-    // 이 시간차가 있어야만 첫 번째 판 각도 찌꺼기가 완전히 세척되고 두 번째 판 애니메이션이 똑바로 점화됩니다! ⭐
+    // 0.1초의 완벽한 시간차 숨고르기 후 대전환 3초 스핀 업그레이드 점화!
     setTimeout(() => {
-        wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
-        
-        // 0도 고정이 확인된 시점에 화려한 Cubic-Bezier 가속도 엔진 탑재!
-        wheelGraphic.style.transition = "transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)";
+        if (wheelResult) wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
+        wheelGraphic.style.setProperty('transition', 'transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)');
         wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
-    }, 50);
+    }, 100); 
 
-    // 4. 3초간 힘찬 스핀 관람 완료 후 최종 정산
+    // 3.05초 관람 완료 후 최종 정산
     setTimeout(() => {
-        wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
+        if (wheelResult) {
+            wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
+        }
         
-        // 경기 종료 즉시 모든 자물쇠 원터치 해제 🔓
-        window.isWheelSpinning = false; 
+        window.isWheelSpinning = false; // 🔓 전역 자물쇠 완벽 오프!
         if (wheelBtn) wheelBtn.disabled = false; 
         
-        // 인풋창 다시 수정 가능하도록 오픈
         for (let i = 0; i < 4; i++) {
             const inputField = document.getElementById(`wheel-input-${i}`);
             if (inputField) inputField.disabled = false;
         }
-    }, 3100); // 3.1초 뒤 깔끔하게 루프 종료
+    }, 3200); 
 };
 
-
-// 🪄 2-5. [UX 복원 자물쇠 제거 완료] 재진입 시 멈춘 각도만 보여주는 복원 함수
+// 🪄 2-5. 재진입 시 복원 함수
 window.showWheelResultDirectly = async function(targetAngle, winnerPrize) {
     const wheelGraphic = document.getElementById('wheel-graphic');
     const wheelResult = document.getElementById('wheel-result');
     const wheelBtn = document.getElementById('wheel-btn');
     
-    if (wheelGraphic) {
-        wheelGraphic.style.transition = "none"; 
-        wheelGraphic.style.transform = `rotate(${targetAngle}deg)`; 
-    }
     if (wheelResult) wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
     if (wheelBtn) wheelBtn.disabled = false;
 
-    // 🚨 [수술 완료] 기존에 인풋창을 disabled = true로 잠가버리던 낡은 악성 코드를 싹 다 밀어버렸습니다! 🔓
-    // 이제 나갔다 들어왔을 때도 입력창이 부드럽게 활성화되어 수정이 자유롭습니다.
     try {
         const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         const snap = await getDoc(doc(window.db, "games", "wheelMatch"));
+        
         if (snap.exists()) {
             const data = snap.data();
+            const defaultLabels = ["안마권", "뽀뽀권", "소원권", "야식권"];
+            
             for (let i = 0; i < 4; i++) {
                 const inputField = document.getElementById(`wheel-input-${i}`);
-                if (inputField && data[`text_${i}`]) {
-                    inputField.value = data[`text_${i}`];
-                    inputField.disabled = false; // 🔒 잠금 영구 해제 보장
+                if (inputField) {
+                    inputField.value = data[`text_${i}`] !== undefined ? data[`text_${i}`] : defaultLabels[i];
+                    inputField.disabled = false; 
                 }
                 window.syncWheelText(i);
             }
         }
+        
+        if (wheelGraphic) {
+            wheelGraphic.style.transition = "none"; 
+            wheelGraphic.style.transform = `rotate(${targetAngle}deg)`; 
+        }
+
     } catch(e) { console.error("재진입 룰렛 텍스트 최종 복원 실패:", e); }
 };
 
@@ -4242,6 +4236,12 @@ window.resetWheelMatch = async function() {
     try {
         const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         await deleteDoc(doc(window.db, "games", "wheelMatch"));
+        
+        const wheelGraphic = document.getElementById('wheel-graphic');
+        if (wheelGraphic) {
+            wheelGraphic.style.transition = "none";
+            wheelGraphic.style.transform = "rotate(0deg)";
+        }
     } catch(e) { console.error("룰렛 리셋 에러:", e); }
 };
     
