@@ -4024,145 +4024,197 @@ window.resetRSPMatchOnly = async function() {
     
     
 // =======================================================
-// 🎡 [버그 완전 박멸 / 클릭 씹힘 0%] 거니 💛 유미 커스텀 룰렛 엔진
+// 🎡 [오차 0% + 락 해제 완결판] 거니 💛 유미 커스텀 룰렛 엔진
 // =======================================================
 let isWheelSpinning = false;
 let wheelDbListener = null; 
+window.lastSpinTime = 0; // 중복 실행 방지 타임스탬프 저장소
 
+// ✍️ 2-1. 입력창 글자를 세로형(줄바꿈)으로 자동 변환하여 원판에 실시간 매핑
 window.syncWheelText = function(index) {
     const inputField = document.getElementById(`wheel-input-${index}`);
     const txtDiv = document.getElementById(`wheel-txt-${index}`);
     if (inputField && txtDiv) {
-        const rawVal = inputField.value.trim() || `벌칙${index+1}`;
-        // 🪄 [팀장님 꿀기믹] 글자 사이에 <br>을 강제로 주입해서 가로 글자를 세로(뽀\n뽀\n하\n기)로 빌드합니다!
-        txtDiv.innerHTML = rawVal.split("").join("<br>");
+        const rawVal = inputField.value.trim();
+        // 글자가 있으면 한글자씩 세로로 쪼개고, 없으면 플레이스홀더 디폴트값 적용
+        const defaultTexts = ["안마", "뽀뽀", "소원", "야식"];
+        const finalVal = rawVal || defaultTexts[index];
+        txtDiv.innerHTML = finalVal.split("").join("<br>");
     }
 };
 
-    
+// 👀 2-2. [실시간 락 해제 가드] 룰렛 진입 및 동기화 리스너
 window.startWheelRealtimeListener = async function() {
     if (wheelDbListener) return;
     try {
         const { doc, onSnapshot, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
-        // 🚨 [인풋 고정 버그 격파] 방에 들어오는 순간, 무조건 모든 인풋창의 잠금(disabled)을 먼저 활짝 풀어줍니다!
+        // ① [진입 즉시 자물쇠 격파] 방에 들어오는 순간 무조건 인풋창 잠금(disabled)부터 활짝 풉니다!
         for (let i = 0; i < 4; i++) {
             const inputField = document.getElementById(`wheel-input-${i}`);
             if (inputField) inputField.disabled = false;
         }
 
+        // ② 서버에 백업된 마지막 텍스트들 로드해서 화면에 꽉 채우기
         const initialSnap = await getDoc(doc(window.db, "games", "wheelMatch"));
         if (initialSnap.exists()) {
             const data = initialSnap.data();
+            const defaultLabels = ["안마권", "뽀뽀권", "소원권", "야식권"];
             for (let i = 0; i < 4; i++) {
                 const inputField = document.getElementById(`wheel-input-${i}`);
-                const txtDiv = document.getElementById(`wheel-txt-${i}`);
-                if (data[`text_${i}`]) {
-                    if (inputField) inputField.value = data[`text_${i}`];
-                    if (txtDiv) txtDiv.innerHTML = data[`text_${i}`].split("").join("<br>"); // 세로 복원
+                if (inputField) {
+                    inputField.value = data[`text_${i}`] !== undefined ? data[`text_${i}`] : defaultLabels[i];
                 }
-            }
-            // 만약 이미 결과가 나온 판('spinning') 상태라면 인풋창을 다시 매너 잠금 처리
-            if (data.status === 'spinning') {
-                for (let i = 0; i < 4; i++) {
-                    const inputField = document.getElementById(`wheel-input-${i}`);
-                    if (inputField) inputField.disabled = true;
-                }
+                window.syncWheelText(i); // 원판 글자 세로형 동시 동기화
             }
         }
 
+        // ③ 실시간 감시 시작
         wheelDbListener = onSnapshot(doc(window.db, "games", "wheelMatch"), (docSnap) => {
             const wheelGraphic = document.getElementById('wheel-graphic');
-            if (!wheelGraphic) return;
+            if (!wheelGraphic || !docSnap.exists()) return;
 
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if (data.status === 'spinning') {
-                    if (window.lastSpinTime !== data.spinTriggerTime && !isWheelSpinning) {
-                        window.lastSpinTime = data.spinTriggerTime;
-                        // 게임이 시작될 때도 인풋창을 잠가줍니다.
-                        for (let i = 0; i < 4; i++) {
-                            const inputField = document.getElementById(`wheel-input-${i}`);
-                            if (inputField) inputField.disabled = true;
-                        }
-                        window.runLocalWheelPhysics(data.targetAngle, data.winnerPrize);
+            const data = docSnap.data();
+            
+            // 실시간 상대방 글자 동기화 (내가 타자 치는 중이 아닐 때만 수신)
+            for (let i = 0; i < 4; i++) {
+                if (data[`text_${i}`] !== undefined) {
+                    const inputField = document.getElementById(`wheel-input-${i}`);
+                    if (inputField && document.activeElement !== inputField) {
+                        inputField.value = data[`text_${i}`];
+                        window.syncWheelText(i);
                     }
                 }
             }
+
+            // 🚀 실시간 스핀 점화 신호 수신
+            if (data.status === 'spinning' && data.spinTriggerTime) {
+                if (window.lastSpinTime !== data.spinTriggerTime && !isWheelSpinning) {
+                    window.lastSpinTime = data.spinTriggerTime;
+                    
+                    // 돌기 시작하면 일시적으로 잠금
+                    for (let i = 0; i < 4; i++) {
+                        const inputField = document.getElementById(`wheel-input-${i}`);
+                        if (inputField) inputField.disabled = true;
+                    }
+                    window.runLocalWheelPhysics(data.targetAngle, data.winnerPrize);
+                }
+            }
         });
-    } catch (e) { console.error("룰렛 복구 엔진 에러:", e); }
+    } catch (e) { console.error("룰렛 리스너 구동 실패:", e); }
 };
 
+// 🚀 2-3. [물리 각도 100% 매칭 완료] 돌리기 버튼 터치 시 당첨 연산 사출기
 window.spinWheel = async function() {
-    const wheelBtn = document.getElementById('wheel-btn');
-    const wheelResult = document.getElementById('wheel-result');
-    
-    if (window.isWheelSpinning) return;
-    
-    // 1. 현재 4개의 입력창에 적힌 따끈따끈한 문구들을 싹 긁어 모으기!
+    if (isWheelSpinning) return;
+
+    // 인풋창 현재 글자 획득
     const t0 = document.getElementById('wheel-input-0').value.trim() || "안마권";
     const t1 = document.getElementById('wheel-input-1').value.trim() || "뽀뽀권";
     const t2 = document.getElementById('wheel-input-2').value.trim() || "소원권";
     const t3 = document.getElementById('wheel-input-3').value.trim() || "야식권";
-    
-    wheelBtn.disabled = true;
-    wheelResult.innerText = "두구두구두구~! 🎡";
 
-    // 2. 랜덤 각도 및 당첨 결과 계산
-    const targetAngle = Math.floor(Math.random() * 360) + 1440; // 4바퀴 이상
-    const prizeIdx = Math.floor(((targetAngle % 360) / 90)); 
+    // 🪄 [12시 바늘 물리 매칭] 원판이 시계방향으로 회전할 때, 12시 바늘 기준 각 칸의 정확한 정지 각도 범위 역산
+    const randomItems = [
+        { prize: t0, minA: 275, maxA: 355 }, // 1번 분홍칸 (안마)
+        { prize: t1, minA: 185, maxA: 265 }, // 2번 주황칸 (뽀뽀)
+        { prize: t2, minA: 95,  maxA: 175 }, // 3번 연두칸 (소원)
+        { prize: t3, minA: 5,   maxA: 85  }  // 4번 하늘칸 (야식)
+    ];
     
-    // 당첨된 인풋창의 글자 가져오기
-    const winnerPrize = document.getElementById(`wheel-input-${prizeIdx}`).value.trim() || "꽝";
+    // 무작위 당첨 조항 초이스
+    const winner = randomItems[Math.floor(Math.random() * randomItems.length)];
+    
+    // 기본 7바퀴(2520도) 회전력을 더해 부드러운 룰렛 무빙 각도 빌드
+    const targetRandomAngle = Math.floor(Math.random() * (winner.maxA - winner.minA)) + winner.minA;
+    const finalTotalRotation = 2520 + targetRandomAngle; 
 
-    // 3. [사다리 방식 도입] 버튼 누른 순간 4개 글자와 상태를 통째로 서버에 꽂아버리기! 🔒
-    const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
     try {
+        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        
+        const uniqueTime = Date.now();
+        window.lastSpinTime = uniqueTime;
+
+        // 사다리 스타일 도입: 상태, 각도, 당첨 문구, 4개 인풋 글자까지 한 세트로 묶어서 서버에 영구 박제!
         await setDoc(doc(window.db, "games", "wheelMatch"), {
             status: 'spinning',
-            targetAngle: targetAngle,
-            winnerPrize: winnerPrize,
-            spinTriggerTime: Date.now(),
-            text_0: t0,
-            text_1: t1,
-            text_2: t2,
-            text_3: t3
+            targetAngle: finalTotalRotation,
+            winnerPrize: winner.prize,
+            spinTriggerTime: uniqueTime,
+            text_0: t0, text_1: t1, text_2: t2, text_3: t3
         });
     } catch(e) { console.error("룰렛 서버 전송 실패:", e); }
-
-    // 4. 5초 뒤 안전장치 해제
-    setTimeout(() => {
-        wheelBtn.disabled = false;
-        window.isWheelSpinning = false;
-    }, 5000);
 };
 
+// 🎡 2-4. [원점 동기화 리플로우 엔진] 3초간 시원하게 회전하는 물리 함수
 window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
+    const wheelBtn = document.getElementById('wheel-btn');
+    if (wheelBtn) wheelBtn.disabled = true;
+    isWheelSpinning = true;
+
     const wheelGraphic = document.getElementById('wheel-graphic');
     const wheelResult = document.getElementById('wheel-result');
     if (!wheelGraphic || !wheelResult) return;
 
-    isWheelSpinning = true;
-
-    // 1. 초기화
+    // 트랜지션 사슬 끄고 0도로 순간 복귀 강제 스냅
     wheelGraphic.style.transition = "none";
     wheelGraphic.style.transform = "rotate(0deg)";
+    wheelGraphic.offsetHeight; // 🔥 브라우저 애니메이션 굳음 현상 박멸하는 특효약 리플로우!
 
-    // 2. 강제 브라우저 리플로우 (이 줄이 있어야 애니메이션이 다시 살아납니다!)
-    wheelGraphic.offsetHeight; 
+    // 0.03초 후 화려한 감속 회전 무빙 시작!
+    setTimeout(() => {
+        wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
+        wheelGraphic.style.transition = "transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)";
+        wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
+    }, 30);
 
-    // 3. 3초간 화려하게 회전 (CSS를 자바스크립트로 강제 주입)
-    wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
-    wheelGraphic.style.transition = "transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)";
-    wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
-
+    // 3초 회전 관람 완료 후 최종 확정 정산
     setTimeout(() => {
         wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
         isWheelSpinning = false;
+        if (wheelBtn) wheelBtn.disabled = false;
+        
+        // 경기가 완벽히 끝났으므로 인풋창 자물쇠 다시 풀기! 🔓
+        for (let i = 0; i < 4; i++) {
+            const inputField = document.getElementById(`wheel-input-${i}`);
+            if (inputField) inputField.disabled = false;
+        }
     }, 3050);
 };
 
-// 🔄 2-5. 룰렛 전용 서버 리셋 스위치
+// 🪄 2-5. [UX 복원 자물쇠 제거 완료] 재진입 시 멈춘 각도만 보여주는 복원 함수
+window.showWheelResultDirectly = async function(targetAngle, winnerPrize) {
+    const wheelGraphic = document.getElementById('wheel-graphic');
+    const wheelResult = document.getElementById('wheel-result');
+    const wheelBtn = document.getElementById('wheel-btn');
+    
+    if (wheelGraphic) {
+        wheelGraphic.style.transition = "none"; 
+        wheelGraphic.style.transform = `rotate(${targetAngle}deg)`; 
+    }
+    if (wheelResult) wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
+    if (wheelBtn) wheelBtn.disabled = false;
+
+    // 🚨 [수술 완료] 기존에 인풋창을 disabled = true로 잠가버리던 낡은 악성 코드를 싹 다 밀어버렸습니다! 🔓
+    // 이제 나갔다 들어왔을 때도 입력창이 부드럽게 활성화되어 수정이 자유롭습니다.
+    try {
+        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        const snap = await getDoc(doc(window.db, "games", "wheelMatch"));
+        if (snap.exists()) {
+            const data = snap.data();
+            for (let i = 0; i < 4; i++) {
+                const inputField = document.getElementById(`wheel-input-${i}`);
+                if (inputField && data[`text_${i}`]) {
+                    inputField.value = data[`text_${i}`];
+                    inputField.disabled = false; // 🔒 잠금 영구 해제 보장
+                }
+                window.syncWheelText(i);
+            }
+        }
+    } catch(e) { console.error("재진입 룰렛 텍스트 최종 복원 실패:", e); }
+};
+
+// 🔄 2-6. 룰렛 전용 서버 리셋 스위치
 window.resetWheelMatch = async function() {
     try {
         const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
