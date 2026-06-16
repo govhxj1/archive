@@ -4152,44 +4152,48 @@ window.spinWheel = async function() {
     }
 };
 
-// 🎡 2-4. [회전 종료 즉시 자물쇠 완전 해제] 3초간 시원하게 회전하는 물리 함수
+// 🎡 2-4. [애니메이션 씹힘 완전 격파] 3초간 시원하게 회전하는 물리 함수
 window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
     const wheelBtn = document.getElementById('wheel-btn');
     const wheelGraphic = document.getElementById('wheel-graphic');
     const wheelResult = document.getElementById('wheel-result');
 
     if (wheelBtn) wheelBtn.disabled = true;
-    window.isWheelSpinning = true; // 🔒 전역 자물쇠 작동 온!
+    window.isWheelSpinning = true; 
 
     if (!wheelGraphic || !wheelResult) return;
 
-    // 🧼 0도로 강제 스냅 복귀
+    // 1. 🔥 [트랜지션 완전 리셋] 애니메이션 연출 사슬을 잠시 완전히 끊고 0도로 순간 복귀시킵니다.
     wheelGraphic.style.transition = "none";
     wheelGraphic.style.transform = "rotate(0deg)";
-    wheelGraphic.offsetHeight; // 브라우저 애니메이션 리플로우 깨우기
+    
+    // 2. 🔥 [강제 렌더링 깨우기] 브라우저한테 0도로 돌아간 상태를 무조건 화면에 그리라고 강제 명령합니다.
+    wheelGraphic.offsetHeight; 
 
-    // 웅장하게 대전환 무빙 가동! 💫
-    setTimeout(() => {
-        wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
-        wheelGraphic.style.transition = "transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)";
-        wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
-    }, 30);
+    // 3. 🔥 [핵심 수술: 브라우저 타이밍 동기화] 브라우저가 다음 화면을 그리는 완벽한 타이밍에 애니메이션을 주입합니다!
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
+            // 자바스크립트로 부드러운 감속 회전(Cubic-bezier) CSS 속성을 강제 주입!
+            wheelGraphic.style.transition = "transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)";
+            wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
+        });
+    });
 
-    // ⏳ 3초 회전 연출 딱 끝나자마자 딜레이 없이 즉시 상태 초기화!
+    // 4. 3초간 화려한 스핀 관람 완료 후 최종 확정 정산
     setTimeout(() => {
         wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
         
-        // 🚨 [오류 진압 포인트] 전역 락 변수와 버튼 비활성화를 동시에 완벽하게 풀어줍니다! 🔓
         window.isWheelSpinning = false; 
         if (wheelBtn) wheelBtn.disabled = false; 
         
-        // 인풋창 다시 활성화
+        // 인풋창 다시 수정 가능하도록 오픈
         for (let i = 0; i < 4; i++) {
             const inputField = document.getElementById(`wheel-input-${i}`);
             if (inputField) inputField.disabled = false;
         }
     }, 3050); // 3.05초 후 정산창 오픈과 동시에 락 완전 해제!
-};
+
 
 // 🪄 2-5. [UX 복원 자물쇠 제거 완료] 재진입 시 멈춘 각도만 보여주는 복원 함수
 window.showWheelResultDirectly = async function(targetAngle, winnerPrize) {
