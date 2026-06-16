@@ -764,14 +764,16 @@
     <div class="dates" id="calendar-dates"></div>
 </div>
 
-<div class="weather-container" id="weather-widget">
+<!-- 🌤️ [수정 완료] 지역 순환 매핑용 날씨 위젯 레이아웃 -->
+<div class="weather-container" id="weather-widget" style="cursor: pointer;">
     <div class="weather-info">
         <div style="display: flex; flex-direction: column; align-items: flex-start;">
             <div class="weather-text">
                 <span id="w-desc">날씨 불러오는 중...</span>
                 <span id="w-clouds" style="font-size: 0.75rem; color: #999; margin-left: 5px;"></span>
             </div>
-            <div class="weather-city">유잼도시 대전</div>
+            <!-- 🚨 id를 추가하여 자바스크립트 순환 엔진이 꽂히도록 수술했습니다! -->
+            <div class="weather-city" id="weather-city-label">유잼도시 대전</div>
         </div>
     </div>
     <div class="weather-temp" id="w-temp">--°C</div>
@@ -1362,17 +1364,16 @@ function renderStars() {
 // 💛 비밀 메뉴 및 하트 알림 기능
 // ==============================================
 
-// 1. 하트 클릭 (기존 핑크색 팝업)
+// 💌 [들킴 방지 완결판] 노란 하트 1회 클릭 즉시 비밀 편지 전면 개방!
 const heartTrigger = document.getElementById('secret-heart-trigger');
 if (heartTrigger) {
     heartTrigger.onclick = () => {
-        secretClickCount++;
-        if (secretClickCount === 5) { 
-            const surpriseOverlay = document.getElementById('surprise-overlay');
-            if(surpriseOverlay) surpriseOverlay.style.display = 'flex'; 
-            secretClickCount = 0; 
+        // 🚨 5번 연타 및 2초 타이머 족쇄를 완전히 분쇄했습니다!
+        const surpriseOverlay = document.getElementById('surprise-overlay');
+        if (surpriseOverlay) {
+            surpriseOverlay.style.display = 'flex'; 
+            console.log("거니의 비밀 편지💛💌");
         }
-        setTimeout(() => { secretClickCount = 0; }, 2000);
     };
 }
 
@@ -1521,39 +1522,42 @@ async function getDaejeonWeather() {
     } catch (e) { document.getElementById('w-desc').innerText = "날씨 로드 실패"; }
 }
 
-document.getElementById('weather-widget').onclick = () => {
-    weatherClickCount++;
-    if (weatherClickCount === 5) {
-        let msg = "";
-        switch(currentWeatherStatus) {
-            case 'Clear': msg = "유미야, 오늘 날씨 진짜 맑다!<br>이런날은 데이트하고싶은데... ☀️💛"; break;
-            case 'Clouds': msg = "하늘에 구름이 많네?<br>별 못봐도 방에서 거니만의 별보러가자! ☁️✨"; break;
-            case 'Rain': msg = "비오면 추울텐데<br> 꼬오옥 안고있을까까? ☔️❣️"; break;
-            case 'Snow': msg = "눈오는 날이면 이제<br>여보가 뛰어 다니던 모습만 생각나 ❄️💗"; break;
-            default: msg = "유미야, 날씨가 어떻든 너가 항상 생각나<br>오늘도 많이 사랑해! 🌈❤️";
-        }
+// 🌤️ [3도심 무한 순환 점화기] 클릭 시 데이터 및 UI 텍스트 동시 변환 엔진
+let currentCityIndex = 0; 
+const cityList = [
+    { name: "Daejeon", krName: "유잼도시 대전" },
+    { name: "Daegu",   krName: "이쁘니의 대구" },
+    { name: "Seoul",   krName: "곰탱이의 서울" }
+];
 
-        const surpriseOverlay = document.getElementById('surprise-overlay');
-        const surpriseContent = document.getElementById('surprise-msg-content');
-        
-        surpriseContent.innerHTML = `<div style="text-align:center; font-size:1.1rem; font-weight:900; padding:10px 0; color: #ffffff;">${msg}</div>`;
-        surpriseContent.parentElement.style.backgroundColor = "var(--point-pink)"; 
-        
-        const closeBtn = surpriseOverlay.querySelector('.btn-delete');
-        if (closeBtn) closeBtn.style.display = 'none';
+document.getElementById('weather-widget').onclick = async () => {
+    // 1. 클릭 시 인덱스 무한 순환 (대전 -> 대구 -> 서울)
+    currentCityIndex = (currentCityIndex + 1) % cityList.length;
+    const targetCity = cityList[currentCityIndex];
 
-        surpriseOverlay.style.display = 'flex';
-        
-        setTimeout(() => {
-            surpriseOverlay.style.display = 'none';
-            if (closeBtn) closeBtn.style.display = 'block';
-            surpriseContent.parentElement.style.backgroundColor = "var(--bg-pink)";
-        }, 2500);
-        
-        weatherClickCount = 0;
+    console.log(`[날씨 전환] ${targetCity.krName} 날씨 로딩 시작! 🔄`);
+
+    // 2. HTML 화면의 도시 라벨을 즉시 변환!
+    const cityLabel = document.getElementById('weather-city-label');
+    if (cityLabel) {
+        cityLabel.innerText = targetCity.krName;
     }
-    clearTimeout(window.weatherTimer);
-    window.weatherTimer = setTimeout(() => { weatherClickCount = 0; }, 2000);
+
+    // 3. 🚨 [기존 API 함수 강제 리로드] 
+    // 거니님이 기존에 짜두신 날씨 연동 함수(예: fetchWeather)에 새 도시 영문명을 찔러줍니다.
+    try {
+        if (typeof window.fetchWeather === 'function') {
+            await window.fetchWeather(targetCity.name);
+        } else if (typeof window.getWeather === 'function') {
+            await window.getWeather(targetCity.name);
+        } else if (typeof fetchWeather === 'function') {
+            await fetchWeather(targetCity.name);
+        } else {
+            console.warn("날씨 API 함수를 찾지 못했습니다. 기존 코드를 확인해 주세요!");
+        }
+    } catch (e) {
+        console.error("날씨 리로드 실패:", e);
+    }
 };
 
 function initStickers() {
