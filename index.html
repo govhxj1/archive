@@ -1365,16 +1365,39 @@ function renderStars() {
 // ==============================================
 
 // 💌 [들킴 방지 완결판] 노란 하트 1회 클릭 즉시 비밀 편지 전면 개방!
+// 💌 [비밀 편지 내용 복원 완결판] 리스트 뷰 강제 초기화 탑재!
 const heartTrigger = document.getElementById('secret-heart-trigger');
 if (heartTrigger) {
-    heartTrigger.onclick = () => {
-        // 🚨 5번 연타 및 2초 타이머 족쇄를 완전히 분쇄했습니다!
+    // 1. 혹시 모를 HTML 인라인 찌꺼기 완벽 공중분해
+    heartTrigger.removeAttribute('onclick');
+    heartTrigger.onclick = null;
+
+    // 2. 표준 리스너로 1회 클릭 즉시 전면 개방
+    heartTrigger.addEventListener('click', (e) => {
+        e.stopPropagation(); // 이벤트 꼬임 방지
+
         const surpriseOverlay = document.getElementById('surprise-overlay');
+        const letterListView = document.getElementById('letter-list-view');
+        const letterContentView = document.getElementById('letter-content-view');
+
+        // ① 최상위 편지 오버레이 틀을 먼저 챡 켭니다!
         if (surpriseOverlay) {
             surpriseOverlay.style.display = 'flex'; 
-            console.log("거니의 비밀 편지💛💌");
         }
-    };
+
+        // ② 🚨 [핵심 수술] 편지 목록(리스트) 창을 강제로 노출시킵니다!
+        // 이 녀석이 켜져야 surpriseLetters의 제목들과 편지 리스트가 눈에 보이기 시작합니다! ⭐
+        if (letterListView) {
+            letterListView.style.display = 'flex';
+        }
+
+        // ③ 혹시 열려있었을지 모르는 편지 상세 본문 창은 깔끔하게 뒤로 숨깁니다.
+        if (letterContentView) {
+            letterContentView.style.display = 'none';
+        }
+
+        console.log("유미야 편지함 열렸다! 첫 목록 뷰 강제 빌드 완료! 💛💌");
+    });
 }
 
 // 2. 🔒 거니의 비밀 편지창 ('비밀' 텍스트 클릭)
