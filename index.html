@@ -4190,45 +4190,50 @@ window.spinWheel = async function() {
     }
 };
 
-// 🎡 2-4. [CSS 메모리 강제 세척 버전] 연속 애니메이션 100% 보장 물리 엔진
+// 🎡 2-4. [초기 로딩 렉 완파 버전] 첫 클릭부터 100% 쌩쌩 도는 물리 엔진
 window.runLocalWheelPhysics = function(targetAngle, winnerPrize) {
     const wheelBtn = document.getElementById('wheel-btn');
     const wheelGraphic = document.getElementById('wheel-graphic');
     const wheelResult = document.getElementById('wheel-result');
 
     if (wheelBtn) wheelBtn.disabled = true;
-    window.isWheelSpinning = true; // 자물쇠 작동 온
+    window.isWheelSpinning = true; 
 
     if (!wheelGraphic || !wheelResult) return;
 
-    // 이전 판의 CSS 기억 완전 세척 및 원점 복귀
+    // ① 이전 판의 CSS 기억 완전 세척 및 0도 원점 강제 스냅
     wheelGraphic.style.removeProperty('transition'); 
     wheelGraphic.style.transition = "none";
     wheelGraphic.style.transform = "rotate(0deg)";
-    wheelGraphic.offsetHeight; // 강제 리플로우
+    wheelGraphic.offsetHeight; // 브라우저 화면 강제 새로고침(리플로우)
 
-    // 0.1초 숨고르기 후 웅장한 3초 스핀 강제 주입!
+    // ② 🚨 [핵심 수술] 대기 시간을 0.1초에서 0.25초(250ms)로 넉넉하게 버퍼를 줍니다!
+    // 이렇게 하면 새로고침 직후 브라우저가 바쁜 상황에서도 0도 복귀를 완벽히 인지한 후, 
+    // 첫 번째 클릭부터 단 한 번의 씹힘도 없이 웅장하게 회전 애니메이션을 출격시킵니다! ⭐
     setTimeout(() => {
         if (wheelResult) wheelResult.innerText = "두구두구두구 돌아갑니다아~! 🎡✨";
+        
+        // 확실하게 정돈된 타이밍에 cubic-bezier 가속도 엔진 주입
         wheelGraphic.style.setProperty('transition', 'transform 3.0s cubic-bezier(0.15, 0.85, 0.35, 1)');
         wheelGraphic.style.transform = `rotate(${targetAngle}deg)`;
-    }, 100); 
+    }, 250); // 💡 0.25초의 황금 물리적 숨고르기 타임아웃
 
-    // 3.05초 관람 완료 후 최종 정산
+    // ③ 3초간 스핀 연출 관람 완료 후 최종 정산
     setTimeout(() => {
         if (wheelResult) {
             wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
         }
         
-        window.isWheelSpinning = false; // 자물쇠 완벽 오프!
-        window.isLocalClickTriggered = false; // 트리거 청소
+        window.isWheelSpinning = false; // 자물쇠 완벽 오프
+        window.isLocalClickTriggered = false; // 트리거 리셋
         if (wheelBtn) wheelBtn.disabled = false; 
         
+        // 인풋창 수정 락 해제
         for (let i = 0; i < 4; i++) {
             const inputField = document.getElementById(`wheel-input-${i}`);
             if (inputField) inputField.disabled = false;
         }
-    }, 3200); 
+    }, 3350); // 대기 시간이 150ms 늘어났으므로 정산 타이밍도 3.35초로 정밀 싱크 매칭!
 };
 
 // 🪄 2-5. 재진입 시 복원 함수
