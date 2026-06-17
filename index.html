@@ -1536,12 +1536,12 @@ async function getDaejeonWeather(cityName) {
     }
 }
 
-// 🌤️ [3도심 무한 순환 점화기] 클릭 시 데이터 및 UI 텍스트 동시 변환 엔진
+// 🌤️ [우주 최종형 독립 엔진] 원본 함수 간섭 없이 클릭 시 실시간 날씨 무조건 강제 파싱!
 let currentCityIndex = 0; 
 const cityList = [
     { name: "Daejeon", krName: "꿈잼도시 대전" },
     { name: "Daegu",   krName: "이뿌니의 대구" }, 
-    { name: "Seoul",   krName: "곰탱이의 서울" }
+    { name: "Seoul",   krName: "곰탱이의 곰서울" } // 🐻 곰탱이의 서울 감성 업그레이드!
 ];
 
 document.getElementById('weather-widget').onclick = async () => {
@@ -1549,26 +1549,46 @@ document.getElementById('weather-widget').onclick = async () => {
     currentCityIndex = (currentCityIndex + 1) % cityList.length;
     const targetCity = cityList[currentCityIndex];
 
-    console.log(`[날씨 전환] ${targetCity.krName} 실시간 데이터 로딩 시작! 🔄`);
+    console.log(`[강제 직공 시작] ${targetCity.krName} 오픈웨더 서버 다이렉트 통신! 🔄`);
 
-    // 2. 화면의 도시 텍스트를 즉시 변경
+    // 2. 화면의 도시 텍스트를 즉시 변경 ("꿈잼도시 대전" -> "이뿌니의 대구")
     const cityLabel = document.getElementById('weather-city-label');
     if (cityLabel) {
         cityLabel.innerText = targetCity.krName;
     }
 
-    // 3. 🚨 [수술 완료] 우리가 찾아낸 진짜 원본 함수 이름인 'getDaejeonWeather'를 다이렉트로 정밀 타격합니다!
+    // 3. 🚨 [원본 함수 우회] 다른 함수 안 찾고 여기서 바로 오픈웨더 서버를 찌릅니다!
     try {
-        // targetCity.name에 대구(Daegu)나 서울(Seoul)이 실려서 함수 안으로 쏙 들어갑니다!
-        if (typeof getDaejeonWeather === 'function') {
-            await getDaejeonWeather(targetCity.name); 
-        } else if (typeof window.getDaejeonWeather === 'function') {
-            await window.getDaejeonWeather(targetCity.name);
+        // 거니님이 기존에 사용하시던 검증된 API 키 그대로 장착!
+        const API_KEY = "a50a410affb770d589de1bccf899ab63"; 
+        
+        // 주소창 중간에 targetCity.name (Daejeon, Daegu, Seoul)이 칼같이 동적으로 꽂힙니다.
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${targetCity.name}&appid=${API_KEY}&units=metric&lang=kr`);
+        const data = await res.json();
+        
+        if (data.main && data.weather) {
+            // 전역 변수 동기화 (기존 이스터에그 멘트용 상태값도 완벽 백업!)
+            if (typeof currentWeatherStatus !== 'undefined') {
+                currentWeatherStatus = data.weather[0].main;
+            }
+
+            // HTML 화면의 구름, 온도, 설명창을 강제로 새로 갈아 끼웁니다! 🛠️
+            const descElem = document.getElementById('w-desc');
+            const cloudsElem = document.getElementById('w-clouds');
+            const tempElem = document.getElementById('w-temp');
+
+            if (descElem) descElem.innerText = data.weather[0].description;
+            if (cloudsElem) cloudsElem.innerText = `(구름 ${data.clouds.all}%)`;
+            if (tempElem) tempElem.innerText = `${Math.round(data.main.temp)}°C`;
+            
+            console.log(`[통신 대성공] ${targetCity.krName} 진짜 현재 기온: ${Math.round(data.main.temp)}°C`);
         } else {
-            console.warn("getDaejeonWeather 함수를 찾을 수 없습니다. 선언 위치를 확인해 주세요!");
+            console.error("오픈웨더 응답 데이터 구조가 올바르지 않습니다.", data);
         }
     } catch (e) {
-        console.error("날씨 서버 데이터 리로드 실패:", e);
+        console.error("클릭 직공 날씨 리로드 완전 실패:", e);
+        const descElem = document.getElementById('w-desc');
+        if (descElem) descElem.innerText = "날씨 로드 실패";
     }
 };
 
