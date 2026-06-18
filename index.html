@@ -2880,20 +2880,29 @@ window.backToLetterList = function() {
 };
 
 
-// 🪄 const 선언도, 대입(=)도 안 쓰고 직접 이벤트를 꽂아버리는 무적의 진압 공식! ⭐
+// 💌 [비밀 편지함 목록 렌더링 완벽 연동 버전] 1회 클릭 즉시 책장 그리고 전면 개방!
 if (document.getElementById('secret-heart-trigger')) {
-    document.getElementById('secret-heart-trigger').onclick = () => {
-        secretClickCount++;
-        if (secretClickCount === 5) { 
-            const surpriseOverlay = document.getElementById('surprise-overlay');
-            if (surpriseOverlay) {
-                renderLetterList(); // 📚 편지 책장 리스트 렌더링
-                surpriseOverlay.style.display = 'flex'; // 팝업창 가동!
-            }
-            secretClickCount = 0; 
+    const heartIcon = document.getElementById('secret-heart-trigger');
+    
+    // 1. HTML 인라인에 묻어있을지 모르는 옛날 5타 족쇄 완벽 청소
+    heartIcon.removeAttribute('onclick');
+    heartIcon.onclick = null;
+
+    // 2. 1방에 편지 그리기 + 문 열기 마법 꽂기
+    heartIcon.onclick = (e) => {
+        if (e) e.stopPropagation(); // 알림 배지 등 이벤트 전파 방지
+
+        const surpriseOverlay = document.getElementById('surprise-overlay');
+        if (surpriseOverlay) {
+            // ① 🚨 [핵심 수술] 숨어있던 renderLetterList 함수를 먼저 호출합니다!
+            // 이 녀석이 먼저 실행되어야 surpriseLetters 장부를 읽어 핑크색 버튼들을 새로 싹 그려냅니다. ⭐
+            renderLetterList(); 
+            
+            // ② 알맹이가 다 채워진 웅장한 팝업창을 화면에 드디어 표출!
+            surpriseOverlay.style.display = 'flex'; 
+            
+            console.log("거니의 비밀 편지함 1타 즉시 오픈 및 목록 렌더링 성공! 💛💌");
         }
-        clearTimeout(window.heartTimer);
-        window.heartTimer = setTimeout(() => { secretClickCount = 0; }, 2000);
     };
 }
     
