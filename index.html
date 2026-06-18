@@ -2837,28 +2837,30 @@ const surpriseLetters = {
 말해도 말해도 모자라지만, 오늘도 세상에서 제일 많이 사랑하고 보고 싶어 유미야! 💖` } 
 }
 
+// 📂 [오타 교정 완결판] 장부의 편지들을 바탕으로 이쁜 핑크빛 선택 버튼들을 자동 생성! 🛠️
 function renderLetterList() {
     const listContainer = document.getElementById('surprise-menu-list');
     if (!listContainer) return;
-    listContainer.innerHTML = ""; 
+
+    listContainer.innerHTML = ""; // 기존 목록 청소
 
     Object.entries(surpriseLetters).forEach(([num, data]) => {
         const btn = document.createElement('button');
-        btn.style.cssText = "width: 100%; padding: 14px; background: #fff0f3; border: 1.5px solid #ffafcc; border-radius: 15px; color: #ff4d6d; font-weight: 900; font-size: 0.9rem; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px;";
+        btn.style.cssText = "width: 100%; padding: 14px; background: #fff0f3; border: 1.5px solid #ffafcc; border-radius: 15px; color: #ff4d6d; font-weight: 900; font-size: 0.9rem; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(255,175,204,0.15); transition: 0.2s;";
         btn.innerHTML = `<span>💌</span> <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${data.title}</span>`;
         
+        // 버튼 누르면 본문 읽기 화면으로 스위칭!
         btn.onclick = () => window.openLetterContent(num);
         listContainer.appendChild(btn);
     });
 
-    document.getElementById('letter-list-view').style.style.display = 'flex';
-    document.getElementById('letter-content-view').style.display = 'none';
-}
+    // 🚨 [수술 완료] style.style 중복 오타를 style.display 하나로 완벽하게 청소했습니다! ⭐
+    const listView = document.getElementById('letter-list-view');
+    const contentView = document.getElementById('letter-content-view');
 
-    // 화면 무조건 목록 모드로 리셋
-    document.getElementById('letter-list-view').style.display = 'flex';
-    document.getElementById('letter-content-view').style.display = 'none';
-}
+    if (listView) listView.style.display = 'flex';
+    if (contentView) contentView.style.display = 'none';
+} // 짝꿍이 완벽하게 맞아떨어지는 마법의 닫는 중괄호
 
 // 📖 특정 편지를 클릭했을 때 본문을 보여주는 함수
 window.openLetterContent = function(num) {
