@@ -1572,30 +1572,28 @@ document.getElementById('weather-widget').onclick = async () => {
     currentCityIndex = (currentCityIndex + 1) % cityList.length;
     const targetCity = cityList[currentCityIndex];
 
-    console.log(`[강제 직공 시작] ${targetCity.krName} 오픈웨더 서버 다이렉트 통신! 🔄`);
+    console.log(`[날씨 전환] ${targetCity.krName} 실시간 데이터 로딩 시작! 🔄`);
 
-    // 2. 화면의 도시 텍스트를 즉시 변경 ("꿈잼도시 대전" -> "이뿌니의 대구")
+    // 2. 화면의 도시 텍스트를 즉시 변경
     const cityLabel = document.getElementById('weather-city-label');
     if (cityLabel) {
         cityLabel.innerText = targetCity.krName;
     }
 
-    // 3. 🚨 [원본 함수 우회] 다른 함수 안 찾고 여기서 바로 오픈웨더 서버를 찌릅니다!
+    // 3. 🚨 [철벽 가드] 오픈웨더 서버 통신 중 에러가 나더라도 편지함 등 다른 기능에 절대 전염되지 않도록 격리!
     try {
-        // 거니님이 기존에 사용하시던 검증된 API 키 그대로 장착!
+        // 거니님의 검증된 API 키 직접 매핑
         const API_KEY = "a50a410affb770d589de1bccf899ab63"; 
-        
-        // 주소창 중간에 targetCity.name (Daejeon, Daegu, Seoul)이 칼같이 동적으로 꽂힙니다.
         const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${targetCity.name}&appid=${API_KEY}&units=metric&lang=kr`);
         const data = await res.json();
         
         if (data.main && data.weather) {
-            // 전역 변수 동기화 (기존 이스터에그 멘트용 상태값도 완벽 백업!)
+            // 전역 변수 안전하게 백업 (혹시 선언 안 되어 있어도 에러 안 나게 처리)
             if (typeof currentWeatherStatus !== 'undefined') {
                 currentWeatherStatus = data.weather[0].main;
             }
 
-            // HTML 화면의 구름, 온도, 설명창을 강제로 새로 갈아 끼웁니다! 🛠️
+            // HTML 화면 엘리먼트 존재 여부 검사 후 안전하게 주입!
             const descElem = document.getElementById('w-desc');
             const cloudsElem = document.getElementById('w-clouds');
             const tempElem = document.getElementById('w-temp');
@@ -1604,12 +1602,11 @@ document.getElementById('weather-widget').onclick = async () => {
             if (cloudsElem) cloudsElem.innerText = `(구름 ${data.clouds.all}%)`;
             if (tempElem) tempElem.innerText = `${Math.round(data.main.temp)}°C`;
             
-            console.log(`[통신 대성공] ${targetCity.krName} 진짜 현재 기온: ${Math.round(data.main.temp)}°C`);
-        } else {
-            console.error("오픈웨더 응답 데이터 구조가 올바르지 않습니다.", data);
+            console.log(`[통신 성공] ${targetCity.krName} 진짜 기온: ${Math.round(data.main.temp)}°C`);
         }
     } catch (e) {
-        console.error("클릭 직공 날씨 리로드 완전 실패:", e);
+        // 🚨 서버 통신이 실패하더라도 에러를 여기서 완전히 소멸시켜 자바스크립트 전체 셧다운을 막습니다.
+        console.error("날씨 서버 리로드 중 차단된 에러:", e);
         const descElem = document.getElementById('w-desc');
         if (descElem) descElem.innerText = "날씨 로드 실패";
     }
