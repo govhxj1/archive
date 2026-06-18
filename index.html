@@ -2837,30 +2837,56 @@ const surpriseLetters = {
 말해도 말해도 모자라지만, 오늘도 세상에서 제일 많이 사랑하고 보고 싶어 유미야! 💖` } 
 }
 
-// 📂 [오타 교정 완결판] 장부의 편지들을 바탕으로 이쁜 핑크빛 선택 버튼들을 자동 생성! 🛠️
+// 📂 [렌더링 100% 보장 버전] 그릇이 없으면 만들어서라도 목록을 채우는 함수
 function renderLetterList() {
-    const listContainer = document.getElementById('surprise-menu-list');
-    if (!listContainer) return;
+    // 1. 버튼들이 들어갈 메인 리스트 컨테이너를 찾습니다.
+    let listContainer = document.getElementById('surprise-menu-list');
+    
+    // 🚨 [긴급 수술 가드] 만약 HTML에 surprise-menu-list 라는 ID가 없거나 꼬였다면?
+    if (!listContainer) {
+        console.warn("['surprise-menu-list'] 그릇을 못 찾아서 대안 영역을 탐색합니다!");
+        // 편지 목록 전체 뷰인 letter-list-view를 대안으로 붙잡습니다.
+        const listView = document.getElementById('letter-list-view');
+        if (listView) {
+            // 목록 뷰 내부에 버튼을 담을 수 있는 div를 실시간으로 강제 생성해 버립니다!
+            listContainer = document.createElement('div');
+            listContainer.id = 'surprise-menu-list';
+            listContainer.style.cssText = "width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 15px; margin-bottom: 15px; max-height: 60vh; overflow-y: auto;";
+            
+            // 타이틀 아래, 닫기 버튼 위에 쏙 끼워 넣기 위해 하단 버튼 앞에 배치합니다.
+            const closeBtn = listView.querySelector('button') || listView.lastChild;
+            listView.insertBefore(listContainer, closeBtn);
+        }
+    }
 
-    listContainer.innerHTML = ""; // 기존 목록 청소
+    // 2. 그릇 확보 완료되었다면 내부 청소 후 진짜 편지 버튼 조립 시작!
+    if (listContainer) {
+        listContainer.innerHTML = ""; // 기존 찌꺼기 청소
 
-    Object.entries(surpriseLetters).forEach(([num, data]) => {
-        const btn = document.createElement('button');
-        btn.style.cssText = "width: 100%; padding: 14px; background: #fff0f3; border: 1.5px solid #ffafcc; border-radius: 15px; color: #ff4d6d; font-weight: 900; font-size: 0.9rem; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(255,175,204,0.15); transition: 0.2s;";
-        btn.innerHTML = `<span>💌</span> <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${data.title}</span>`;
-        
-        // 버튼 누르면 본문 읽기 화면으로 스위칭!
-        btn.onclick = () => window.openLetterContent(num);
-        listContainer.appendChild(btn);
-    });
+        // 장부에 등록된 편지들을 바탕으로 이쁜 핑크빛 선택 버튼들을 생성!
+        Object.entries(surpriseLetters).forEach(([num, data]) => {
+            const btn = document.createElement('button');
+            // 유미님이 한눈에 알아보기 쉬운 핑크빛 감성 스타일링 박제
+            btn.style.cssText = "width: 100%; padding: 14px; background: #fff0f3; border: 1.5px solid #ffafcc; border-radius: 15px; color: #ff4d6d; font-weight: 900; font-size: 0.9rem; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(255,175,204,0.15); margin-bottom: 8px; transition: 0.2s;";
+            btn.innerHTML = `<span>💌</span> <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${data.title}</span>`;
+            
+            // 버튼 누르면 본문 읽기 화면으로 스위칭!
+            btn.onclick = () => window.openLetterContent(num);
+            listContainer.appendChild(btn);
+        });
+        console.log(`[렌더링 완료] 총 ${Object.keys(surpriseLetters).length}개의 편지 버튼을 완벽히 주입했습니다! 🎯`);
+    } else {
+        console.error("편지 리스트를 그려줄 수 있는 HTML 기준점(DOM)이 전혀 존재하지 않습니다!");
+    }
 
-    // 🚨 [수술 완료] style.style 중복 오타를 style.display 하나로 완벽하게 청소했습니다! ⭐
+    // 3. 화면을 목록 모드로 확실하게 전환
     const listView = document.getElementById('letter-list-view');
     const contentView = document.getElementById('letter-content-view');
 
     if (listView) listView.style.display = 'flex';
     if (contentView) contentView.style.display = 'none';
-} // 짝꿍이 완벽하게 맞아떨어지는 마법의 닫는 중괄호
+}
+    
 
 // 📖 특정 편지를 클릭했을 때 본문을 보여주는 함수
 window.openLetterContent = function(num) {
