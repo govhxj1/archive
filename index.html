@@ -3466,7 +3466,8 @@ const collectionData = {
     "📽️": "띠잉! 마리오!! 유미와의 첫 영화데이트.",
     "🛁": "수영복 입고하자며!? 유미가 제일좋아하는 힐링데이트",
     "🎮": "스킨가득한 롤도 재미있지?",
-    "✈️": "곤니찌와!! 유미와 꼭 가고싶은 일본여행"
+    "✈️": "곤니찌와!! 유미와 꼭 가고싶은 일본여행",
+    "🔒": "열심히 찾았넹?ㅎㅎ 근데 이게 마지막이 아닌데?ㅎㅎ 과거로 돌아가도 나는 유미를 찾아갈거야! 사랑해 유미야💛"
 
 };
     
@@ -3483,11 +3484,10 @@ const collectionData = {
     if (sideMenu) sideMenu.style.display = 'none';
     if (mainOverlay) mainOverlay.style.display = 'none';
 
-    // 2. 도감 상자부터 먼저 띄우기 (사용자 대기 방지 ⚡)
+    // 2. 도감 상자 레이아웃 확보 및 로딩 문구 주입
     const grid = document.getElementById('collection-grid');
-    
     if (collectionOverlay) collectionOverlay.style.display = 'flex';
-    if (grid) grid.innerHTML = '<div style="grid-column: span 5; color:#D7CCC8; padding:20px; font-weight:bold;">책장에서 기록을 꺼내오는 중... 📖</div>';
+    if (grid) grid.innerHTML = '<div style="grid-column: 1 / -1; color:#D7CCC8; padding:20px; font-weight:bold; text-align:center;">책장에서 기록을 꺼내오는 중... 📖</div>';
 
     try {
         // 3. 파이어베이스 데이터 가져오기
@@ -3496,17 +3496,42 @@ const collectionData = {
         const ownedItems = [];
         querySnapshot.forEach((doc) => ownedItems.push(doc.id));
 
-        // 🎯 [나우의 무적 방어막] 유미님이 도감을 열었을 때 이미 30개를 다 모은 상태라면?
-        const totalCount = Object.keys(collectionData).length; // 전체 도감 개수 (30개)
-        if (ownedItems.length >= totalCount) {
+        // 🚨 [진짜 최종 판정 가드] 유미님이 모은 도감 개수가 30개 이상인지 체크!
+        const isAllMaster = ownedItems.length >= 30; 
+
+        if (isAllMaster) {
+            // ① 타임어택 버튼 원천 봉쇄 🔒
             const timeAttackBtn = document.getElementById('time-attack-btn');
-            // 새로고침하고 도감 열었을 때 타임어택 버튼이 영구히 안 보이도록 원천 봉쇄! 🔒
             if (timeAttackBtn) timeAttackBtn.style.setProperty('display', 'none', 'important');
             console.log("👑 올 마스터 달성 상태 확인: 타임어택 버튼을 숨깁니다.");
+
+            // ② 🔥 가로 5칸 판데기를 -> 가로 7칸(7fr) 구조로 웅장하게 리모델링!
+            if (grid) {
+                grid.style.setProperty('display', 'grid', 'important');
+                grid.style.setProperty('grid-template-columns', 'repeat(7, 1fr)', 'important');
+            }
+        } else {
+            // 💡 30개를 아직 다 못 모은 일반 상태라면 기존 가로 5칸 격자 레이아웃 유지
+            if (grid) {
+                grid.style.setProperty('display', 'grid', 'important');
+                grid.style.setProperty('grid-template-columns', 'repeat(5, 1fr)', 'important');
+            }
         }
 
-        // 4. 도감 채우기
-        grid.innerHTML = ""; // 로딩 문구 제거
+        // 4. 도감 판 청소
+        grid.innerHTML = ""; 
+
+        // 🚨 [핵심 기믹] 올 마스터 상태라면 세로 첫 줄, 가로 4번째부터 시작하도록 
+        // 앞에 1번, 2번, 3번 칸을 텅 빈 투명 상자(더미)로 채워 밀어버립니다! 🧩
+        if (isAllMaster) {
+            for (let dummy = 0; dummy < 3; dummy++) {
+                const emptyBox = document.createElement('div');
+                emptyBox.style.cssText = "visibility: hidden; aspect-ratio: 1/1;"; 
+                grid.appendChild(emptyBox);
+            }
+        }
+
+        // 5. 팀장님이 직접 채워두실 collectionData (총 31개) 장부를 돌며 오와 열 맞춰 생성!
         Object.entries(collectionData).forEach(([icon, message]) => {
             const itemBox = document.createElement('div');
             const isOwned = ownedItems.includes(icon);
@@ -3524,6 +3549,7 @@ const collectionData = {
                 cursor: ${isOwned ? 'pointer' : 'default'};
             `;
             
+            // 획득했으면 팀장님이 지정한 이모지 아이콘, 아직 안 모았으면 비밀의 물음표(?) 표시!
             itemBox.innerText = isOwned ? icon : "?";
 
             if (isOwned) {
@@ -3531,9 +3557,10 @@ const collectionData = {
             }
             grid.appendChild(itemBox);
         });
+
     } catch (e) { 
         console.error("도감 로딩 에러:", e);
-        if (grid) grid.innerHTML = '<div style="grid-column: span 5; color:#ff8fab;">기록을 불러오지 못했어요. 😢</div>';
+        if (grid) grid.innerHTML = '<div style="grid-column: 1 / -1; color:#ff8fab; text-align:center;">기록을 불러오지 못했어요. 😢</div>';
     }
 };
 
