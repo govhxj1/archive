@@ -3117,9 +3117,10 @@ onSnapshot(doc(window.db, "settings", "attack_times"), (snap) => {
 });
 
 // 🕵️ 1초마다 체크하는 상시 감시 타이머
+// 🕵️ [오타 완벽 교정] 1초마다 체크하는 상시 감시 타이머 (31번째 히든 미션 연동 버전)
 setInterval(async () => {
     const now = new Date();
-    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0 Parth')}`;
+    // 🚨 '0 Parth' 오타를 깔끔하게 지우고 원래의 포맷으로 완벽 복구했습니다! ⭐
     const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     const btn = document.getElementById('time-attack-btn');
     
@@ -3135,7 +3136,7 @@ setInterval(async () => {
         
         const ownedItems = [];
         querySnapshot.forEach((doc) => ownedItems.push(doc.id));
-        const ownedCount = ownedItems.length; // 유미가 현재 보유한 도감 개수 (예: 29개, 30개, 31개)
+        const ownedCount = ownedItems.length; // 유미가 현재 보유한 도감 개수 (29개, 30개, 31개)
 
         // -------------------------------------------------------------------------
         // 👑 조건 1: 대망의 31개를 '완전히' 꽉 채웠다면? 미션 진짜 종결이므로 버튼 완전 영구 삭제! 🔒
@@ -3164,6 +3165,7 @@ setInterval(async () => {
         }
 
     } catch (e) {
+        console.error("타임어택 실시간 감시 에러 감지:", e);
         // 혹시 인터넷 끊김 등으로 에러가 나면, 멈추지 말고 기존 원래 시간표 로직으로 안전하게 백업 작동
         if (window.attackTimes && window.attackTimes.includes(currentTimeStr) && lastDone !== currentTimeStr) {
             btn.style.display = 'block';
