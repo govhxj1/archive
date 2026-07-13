@@ -1714,14 +1714,20 @@ function renderCalendar() {
         let anniv = (diff === 100 || diff === 200 || diff === 300) ? `${diff}일` : "";
         if (viewMonth === 0 && i === 10 && viewYear > 2026) anniv = `${viewYear-2026}주년`;
 
+        // 🚨 [보안 가드 작동] 2026년 4월 30일에는 글이 있어도 하트 노출을 원천 봉쇄합니다! 🤫🔒
+        const shouldShowHeart = (dateKey === "2026-04-30") 
+            ? false 
+            : (data.comments && data.comments.length > 0);
+
         cell.innerHTML = `
             <div class="date-header">
                 <span class="date-num">${i}</span>
-                ${(data.comments && data.comments.length > 0) ? '<span class="record-heart">💛</span>' : ''}
+                ${shouldShowHeart ? '<span class="record-heart">💛</span>' : ''}
             </div>
             <span class="sticker-display">${data.sticker || ""}</span>
             ${anniv ? `<span class="anniv-label">${anniv}</span>` : ''}
         `;
+        
         cell.onclick = () => {
             if (viewYear === 1994 && viewMonth === 3 && i === 12) {
                 const timeOverlay = document.getElementById('time-travel-overlay');
