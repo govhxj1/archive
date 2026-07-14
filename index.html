@@ -1150,6 +1150,11 @@
             <button onclick="openTimeSetting()" style="width: 100%; background: #222; border: 1px solid #7ed6df; padding: 15px; border-radius: 12px; color: #7ed6df; font-weight: 900; cursor: pointer; font-size: 0.95rem;">
                 ⏰ 타임어택 시간 설정
             </button>
+            
+            <!-- 메뉴 4: 유미톡톡 힌트 설정 -->
+            <button onclick="openTolkHintEditor()" style="width: 100%; background: #222; border: 1px solid #c8e6c9; padding: 15px; border-radius: 12px; color: #a5d6a7; font-weight: 900; cursor: pointer; font-size: 0.95rem;">
+                💬 유미톡톡 힌트 설정
+            </button>
         </div>
         
         <!-- 하단 나가기 -->
@@ -3485,6 +3490,102 @@ setInterval(async () => {
 }, 1000);
 
     
+
+    // -------------------------------------------------------------------------
+// 🛠️ [Goni Admin 신규 추가] 허브에서 유미톡톡 비밀번호 힌트 설정하는 함수
+// -------------------------------------------------------------------------
+window.openTolkHintEditor = async function() {
+    // 🚨 [보안 가드] 허브 대문 통과 안 했으면 튕겨내기
+    if (!window.isAdminVerified) return alert("🔒 접근 권한이 없습니다.");
+
+    try {
+        // 1. 기존 파이어베이스에 저장된 마스터 힌트가 있는지 먼저 조회
+        const activeDocRef = doc(window.db, "settings", "tolktolk_active");
+        const activeSnap = await getDoc(activeDocRef);
+        const currentHint = activeSnap.exists() ? (activeSnap.data().hint || "") : "";
+
+        // 2. 관리자 팝업창 잠시 숨기고 입력 받기
+        document.getElementById('admin-hub-overlay').style.display = 'none';
+        
+        const newHint = prompt("유미톡톡 자물쇠 클릭 시 보여줄 '비밀번호 힌트'를 입력해 주세요! 🤔\n(예: 우리 처음 만난 날, 오빠가 제일 좋아하는 메뉴 등)", currentHint);
+        
+        if (newHint !== null) {
+            // 3. 파이어베이스 settings/tolktolk_active 문서의 'hint' 필드에 단독 저장! 🚀
+            await setDoc(activeDocRef, { hint: newHint.trim() }, { merge: true });
+            alert("유미톡톡 비밀번호 힌트 세팅 완료! ⚡ 자물쇠 누르면 바로 튀어나옵니다.");
+        }
+    } catch (e) {
+        console.error("힌트 저장 에러:", e);
+        alert("힌트 저장에 실패했습니다. 😭");
+    }
+    
+    // 4. 입력 끝나면 다시 관리자 허브 메인 열기
+    document.getElementById('admin-hub-overlay').style.display = 'flex';
+};
+
+
+// -------------------------------------------------------------------------
+// ✍️ [유미톡톡 스크립트 구역 교체] 답변 등록 기믹 (허브 힌트 자동 연동형)
+// -------------------------------------------------------------------------
+window.handleAnswerWrite = async function() {
+    const newA = prompt("비밀 답변을 적어주세요! (금요일 밤 10시까지 완벽 은폐됩니다) 💌");
+    if (!newA || !newA.trim()) return;
+
+    const pw = prompt("답변 수정 및 봉인용 비밀번호를 지정해 주세요! 🔑\n(나중에 수정할 때 비밀번호를 입력해야 합니다)");
+    if (!pw || !pw.trim()) {
+        alert("보안을 위해 반드시 비밀번호를 입력해 주셔야 답변 저장이 가능합니다! 🔒");
+        return;
+    }
+
+    // 🚀 이제 힌트는 허브에서 일괄 관리하므로 여기서는 답변과 패스워드만 깔끔하게 저장합니다!
+    const activeDocRef = doc(window.db, "settings", "tolktolk_active");
+    await setDoc(activeDocRef, { 
+        answer: newA.trim(), 
+        password: pw.trim() 
+    }, { merge: true });
+
+    alert("답변이 성공적으로 잠금 보관되었습니다! 🔒✨");
+    await loadTolkTolkData();
+};
+
+
+// -------------------------------------------------------------------------
+// ✍️ [유미톡톡 스크립트 구역 교체] 자물쇠 해제 및 수정 기믹 (허브 힌트 완벽 추출)
+// -------------------------------------------------------------------------
+window.handleAnswerEdit = async function(registeredPassword) {
+    // 1. 파이어베이스에서 [Goni 관리자 허브]를 통해 저장해둔 힌트 텍스트 긁어오기
+    const activeDocRef = doc(window.db, "settings", "tolktolk_active");
+    const activeSnap = await getDoc(activeDocRef);
+    const data = activeSnap.exists() ? activeSnap.data() : {};
+    
+    // 허브에서 등록한 힌트 추출 (없으면 기본 문구 제공)
+    const currentHint = data.hint || "등록된 힌트가 없습니다. 거니오빠에게 물어보세요! 😜";
+
+    // 🎯 [요청하신 부분] 관리자 허브에서 세팅한 힌트가 유미님 패스워드 입력창에 자석처럼 노출! ⭐
+    const inputPw = prompt(`등록하신 비밀번호를 입력해 주세요! 🔑\n\n💡 비밀번호 힌트: ${currentHint}`);
+    if (inputPw === null) return;
+
+    if (inputPw.trim() !== registeredPassword) {
+        alert("비밀번호가 틀렸습니다! 유미님이랑 비밀번호를 공유해 보세요 😜🗝️");
+        return;
+    }
+
+    // 비밀번호 매치 성공 시 수정 단계 진입
+    const currentA = data.answer || "";
+    const newA = prompt("새로운 비밀 답변으로 수정해 주세요! 📝", currentA);
+    if (newA === null) return;
+
+    const newPw = prompt("비밀번호도 새로 변경하시겠어요? (그대로 쓰려면 원래 비번 입력)", registeredPassword);
+    if (!newPw || !newPw.trim()) return alert("수정 실패: 비밀번호는 필수로 유지되어야 합니다.");
+
+    await setDoc(activeDocRef, {
+        answer: newA.trim(),
+        password: newPw.trim()
+    }, { merge: true });
+
+    alert("답변이 성공적으로 수정되어 잠금 상태로 덮어씌워졌습니다! ✨");
+    await loadTolkTolkData();
+};
     
 
 // 💌 오늘의 한마디 저장 (나우의 긴급 수리 ⚡)
