@@ -1433,12 +1433,23 @@ function checkTolkReleaseState() {
     return { isReleased: isAfterFriday10PM, isResetDay: false };
 }
 
-// 🪄 유미톡톡 창 열기 격발 버튼!
+
+// 🪄 [수정본] 유미톡톡 창 열기 (열릴 때 비밀 메뉴 자동으로 숨기기)
 window.openTolkTolk = async function() {
+    // 1. 뒤에 떠 있는 비밀 메뉴(사이드 바)와 배경 불투명 화면(overlay)을 닫아줍니다!
+    const sideMenu = document.getElementById('side-menu');
+    const mainOverlay = document.getElementById('overlay');
+    if (sideMenu) sideMenu.style.display = 'none';
+    if (mainOverlay) mainOverlay.style.display = 'none';
+
+    // 2. 유미톡톡 팝업창을 화면 맨 앞으로 끄집어내고 열기
     const overlay = document.getElementById('tolktolk-overlay');
-    if (overlay) overlay.style.display = 'flex';
+    if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.style.zIndex = '9999'; // 🔒 어떤 레이아웃보다도 무조건 맨 앞에 뜨도록 최우선 순위 부여!
+    }
     
-    // 실시간 데이터 동기화 구동
+    // 3. 실시간 데이터 동기화 구동
     await loadTolkTolkData();
 };
 
