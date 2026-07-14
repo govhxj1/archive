@@ -3556,24 +3556,22 @@ window.handleAnswerWrite = async function() {
 };
 
 
-// -------------------------------------------------------------------------
-// ✍️ [유미톡톡 스크립트 구역 교체] 자물쇠 해제 및 수정 기믹 (허브 힌트 완벽 추출)
-// -------------------------------------------------------------------------
+
 window.handleAnswerEdit = async function(registeredPassword) {
-    // 1. 파이어베이스에서 [Goni 관리자 허브]를 통해 저장해둔 힌트 텍스트 긁어오기
-    const activeDocRef = doc(window.db, "settings", "tolktolk_active");
-    const activeSnap = await getDoc(activeDocRef);
-    const data = activeSnap.exists() ? activeSnap.data() : {};
-    
+    // 1. 수정 전용 깔끔한 비밀번호 입력창 열기 (여기는 힌트 없이 심플하게!)
+    const inputPw = prompt("등록하신 비밀번호를 입력해 주세요! 🔑");
+    if (inputPw === null) return; // 취소 누르면 중단
 
-
+    // 2. 입력받은 비밀번호 검사 (순서 꼬여서 오류 나던 부분 완벽 수리 완료! 🛠️)
     if (inputPw.trim() !== registeredPassword) {
         alert("비밀번호가 틀렸습니다! 유미님이랑 비밀번호를 공유해 보세요 😜🗝️");
         return;
     }
 
-    // 허브에서 등록한 힌트 추출 (없으면 기본 문구 제공)
-    const currentHint = data.hint || "등록된 힌트가 없습니다! 😜";
+    // 3. 파이어베이스에서 기존 답변 내용 긁어오기
+    const activeDocRef = doc(window.db, "settings", "tolktolk_active");
+    const activeSnap = await getDoc(activeDocRef);
+    const data = activeSnap.exists() ? activeSnap.data() : {};
 
     // 비밀번호 매치 성공 시 수정 단계 진입
     const currentA = data.answer || "";
