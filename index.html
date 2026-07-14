@@ -589,6 +589,10 @@
     💎 아카이브
     </button>
 
+    <button class="confirm-btn" onclick="openTolkTolk()" style="width:100%; height:55px; background:#e8f5e9; color:#2e7d32; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;">
+    💬 유미톡톡
+    </button>
+
         
 
 
@@ -618,6 +622,49 @@
     </div>
 </div>
 
+    <!-- 🌿 유미톡톡 모달 팝업 뼈대 -->
+<div id="tolktolk-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+    <div style="background: #ffffff; width: 100%; max-width: 450px; border-radius: 24px; padding: 24px; box-sizing: border-box; font-family: sans-serif; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+        
+        <!-- 상단 헤더 -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <span style="font-size: 20px; font-weight: 900; color: #2e7d32; display: flex; align-items: center; gap: 6px;">💬 유미톡톡</span>
+            <button onclick="closeTolkTolk()" style="background: none; border: none; font-size: 24px; color: #999; cursor: pointer;">&times;</button>
+        </div>
+
+        <!-- 알림/상태 바 -->
+        <div id="tolk-status-bar" style="background: #e8f5e9; color: #2e7d32; padding: 10px 14px; border-radius: 12px; font-size: 13px; font-weight: bold; text-align: center; margin-bottom: 20px; line-height: 1.4;">
+            🔒 답변은 금요일 오후 10시에 자동으로 열립니다!
+        </div>
+
+        <!-- 1구역: 질문 (상단) -->
+        <div style="background: #f1f8e9; border: 1.5px solid #c8e6c9; padding: 16px; border-radius: 16px; margin-bottom: 16px; position: relative;">
+            <div style="font-size: 12px; color: #558b2f; font-weight: 800; margin-bottom: 8px;">🤔 이번 주의 질문</div>
+            <div id="tolk-question-display" style="font-size: 16px; font-weight: bold; color: #333; line-height: 1.4; word-break: break-all;">
+                로딩 중...
+            </div>
+            <!-- 질문 등록/수정 버튼 -->
+            <button onclick="handleQuestionEdit()" style="margin-top: 10px; background: #c8e6c9; border: none; border-radius: 8px; padding: 6px 12px; font-size: 11px; font-weight: 800; color: #2e7d32; cursor: pointer; display: none;" id="tolk-question-btn">
+                질문 쓰기/수정 ✏️
+            </button>
+        </div>
+
+        <!-- 2구역: 답변 (하단) -->
+        <div style="background: #fafafa; border: 1.5px solid #eeeeee; padding: 16px; border-radius: 16px; margin-bottom: 20px;">
+            <div style="font-size: 12px; color: #666; font-weight: 800; margin-bottom: 8px;">💌 비밀 답변란</div>
+            <div id="tolk-answer-area">
+                <!-- 답변의 실시간 잠금/노출 상태가 여기에 동적으로 그려집니다 -->
+                로딩 중...
+            </div>
+        </div>
+
+        <!-- 닫기 버튼 -->
+        <button onclick="closeTolkTolk()" style="width:100%; height:48px; background:#e8f5e9; color:#2e7d32; border:none; border-radius:12px; font-weight:bold; font-size:15px; cursor:pointer;">
+            다음에 또 올게 💚
+        </button>
+    </div>
+</div>
+    
     <div id="game-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div class="game-box" style="background: #fff; width: 90%; max-width: 360px; height: auto; padding: 25px 20px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; box-sizing: border-box;">
         
@@ -1358,6 +1405,232 @@ function renderStars() {
         }
     });
 }
+
+    // 📡 파이어베이스 모듈 로드
+import { doc, getDoc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// 📅 현재 주의 월요일 구하기 (주간 백업용 고유 키)
+function getMondayOfThisWeek() {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // 월요일로 설정
+    const monday = new Date(today.setDate(diff));
+    return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
+}
+
+// ⏰ 금요일 오후 10시 이후인지 판정하는 실시간 렌더러
+function checkTolkReleaseState() {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0(일) ~ 6(토)
+    const currentHour = now.getHours();
+
+    // 일요일 오전 0시(토요일 밤 12시) 자동 리셋 감지
+    // (이 조건일 때 화면을 열면 데이터는 일요일 초기화 상태로 흐릅니다)
+    if (currentDay === 0) {
+        return { isReleased: false, isResetDay: true };
+    }
+
+    // 금요일(5) 오후 10시(22시) 이후이거나 토요일(6) 전체일 때 오픈
+    const isAfterFriday10PM = (currentDay === 5 && currentHour >= 22) || (currentDay === 6);
+    return { isReleased: isAfterFriday10PM, isResetDay: false };
+}
+
+// 🪄 유미톡톡 창 열기 격발 버튼!
+window.openTolkTolk = async function() {
+    const overlay = document.getElementById('tolktolk-overlay');
+    if (overlay) overlay.style.display = 'flex';
+    
+    // 실시간 데이터 동기화 구동
+    await loadTolkTolkData();
+};
+
+// ❌ 유미톡톡 창 닫기
+window.closeTolkTolk = function() {
+    const overlay = document.getElementById('tolktolk-overlay');
+    if (overlay) overlay.style.display = 'none';
+};
+
+// 🛰️ 실시간 데이터 로드 및 빌드
+async function loadTolkTolkData() {
+    const qDisplay = document.getElementById('tolk-question-display');
+    const qBtn = document.getElementById('tolk-question-btn');
+    const answerArea = document.getElementById('tolk-answer-area');
+    const statusBar = document.getElementById('tolk-status-bar');
+
+    const { isReleased, isResetDay } = checkTolkReleaseState();
+
+    // 1. 일요일 자동 초기화 처리 기믹
+    if (isResetDay) {
+        // 백업을 이미 주간 컬렉션에 남겨두고 실시간 공간은 조용히 비웁니다.
+        const activeDocRef = doc(window.db, "settings", "tolktolk_active");
+        const activeSnap = await getDoc(activeDocRef);
+        
+        if (activeSnap.exists()) {
+            const data = activeSnap.data();
+            // 주간용 아카이브(history)로 데이터 안전 이사 🚀
+            const mondayKey = getMondayOfThisWeek();
+            await setDoc(doc(window.db, "tolktolk_history", mondayKey), {
+                question: data.question || "",
+                answer: data.answer || "",
+                archivedAt: new Date()
+            }, { merge: true });
+
+            // 활성 공간은 깨끗이 삭제하여 리셋!
+            await deleteDoc(activeDocRef);
+        }
+
+        qDisplay.innerText = "일요일은 유미톡톡이 쉬어가는 날이에요 🌿 (월요일에 만나요!)";
+        if (qBtn) qBtn.style.display = "none";
+        answerArea.innerHTML = `<div style="text-align:center; color:#999; font-size:14px; padding:20px;">새로운 한 주를 준비하고 있어요.</div>`;
+        statusBar.innerText = "🧹 일요일 오전 0시 정비 시간입니다.";
+        return;
+    }
+
+    // 2. 평일 상태 데이터 패치
+    try {
+        const activeDocRef = doc(window.db, "settings", "tolktolk_active");
+        const activeSnap = await getDoc(activeDocRef);
+        const data = activeSnap.exists() ? activeSnap.data() : { question: "", answer: "", password: "" };
+
+        // [질문 파트]
+        if (!data.question) {
+            qDisplay.innerHTML = `<span style="color:#aaa; font-style:italic;">아직 이번 주의 질문이 등록되지 않았어요.</span>`;
+            if (qBtn) {
+                qBtn.innerText = "질문 등록하기 ✏️";
+                qBtn.style.display = "inline-block";
+            }
+        } else {
+            qDisplay.innerText = data.question;
+            if (qBtn) {
+                qBtn.innerText = "질문 수정하기 ⚙️";
+                qBtn.style.display = "inline-block";
+            }
+        }
+
+        // [답변 파트 - 금요일 밤 10시 기준 분기 처리]
+        if (isReleased) {
+            // 🔓 봉인 해제 완료 상태: 누구나 볼 수 있음
+            statusBar.innerHTML = "🔓 이번 주 비밀 답변 봉인이 해제되었습니다!";
+            statusBar.style.background = "#e1f5fe";
+            statusBar.style.color = "#0288d1";
+
+            if (data.answer) {
+                answerArea.innerHTML = `
+                    <div style="font-size: 15px; line-height:1.5; color:#333; font-weight:bold; word-break:break-all; background:#ffffff; border:1px solid #e0e0e0; padding:12px; border-radius:10px;">
+                        ${data.answer.replace(/\n/g, '<br>')}
+                    </div>
+                    <button onclick="handleAnswerEdit('${data.password || ""}')" style="margin-top:10px; background:#fff; border:1px solid #ddd; padding:6px 12px; border-radius:8px; font-size:11px; cursor:pointer;">
+                        답변 수정하기 ⚙️
+                    </button>
+                `;
+            } else {
+                answerArea.innerHTML = `
+                    <div style="text-align:center; color:#aaa; font-size:13px; padding:15px;">등록된 답변이 없습니다.</div>
+                    <button onclick="handleAnswerWrite()" style="width:100%; height:40px; background:#2e7d32; color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:5px;">
+                        내가 먼저 답변 작성하기 📝
+                    </button>
+                `;
+            }
+        } else {
+            // 🔒 봉인 봉쇄 상태: 비밀번호가 걸려있는 잠금 상태
+            statusBar.innerHTML = "🔒 답변은 금요일 오후 10시에 자동으로 열립니다!";
+            statusBar.style.background = "#e8f5e9";
+            statusBar.style.color = "#2e7d32";
+
+            if (data.answer) {
+                answerArea.innerHTML = `
+                    <div style="display:flex; align-items:center; justify-content:center; flex-direction:column; background:#f5f5f5; border:1px dashed #ccc; padding:20px; border-radius:12px; text-align:center;">
+                        <span style="font-size:30px; margin-bottom:8px;">🔒</span>
+                        <div style="font-weight:bold; color:#666; font-size:14px; margin-bottom:10px;">답변이 삼엄하게 잠겨있습니다.</div>
+                        <button onclick="handleAnswerEdit('${data.password || ""}')" style="background:#fff; border:1px solid #ccc; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                            비밀번호로 열고 수정하기 🗝️
+                        </button>
+                    </div>
+                `;
+            } else {
+                answerArea.innerHTML = `
+                    <div style="text-align:center; color:#aaa; font-size:13px; padding:15px;">등록된 답변이 없습니다.</div>
+                    <button onclick="handleAnswerWrite()" style="width:100%; height:40px; background:#2e7d32; color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:5px;">
+                        비밀 답변 쓰기 📝
+                    </button>
+                `;
+            }
+        }
+
+    } catch (e) {
+        console.error("유미톡톡 불러오기 실패:", e);
+    }
+}
+
+// ✍️ [기능 1] 질문 쓰기/수정 기믹
+window.handleQuestionEdit = async function() {
+    const activeDocRef = doc(window.db, "settings", "tolktolk_active");
+    const activeSnap = await getDoc(activeDocRef);
+    const currentQ = activeSnap.exists() ? activeSnap.data().question : "";
+
+    const newQ = prompt("이번 주의 달콤한 질문을 입력해 주세요! 🤔", currentQ);
+    if (newQ === null) return; // 취소 버튼 처리
+
+    if (!newQ.trim()) {
+        alert("빈칸은 안 돼요! 이쁜 질문을 입력해 주세요. 🌸");
+        return;
+    }
+
+    await setDoc(activeDocRef, { question: newQ.trim() }, { merge: true });
+    alert("이번 주의 질문이 정상 배포되었습니다! 🚀");
+    await loadTolkTolkData();
+};
+
+// ✍️ [기능 2] 답변 등록 기믹 (최초 등록 시 암호 설정 권한 부여)
+window.handleAnswerWrite = async function() {
+    const newA = prompt("비밀 답변을 적어주세요! (금요일 밤 10시까지 완벽 은폐됩니다) 💌");
+    if (!newA || !newA.trim()) return;
+
+    const pw = prompt("답변 수정 및 봉인용 비밀번호를 지정해 주세요! 🔑\n(나중에 수정할 때 비밀번호를 입력해야 합니다)");
+    if (!pw || !pw.trim()) {
+        alert("보안을 위해 반드시 비밀번호를 입력해 주셔야 답변 저장이 가능합니다! 🔒");
+        return;
+    }
+
+    const activeDocRef = doc(window.db, "settings", "tolktolk_active");
+    await setDoc(activeDocRef, { 
+        answer: newA.trim(), 
+        password: pw.trim() 
+    }, { merge: true });
+
+    alert("답변이 성공적으로 잠금 보관되었습니다! 🔒✨");
+    await loadTolkTolkData();
+};
+
+// ✍️ [기능 3] 답변 수정하기 기믹 (기록된 비밀번호 매칭 시 권한 개방)
+window.handleAnswerEdit = async function(registeredPassword) {
+    const inputPw = prompt("등록하신 비밀번호를 입력해 주세요! 🔑");
+    if (inputPw === null) return;
+
+    if (inputPw.trim() !== registeredPassword) {
+        alert("비밀번호가 틀렸습니다! 유미님이랑 비밀번호를 공유해 보세요 😜🗝️");
+        return;
+    }
+
+    // 비밀번호 매치 완료 -> 원본 가져오기
+    const activeDocRef = doc(window.db, "settings", "tolktolk_active");
+    const activeSnap = await getDoc(activeDocRef);
+    const currentA = activeSnap.exists() ? activeSnap.data().answer : "";
+
+    const newA = prompt("새로운 비밀 답변으로 수정해 주세요! 📝", currentA);
+    if (newA === null) return;
+
+    const newPw = prompt("비밀번호도 새로 변경하시겠어요? (그대로 쓰려면 원래 비번 입력)", registeredPassword);
+    if (!newPw || !newPw.trim()) return alert("수정 실패: 비밀번호는 필수로 유지되어야 합니다.");
+
+    await setDoc(activeDocRef, {
+        answer: newA.trim(),
+        password: newPw.trim()
+    }, { merge: true });
+
+    alert("답변이 성공적으로 수정되어 잠금 상태로 덮어씌워졌습니다! ✨");
+    await loadTolkTolkData();
+};
     
     
 // ==============================================
@@ -3521,6 +3794,7 @@ const collectionData = {
     "🔒": "열심히 찾았넹?ㅎㅎ 근데 이게 마지막이 아닌데?ㅎㅎ 과거로 돌아가도 나는 유미를 찾아갈거야! 사랑해 유미야💛"
 
 };
+
     
    window.openCollection = async function() {
     // 🪄 [마법의 1줄] 도감 상자가 비밀 메뉴 안에 갇혀있다면, 밖(body)으로 강제로 이사시킵니다!
