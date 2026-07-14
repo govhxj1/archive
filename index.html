@@ -1406,10 +1406,9 @@ function renderStars() {
     });
 }
 
-    // 📡 파이어베이스 모듈 로드
-import { doc, getDoc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// 📅 현재 주의 월요일 구하기 (주간 백업용 고유 키)
+
+// 유미톡톡
 function getMondayOfThisWeek() {
     const today = new Date();
     const day = today.getDay();
@@ -1425,7 +1424,6 @@ function checkTolkReleaseState() {
     const currentHour = now.getHours();
 
     // 일요일 오전 0시(토요일 밤 12시) 자동 리셋 감지
-    // (이 조건일 때 화면을 열면 데이터는 일요일 초기화 상태로 흐릅니다)
     if (currentDay === 0) {
         return { isReleased: false, isResetDay: true };
     }
@@ -1461,7 +1459,6 @@ async function loadTolkTolkData() {
 
     // 1. 일요일 자동 초기화 처리 기믹
     if (isResetDay) {
-        // 백업을 이미 주간 컬렉션에 남겨두고 실시간 공간은 조용히 비웁니다.
         const activeDocRef = doc(window.db, "settings", "tolktolk_active");
         const activeSnap = await getDoc(activeDocRef);
         
@@ -1476,6 +1473,7 @@ async function loadTolkTolkData() {
             }, { merge: true });
 
             // 활성 공간은 깨끗이 삭제하여 리셋!
+            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
             await deleteDoc(activeDocRef);
         }
 
@@ -1509,7 +1507,6 @@ async function loadTolkTolkData() {
 
         // [답변 파트 - 금요일 밤 10시 기준 분기 처리]
         if (isReleased) {
-            // 🔓 봉인 해제 완료 상태: 누구나 볼 수 있음
             statusBar.innerHTML = "🔓 이번 주 비밀 답변 봉인이 해제되었습니다!";
             statusBar.style.background = "#e1f5fe";
             statusBar.style.color = "#0288d1";
@@ -1532,7 +1529,6 @@ async function loadTolkTolkData() {
                 `;
             }
         } else {
-            // 🔒 봉인 봉쇄 상태: 비밀번호가 걸려있는 잠금 상태
             statusBar.innerHTML = "🔒 답변은 금요일 오후 10시에 자동으로 열립니다!";
             statusBar.style.background = "#e8f5e9";
             statusBar.style.color = "#2e7d32";
@@ -1569,7 +1565,7 @@ window.handleQuestionEdit = async function() {
     const currentQ = activeSnap.exists() ? activeSnap.data().question : "";
 
     const newQ = prompt("이번 주의 달콤한 질문을 입력해 주세요! 🤔", currentQ);
-    if (newQ === null) return; // 취소 버튼 처리
+    if (newQ === null) return; 
 
     if (!newQ.trim()) {
         alert("빈칸은 안 돼요! 이쁜 질문을 입력해 주세요. 🌸");
@@ -1581,7 +1577,7 @@ window.handleQuestionEdit = async function() {
     await loadTolkTolkData();
 };
 
-// ✍️ [기능 2] 답변 등록 기믹 (최초 등록 시 암호 설정 권한 부여)
+// ✍️ [기능 2] 답변 등록 기믹
 window.handleAnswerWrite = async function() {
     const newA = prompt("비밀 답변을 적어주세요! (금요일 밤 10시까지 완벽 은폐됩니다) 💌");
     if (!newA || !newA.trim()) return;
@@ -1602,7 +1598,7 @@ window.handleAnswerWrite = async function() {
     await loadTolkTolkData();
 };
 
-// ✍️ [기능 3] 답변 수정하기 기믹 (기록된 비밀번호 매칭 시 권한 개방)
+// ✍️ [기능 3] 답변 수정하기 기믹
 window.handleAnswerEdit = async function(registeredPassword) {
     const inputPw = prompt("등록하신 비밀번호를 입력해 주세요! 🔑");
     if (inputPw === null) return;
@@ -1612,7 +1608,6 @@ window.handleAnswerEdit = async function(registeredPassword) {
         return;
     }
 
-    // 비밀번호 매치 완료 -> 원본 가져오기
     const activeDocRef = doc(window.db, "settings", "tolktolk_active");
     const activeSnap = await getDoc(activeDocRef);
     const currentA = activeSnap.exists() ? activeSnap.data().answer : "";
@@ -1631,6 +1626,7 @@ window.handleAnswerEdit = async function(registeredPassword) {
     alert("답변이 성공적으로 수정되어 잠금 상태로 덮어씌워졌습니다! ✨");
     await loadTolkTolkData();
 };
+    
     
     
 // ==============================================
