@@ -3557,36 +3557,34 @@ window.handleAnswerWrite = async function() {
 
 
 
+// -------------------------------------------------------------------------
+// ✍️ [기능 개조 완료] 자물쇠 비밀번호 통과 시 답변 미리보기 기믹 🔓
+// -------------------------------------------------------------------------
 window.handleAnswerEdit = async function(registeredPassword) {
-    // 1. 수정 전용 깔끔한 비밀번호 입력창 열기 (여기는 힌트 없이 심플하게!)
+    // 1. 심플한 비밀번호 확인창 열기
     const inputPw = prompt("등록하신 비밀번호를 입력해 주세요! 🔑");
     if (inputPw === null) return; // 취소 누르면 중단
 
-    // 2. 입력받은 비밀번호 검사 (순서 꼬여서 오류 나던 부분 완벽 수리 완료! 🛠️)
+    // 2. 비밀번호 대조 검사
     if (inputPw.trim() !== registeredPassword) {
         alert("비밀번호가 틀렸습니다! 유미님이랑 비밀번호를 공유해 보세요 😜🗝️");
         return;
     }
 
-    // 3. 파이어베이스에서 기존 답변 내용 긁어오기
+    // 3. 파이어베이스에서 기존에 적어둔 답변 실시간으로 긁어오기
     const activeDocRef = doc(window.db, "settings", "tolktolk_active");
     const activeSnap = await getDoc(activeDocRef);
     const data = activeSnap.exists() ? activeSnap.data() : {};
+    
+    const currentA = data.answer || "등록된 답변이 없습니다.";
 
-    // 비밀번호 매치 성공 시 수정 단계 진입
-    const currentA = data.answer || "";
-    const newA = prompt("새로운 비밀 답변으로 수정해 주세요! 📝", currentA);
-    if (newA === null) return;
+    // 4. 💡 [핵심 교체] 답변 내부에 들어있는 엔터(\n)가 알럿창에서 이쁘게 깨지도록 가공
+    const cleanAnswerForAlert = currentA.replace(/\\n/g, '\n');
 
-    const newPw = prompt("비밀번호도 새로 변경하시겠어요? (그대로 쓰려면 원래 비번 입력)", registeredPassword);
-    if (!newPw || !newPw.trim()) return alert("수정 실패: 비밀번호는 필수로 유지되어야 합니다.");
-
-    await setDoc(activeDocRef, {
-        answer: newA.trim(),
-        password: newPw.trim()
-    }, { merge: true });
-
-    alert("답변이 성공적으로 수정되어 잠금 상태로 덮어씌워졌습니다! ✨");
+    // 5. 🎉 대망의 비밀 답변 미리보기 팝업 발사!
+    alert(`🔓 [비밀 답변 미리보기]\n\n${cleanAnswerForAlert}`);
+    
+    // 화면 새로고침 없이 깔끔하게 대기 완료!
     await loadTolkTolkData();
 };
     
