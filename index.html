@@ -3565,12 +3565,7 @@ window.handleAnswerEdit = async function(registeredPassword) {
     const activeSnap = await getDoc(activeDocRef);
     const data = activeSnap.exists() ? activeSnap.data() : {};
     
-    // 허브에서 등록한 힌트 추출 (없으면 기본 문구 제공)
-    const currentHint = data.hint || "등록된 힌트가 없습니다. 거니오빠에게 물어보세요! 😜";
 
-    // 🎯 [요청하신 부분] 관리자 허브에서 세팅한 힌트가 유미님 패스워드 입력창에 자석처럼 노출! ⭐
-    const inputPw = prompt(`등록하신 비밀번호를 입력해 주세요! 🔑\n\n💡 비밀번호 힌트: ${currentHint}`);
-    if (inputPw === null) return;
 
     if (inputPw.trim() !== registeredPassword) {
         alert("비밀번호가 틀렸습니다! 유미님이랑 비밀번호를 공유해 보세요 😜🗝️");
