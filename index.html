@@ -2025,8 +2025,7 @@ function renderCalendar() {
         let anniv = (diff === 100 || diff === 200 || diff === 300) ? `${diff}일` : "";
         if (viewMonth === 0 && i === 10 && viewYear > 2026) anniv = `${viewYear-2026}주년`;
 
-        // 🚨 [보안 가드 작동] 2026년 4월 30일에는 글이 있어도 하트 노출을 원천 봉쇄합니다! 🤫🔒
-        const shouldShowHeart = (dateKey === "2026-04-30") 
+        const shouldShowHeart = (dateKey === "2025-12-29") 
             ? false 
             : (data.comments && data.comments.length > 0);
 
