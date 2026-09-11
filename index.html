@@ -1309,7 +1309,8 @@ import {
     getDoc, 
     setDoc, 
     collection, 
-    addDoc, 
+    addDoc,
+    deleteDoc,
     query, 
     orderBy, 
     getDocs, 
@@ -1496,32 +1497,43 @@ window.savePinData = async function() {
     }
 };
 
-// 5. 핀 불러오기 & 이동경로 선(Polyline) 그리기
+// -------------------------------------------------------------------------
+// 📍 데이트맵 핀 불러오기 & 팝업 내 삭제 버튼 연동
+// -------------------------------------------------------------------------
 async function loadDatePins() {
     if (!dateMapInstance) return;
 
-    // 기존 마커 및 선 초기화
+    // 기존 마커 및 경로 선 초기화
     currentMarkers.forEach(m => dateMapInstance.removeLayer(m));
     currentMarkers = [];
     if (routeLine) dateMapInstance.removeLayer(routeLine);
 
     try {
-        const q = query(collection(window.db, "date_map_pins"), orderBy("createdAt", "asc"));
+        const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+        const q = query(collection(firestoreDb, "date_map_pins"), orderBy("createdAt", "asc"));
         const snapshot = await getDocs(q);
         
         const pathCoords = [];
 
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
+            const pinId = docSnap.id; // 파이어베이스 문서 고유 ID
             const pos = [data.lat, data.lng];
             pathCoords.push(pos);
 
-            // 팝업 내용 조립 (사진 포함)
+            // 팝업 내부 HTML (맨 아래 빨간색 [이 핀 삭제 🗑️] 버튼 추가)
             const popupHtml = `
-                <div style="min-width:140px; max-width:200px; font-family:sans-serif;">
-                    <div style="font-weight:bold; font-size:13px; color:#2e7d32; margin-bottom:4px;">${data.title}</div>
-                    ${data.photo ? `<img src="${data.photo}" style="width:100%; border-radius:6px; margin-bottom:6px; object-fit:cover; max-height:120px;" />` : ''}
-                    <div style="font-size:12px; color:#444; white-space:pre-wrap; word-break:break-all;">${data.desc || ''}</div>
+                <div style="min-width:150px; max-width:220px; font-family:sans-serif; padding:4px 0;">
+                    <div style="font-weight:bold; font-size:14px; color:#2e7d32; margin-bottom:6px;">${data.title}</div>
+                    ${data.photo ? `<img src="${data.photo}" style="width:100%; border-radius:8px; margin-bottom:8px; object-fit:cover; max-height:130px; display:block;" />` : ''}
+                    <div style="font-size:12px; color:#444; white-space:pre-wrap; word-break:break-all; line-height:1.4; margin-bottom:10px;">${data.desc || ''}</div>
+                    
+                    <!-- 🗑️ 파이어베이스 영구 삭제 버튼 -->
+                    <div style="border-top:1px solid #eee; padding-top:8px; text-align:right;">
+                        <button onclick="deleteDatePin('${pinId}')" style="background:#ffebee; color:#d32f2f; border:1px solid #ffcdd2; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
+                            이 핀 삭제 🗑️
+                        </button>
+                    </div>
                 </div>
             `;
 
@@ -1529,17 +1541,17 @@ async function loadDatePins() {
             currentMarkers.push(marker);
         });
 
-        // 핀이 2개 이상이면 이동경로(선) 그리기
+        // 핀이 2개 이상이면 점선 경로 연결
         if (pathCoords.length > 1) {
             routeLine = L.polyline(pathCoords, {
                 color: '#43a047',
                 weight: 4,
                 opacity: 0.8,
-                dashArray: '6, 8' // 점선 스타일
+                dashArray: '6, 8'
             }).addTo(dateMapInstance);
         }
 
-        // 전체 핀이 보이도록 화면 조정
+        // 전체 핀 영역에 맞게 화면 자동 맞춤
         if (pathCoords.length > 0) {
             dateMapInstance.fitBounds(L.latLngBounds(pathCoords), { padding: [50, 50] });
         }
@@ -1547,6 +1559,30 @@ async function loadDatePins() {
         console.error("데이트맵 불러오기 실패:", e);
     }
 }
+
+// -------------------------------------------------------------------------
+// 🗑️ 데이트 핀 Firestore 영구 삭제 함수
+// -------------------------------------------------------------------------
+window.deleteDatePin = async function(pinId) {
+    if (!confirm("정말 이 핀을 삭제하시겠습니까?\n파이어베이스에서 완전히 삭제되며 복구할 수 없습니다.")) {
+        return;
+    }
+
+    try {
+        const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+        await deleteDoc(doc(firestoreDb, "date_map_pins", pinId));
+        
+        alert("핀이 깔끔하게 삭제되었습니다. 🗑️");
+        
+        // 지도 새로고침 (핀 목록 및 연결선 다시 그리기)
+        await loadDatePins();
+    } catch (e) {
+        console.error("핀 삭제 오류:", e);
+        alert("삭제 중 오류가 발생했습니다: " + e.message);
+    }
+};
+
+    
 
     
 // ==============================================
