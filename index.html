@@ -1683,6 +1683,48 @@ function renderStars() {
 }
 
 
+    // -------------------------------------------------------------------------
+// 💌 2026-09-12 비밀 타임 리빌 (0~8번 코멘트 text만 교체)
+// -------------------------------------------------------------------------
+function getProcessedComments(dateKey, originalComments) {
+    if (!originalComments || !Array.isArray(originalComments)) return [];
+
+    // 1. 날짜가 2026-09-12일 때만 검사
+    if (dateKey === "2026-09-11") {        
+        const revealTime = new Date('2026-09-11T12:30:00+09:00').getTime();
+        const now = new Date().getTime();
+
+        // 2. 지정한 시간이 지났다면 0번~8번 텍스트만 비밀 문구로 교체!
+        if (now >= revealTime) {
+            const secretTexts = [
+                "1. 체크아웃",  
+                "2. 아점먹고 이동", 
+                "3. 구경 하면서 산책",    
+                "4. 신나는! 드라이브",         
+                "5. 점심식사",        
+                "6. 이쁜거니랑 놀러가기",        
+                "7. 저녁식사",        
+                "8. 밤산책",        
+                "9. 집에서 꼭안구있기"     
+            ];
+
+            // 기존 배열을 복사하면서 0~8번의 text 속성만 쏙 바꿉니다. (img, locations 그대로 유지)
+            return originalComments.map((item, index) => {
+                if (index < secretTexts.length) {
+                    return {
+                        ...item,
+                        text: secretTexts[index] // 텍스트만 새로운 내용으로 덮어쓰기
+                    };
+                }
+                return item; // 9번부터는 원래 내용 그대로 유지
+            });
+        }
+    }
+
+    // 시간이 안 되었거나 다른 날짜면 원래 파이어베이스 내용 그대로 반환
+    return originalComments;
+}
+    
 
 // 유미톡톡
 function getMondayOfThisWeek() {
@@ -2347,6 +2389,11 @@ window.openModal = function(day) {
 
     diaryModal.style.display = 'flex';
     overlay.style.display = 'block';
+
+    // 🎯 2026-09-12 날짜를 클릭했을 때만 텍스트 변환 적용!
+    if (dateKey === "2026-09-12" && typeof cloudRecords !== 'undefined' && cloudRecords[dateKey] && cloudRecords[dateKey].comments) {
+        cloudRecords[dateKey].comments = getProcessedComments(dateKey, cloudRecords[dateKey].comments);
+    }
 
     if (typeof window.setupOriginalDiary === 'function') {
         window.setupOriginalDiary(dateKey);
