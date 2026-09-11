@@ -2350,7 +2350,7 @@ window.openModal = async function(day) {
     diaryModal.style.display = 'flex';
     overlay.style.display = 'block';
 
-    // 🎯 [2026-09-12 파이어베이스 데이터 영구 교체 로직]
+    // 🎯 [2026-09-12 정확한 파이어베이스 서브컬렉션 경로 지정]
     if (dateKey === "2026-09-12") {
         const revealTime = new Date('2026-09-11T12:30:00+09:00').getTime();
         const now = Date.now();
@@ -2358,8 +2358,9 @@ window.openModal = async function(day) {
         if (now >= revealTime) {
             try {
                 const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
-                // 짝수 세그먼트로 경로 수정
-                const docRef = doc(firestoreDb, "diaryRecords", dateKey);
+                
+                // 🚨 캡처 화면의 진짜 경로: public(컬렉션) -> data(문서) -> diaryRecords(서브컬렉션) -> 2026-09-12(문서)
+                const docRef = doc(firestoreDb, "public", "data", "diaryRecords", dateKey);
                 const snap = await getDoc(docRef);
 
                 if (snap.exists()) {
@@ -2385,13 +2386,16 @@ window.openModal = async function(day) {
                         return item;
                     });
 
-                    // Firestore 업데이트
+                    // 파이어베이스 덮어쓰기 완료까지 대기(await)
                     await setDoc(docRef, { comments: updatedComments }, { merge: true });
-                    console.log("🔥 2026-09-12 파이어베이스 데이터 업데이트 완료!");
+                    console.log("🔥 2026-09-12 파이어베이스 데이터 교체 성공!");
 
+                    // 로컬 메모리 동기화
                     if (typeof cloudRecords !== 'undefined' && cloudRecords[dateKey]) {
                         cloudRecords[dateKey].comments = updatedComments;
                     }
+                } else {
+                    console.warn("해당 날짜의 문서를 찾지 못했습니다:", dateKey);
                 }
             } catch (err) {
                 console.error("파이어베이스 덮어쓰기 실패:", err);
@@ -2399,6 +2403,7 @@ window.openModal = async function(day) {
         }
     }
 
+    // 파이어베이스가 바뀐 뒤 화면 렌더링 호출
     if (typeof window.setupOriginalDiary === 'function') {
         window.setupOriginalDiary(dateKey);
         window.updateSummaryView(dateKey);
