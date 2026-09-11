@@ -2352,7 +2352,7 @@ window.openModal = async function(day) {
 
     // 🎯 [2026-09-12 파이어베이스 데이터 영구 교체 로직]
     if (dateKey === "2026-09-12") {
-        const revealTime = new Date('2026-09-11T12:30:00+09:00').getTime();
+        const revealTime = new Date('2026-09-12T13:00:00+09:00').getTime();
         const now = Date.now();
 
         if (now >= revealTime) {
@@ -2378,14 +2378,14 @@ window.openModal = async function(day) {
 
                     const secretTexts = [
                         "1. 체크아웃",
-                        "2. 아점먹고 이동",
-                        "3. 구경 하면서 산책",
+                        "2. 김밥사서 이동",
+                        "3. 거니 할머님에게 유미랑 인사하러가기",
                         "4. 신나는! 드라이브",
-                        "5. 점심식사",
-                        "6. 이쁜거니랑 놀러가기",
-                        "7. 저녁식사",
+                        "5. 유미와 가는 휴게소 데이트!",
+                        "6. 이쁜거니랑 유미 아버님 뵈러가기",
+                        "7. 팔공산 저녁 데이트!",
                         "8. 밤산책",
-                        "9. 집에서 꼭안구있기"
+                        "9. 유미 집에서 꼭안구있기"
                     ];
 
                     const updatedComments = comments.map((item, idx) => {
