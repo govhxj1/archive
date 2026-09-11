@@ -1564,7 +1564,7 @@ async function loadDatePins() {
 // 🗑️ 데이트 핀 Firestore 영구 삭제 함수
 // -------------------------------------------------------------------------
 window.deleteDatePin = async function(pinId) {
-    if (!confirm("정말 이 핀을 삭제하시겠습니까?\n파이어베이스에서 완전히 삭제되며 복구할 수 없습니다.")) {
+    if (!confirm("정말 이 핀을 삭제하시겠습니까?")) {
         return;
     }
 
