@@ -3,6 +3,8 @@
 <head>
     <link rel="icon" href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
     <link rel="stylesheet" href="archive.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e12174f6753a399a28edc31022a362ef&autoload=false"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <meta charset="UTF-8">
@@ -562,9 +564,16 @@
     </span>
 
     <div style="display:flex; flex-direction:column; gap:12px; width:100%; box-sizing:border-box; padding:0 10px;">
-    <!-- 1. 추억지도 -->
+    <!-- 1. 추억지도 (기존 버튼 주석 처리) -->
+    <!--
     <button class="confirm-btn" style="width:100%; height:55px; background:var(--main-pink); color:white; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="openMap()">
         🗺️ 추억지도
+    </button>
+    -->
+
+    <!-- 📍 데이트맵 (동일한 디자인 적용) -->
+    <button class="confirm-btn" style="width:100%; height:55px; background:var(--main-pink); color:white; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="openDateMap()">
+        📍 데이트맵
     </button>
 
     <!-- 2. 랜덤질문 -->
@@ -621,6 +630,51 @@
         </button>
     </div>
 </div>
+
+
+    <!-- 🌸 데이트맵 모달 창 -->
+<div id="date-map-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+    <div style="background:#fff; width:95%; max-width:500px; height:85vh; border-radius:20px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+        
+        <!-- 상단 헤더 -->
+        <div style="padding:15px; background:#f1f8e9; border-bottom:1px solid #dcedc8; display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:900; font-size:16px; color:#33691e;">📍 우리들의 데이트맵</div>
+            <button onclick="closeDateMap()" style="background:none; border:none; font-size:18px; cursor:pointer; font-weight:bold;">✕</button>
+        </div>
+
+        <!-- 지도 영역 -->
+        <div id="leaflet-map" style="flex:1; width:100%; min-height:300px; background:#eee;"></div>
+
+        <!-- 하단 컨트롤 영역 -->
+        <div style="padding:15px; background:#fafafa; border-top:1px solid #eee; display:flex; gap:8px;">
+            <button onclick="checkInCurrentLocation()" style="flex:1; height:45px; background:#558b2f; color:#fff; border:none; border-radius:12px; font-weight:bold; font-size:14px; cursor:pointer;">
+                + 현재 위치 핀 찍기 📌
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 📝 핀 등록 모달 (제목, 설명, 사진) -->
+<div id="pin-input-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9500; align-items:center; justify-content:center;">
+    <div style="background:#fff; width:88%; max-width:340px; padding:20px; border-radius:18px; box-sizing:border-box;">
+        <div style="font-weight:bold; font-size:15px; margin-bottom:12px; color:#2e7d32;">새로운 데이트 핀 기록 🌿</div>
+        
+        <input id="pin-title" type="text" placeholder="장소 이름 (예: 대전 성심당)" style="width:100%; height:38px; border:1px solid #ccc; border-radius:8px; padding:0 10px; margin-bottom:10px; box-sizing:border-box; font-size:13px; outline:none;" />
+        <textarea id="pin-desc" placeholder="추억 메모 남기기..." style="width:100%; height:70px; border:1px solid #ccc; border-radius:8px; padding:8px 10px; margin-bottom:10px; box-sizing:border-box; font-size:13px; resize:none; outline:none;"></textarea>
+        
+        <!-- 사진 업로드 (Base64 압축 저장) -->
+        <div style="font-size:11px; color:#777; margin-bottom:4px;">사진 첨부 (선택):</div>
+        <input id="pin-photo" type="file" accept="image/*" style="width:100%; font-size:12px; margin-bottom:15px;" />
+
+        <div style="display:flex; gap:8px;">
+            <button onclick="closePinInputModal()" style="flex:1; height:40px; background:#e0e0e0; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">취소</button>
+            <button onclick="savePinData()" style="flex:1; height:40px; background:#558b2f; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">등록 ⚡</button>
+        </div>
+    </div>
+</div>
+
+    
+    
 
     <!-- 🌿 유미톡톡 모달 팝업 뼈대 -->
 <div id="tolktolk-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
@@ -1317,6 +1371,172 @@ let kakaoMap;
 let kakaoMarkers = [];
 let kakaoPolyline = null;
 
+
+
+// ==============================================
+데이트맵
+       
+let dateMapInstance = null;
+let currentCoords = null;
+let currentMarkers = [];
+let routeLine = null;
+
+// 1. 데이트맵 모달 열기 & 초기화
+window.openDateMap = function() {
+    const modal = document.getElementById('date-map-modal');
+    modal.style.display = 'flex';
+
+    if (!dateMapInstance) {
+        // 서울 중심 기본 세팅
+        dateMapInstance = L.map('leaflet-map').setView([36.5, 127.8], 7);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© OpenStreetMap'
+        }).addTo(dateMapInstance);
+    }
+
+    setTimeout(() => {
+        dateMapInstance.invalidateSize(); // 모달 렌더링 후 지도 크기 재계산
+        loadDatePins();
+    }, 200);
+};
+
+window.closeDateMap = function() {
+    document.getElementById('date-map-modal').style.display = 'none';
+};
+
+// 2. 현재 GPS 위치 가져오기
+window.checkInCurrentLocation = function() {
+    if (!navigator.geolocation) {
+        return alert("이 브라우저에서는 위치 서비스를 지원하지 않습니다.");
+    }
+
+    navigator.geolocation.getCurrentPosition((pos) => {
+        currentCoords = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
+        };
+
+        // 입력 폼 열기
+        document.getElementById('pin-title').value = "";
+        document.getElementById('pin-desc').value = "";
+        document.getElementById('pin-photo').value = "";
+        document.getElementById('pin-input-modal').style.display = 'flex';
+    }, (err) => {
+        alert("GPS 위치 확인 실패: " + err.message + "\nHTTPS 환경인지 확인해주세요.");
+    }, { enableHighAccuracy: true });
+};
+
+window.closePinInputModal = function() {
+    document.getElementById('pin-input-modal').style.display = 'none';
+};
+
+// 3. 사진 파일 Base64 리사이징
+function processImage(file) {
+    return new Promise((resolve) => {
+        if (!file) return resolve("");
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const maxDim = 400; // 용량 최적화를 위한 최대 해상도 제한
+                let w = img.width, h = img.height;
+                if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
+                else if (h > maxDim) { w *= maxDim / h; h = maxDim; }
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', 0.7)); // 압축 포맷
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// 4. Firestore에 핀 데이터 저장
+window.savePinData = async function() {
+    const title = document.getElementById('pin-title').value.trim();
+    const desc = document.getElementById('pin-desc').value.trim();
+    const photoFile = document.getElementById('pin-photo').files[0];
+
+    if (!title) return alert("장소 이름을 입력해주세요!");
+
+    const photoBase64 = await processImage(photoFile);
+
+    try {
+        await addDoc(collection(window.db, "date_map_pins"), {
+            title: title,
+            desc: desc,
+            photo: photoBase64,
+            lat: currentCoords.lat,
+            lng: currentCoords.lng,
+            createdAt: new Date().getTime() // 시간순 경로 정렬용
+        });
+
+        alert("데이트 핀이 성공적으로 기록되었습니다! 📌");
+        closePinInputModal();
+        loadDatePins();
+    } catch (e) {
+        console.error("핀 저장 실패:", e);
+        alert("저장 중 오류가 발생했습니다.");
+    }
+};
+
+// 5. 핀 불러오기 & 이동경로 선(Polyline) 그리기
+async function loadDatePins() {
+    if (!dateMapInstance) return;
+
+    // 기존 마커 및 선 초기화
+    currentMarkers.forEach(m => dateMapInstance.removeLayer(m));
+    currentMarkers = [];
+    if (routeLine) dateMapInstance.removeLayer(routeLine);
+
+    try {
+        const q = query(collection(window.db, "date_map_pins"), orderBy("createdAt", "asc"));
+        const snapshot = await getDocs(q);
+        
+        const pathCoords = [];
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const pos = [data.lat, data.lng];
+            pathCoords.push(pos);
+
+            // 팝업 내용 조립 (사진 포함)
+            const popupHtml = `
+                <div style="min-width:140px; max-width:200px; font-family:sans-serif;">
+                    <div style="font-weight:bold; font-size:13px; color:#2e7d32; margin-bottom:4px;">${data.title}</div>
+                    ${data.photo ? `<img src="${data.photo}" style="width:100%; border-radius:6px; margin-bottom:6px; object-fit:cover; max-height:120px;" />` : ''}
+                    <div style="font-size:12px; color:#444; white-space:pre-wrap; word-break:break-all;">${data.desc || ''}</div>
+                </div>
+            `;
+
+            const marker = L.marker(pos).addTo(dateMapInstance).bindPopup(popupHtml);
+            currentMarkers.push(marker);
+        });
+
+        // 핀이 2개 이상이면 이동경로(선) 그리기
+        if (pathCoords.length > 1) {
+            routeLine = L.polyline(pathCoords, {
+                color: '#43a047',
+                weight: 4,
+                opacity: 0.8,
+                dashArray: '6, 8' // 점선 스타일
+            }).addTo(dateMapInstance);
+        }
+
+        // 전체 핀이 보이도록 화면 조정
+        if (pathCoords.length > 0) {
+            dateMapInstance.fitBounds(L.latLngBounds(pathCoords), { padding: [50, 50] });
+        }
+    } catch (e) {
+        console.error("데이트맵 불러오기 실패:", e);
+    }
+}
+
+    
 // ==============================================
 // 🌌 밤하늘 은하수 기능
 // ==============================================
