@@ -1498,7 +1498,7 @@ window.savePinData = async function() {
 };
 
 // -------------------------------------------------------------------------
-// 📍 데이트맵 핀 불러오기 & 팝업 내 삭제 버튼 연동
+// 📍 데이트맵 핀 불러오기 (시간순 1, 2, 3... 번호 배지 표시)
 // -------------------------------------------------------------------------
 async function loadDatePins() {
     if (!dateMapInstance) return;
@@ -1510,25 +1510,50 @@ async function loadDatePins() {
 
     try {
         const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+        // createdAt 기준 오름차순(과거순) 정렬
         const q = query(collection(firestoreDb, "date_map_pins"), orderBy("createdAt", "asc"));
         const snapshot = await getDocs(q);
         
         const pathCoords = [];
+        let stepNumber = 1; // 💡 1번부터 시작하는 번호 카운터
 
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
-            const pinId = docSnap.id; // 파이어베이스 문서 고유 ID
+            const pinId = docSnap.id;
             const pos = [data.lat, data.lng];
             pathCoords.push(pos);
 
-            // 팝업 내부 HTML (맨 아래 빨간색 [이 핀 삭제 🗑️] 버튼 추가)
+            // 🎯 번호가 콕 박힌 커스텀 마커 HTML 아이콘 생성
+            const numberIcon = L.divIcon({
+                className: 'custom-pin-marker',
+                html: `
+                    <div style="position: relative; width: 30px; height: 42px; display: flex; align-items: center; justify-content: center;">
+                        <!-- 핀 배경 SVG (초록색 핀) -->
+                        <svg viewBox="0 0 24 24" width="30" height="42" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                            <path fill="#2e7d32" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                            <circle cx="12" cy="9" r="6" fill="#ffffff" />
+                        </svg>
+                        <!-- 중앙 순번 숫자 (1, 2, 3...) -->
+                        <span style="position: absolute; top: 3px; font-size: 11px; font-weight: 800; color: #1b5e20; text-align: center; width: 100%;">
+                            ${stepNumber}
+                        </span>
+                    </div>
+                `,
+                iconSize: [30, 42],
+                iconAnchor: [15, 42], // 마커 뾰족한 끝점 기준 맞춤
+                popupAnchor: [0, -40]  // 팝업이 뜨는 위치 기준
+            });
+
+            // 팝업 내부 HTML (이 핀 삭제 버튼 포함)
             const popupHtml = `
                 <div style="min-width:150px; max-width:220px; font-family:sans-serif; padding:4px 0;">
-                    <div style="font-weight:bold; font-size:14px; color:#2e7d32; margin-bottom:6px;">${data.title}</div>
+                    <div style="font-weight:bold; font-size:14px; color:#2e7d32; margin-bottom:6px;">
+                        <span style="background:#e8f5e9; color:#2e7d32; padding:2px 6px; border-radius:10px; font-size:11px; margin-right:4px;">#${stepNumber}</span>
+                        ${data.title}
+                    </div>
                     ${data.photo ? `<img src="${data.photo}" style="width:100%; border-radius:8px; margin-bottom:8px; object-fit:cover; max-height:130px; display:block;" />` : ''}
                     <div style="font-size:12px; color:#444; white-space:pre-wrap; word-break:break-all; line-height:1.4; margin-bottom:10px;">${data.desc || ''}</div>
                     
-                    <!-- 🗑️ 파이어베이스 영구 삭제 버튼 -->
                     <div style="border-top:1px solid #eee; padding-top:8px; text-align:right;">
                         <button onclick="deleteDatePin('${pinId}')" style="background:#ffebee; color:#d32f2f; border:1px solid #ffcdd2; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
                             이 핀 삭제 🗑️
@@ -1537,8 +1562,11 @@ async function loadDatePins() {
                 </div>
             `;
 
-            const marker = L.marker(pos).addTo(dateMapInstance).bindPopup(popupHtml);
+            // 번호 아이콘 적용해서 마커 생성
+            const marker = L.marker(pos, { icon: numberIcon }).addTo(dateMapInstance).bindPopup(popupHtml);
             currentMarkers.push(marker);
+
+            stepNumber++; // 다음 핀은 번호 1 증가
         });
 
         // 핀이 2개 이상이면 점선 경로 연결
@@ -1551,7 +1579,7 @@ async function loadDatePins() {
             }).addTo(dateMapInstance);
         }
 
-        // 전체 핀 영역에 맞게 화면 자동 맞춤
+        // 전체 핀 영역에 맞게 화면 맞춤
         if (pathCoords.length > 0) {
             dateMapInstance.fitBounds(L.latLngBounds(pathCoords), { padding: [50, 50] });
         }
