@@ -1340,7 +1340,8 @@ import {
     getFirestore, 
     doc, 
     getDoc, 
-    setDoc, 
+    setDoc,
+    updateDoc,
     collection, 
     addDoc,
     deleteDoc,
@@ -1773,17 +1774,16 @@ window.updatePinPhoto = async function(pinId, inputElement) {
     if (!file) return;
 
     try {
-        // 기존 압축 함수 재사용
         const photoBase64 = await processImage(file);
         const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
 
-        // 해당 핀의 photo 필드만 갱신
-        await updateDoc(doc(firestoreDb, "date_map_pins", pinId), {
+        // 💡 updateDoc 대신 setDoc + merge 사용
+        await setDoc(doc(firestoreDb, "date_map_pins", pinId), {
             photo: photoBase64
-        });
+        }, { merge: true });
 
         alert("사진이 등록되었습니다! 📸");
-        await loadDatePins(); // 지도 새로고침
+        await loadDatePins();
     } catch (e) {
         console.error("사진 업데이트 실패:", e);
         alert("사진 업로드 실패: " + e.message);
