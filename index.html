@@ -1483,14 +1483,14 @@ function processImage(file) {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const maxDim = 400;
+                const maxDim = 320;
                 let w = img.width, h = img.height;
                 if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
                 else if (h > maxDim) { w *= maxDim / h; h = maxDim; }
                 canvas.width = w; canvas.height = h;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, w, h);
-                resolve(canvas.toDataURL('image/jpeg', 0.7));
+                resolve(canvas.toDataURL('image/jpeg', 0.55));
             };
             img.src = e.target.result;
         };
@@ -1644,7 +1644,7 @@ window.deleteDatePin = async function(pinId) {
 };
 
 // -------------------------------------------------------------------------
-// 💾 [신규] 7. 현재 찍힌 핀들을 하나의 데이트 코스로 저장
+// 💾 7. 코스 저장: 서브컬렉션 분산 저장 (용량 초과 완벽 해결)
 // -------------------------------------------------------------------------
 window.saveCurrentDateCourse = async function() {
     const courseTitle = prompt("저장할 데이트 코스 이름을 입력하세요:\n(예: 대구 1박2일 여행, 경주 벚꽃 데이트)");
@@ -1659,26 +1659,28 @@ window.saveCurrentDateCourse = async function() {
             return alert("저장할 핀이 없습니다! 먼저 핀을 1개 이상 찍어주세요.");
         }
 
-        const pinsToSave = [];
-        snapshot.forEach(d => {
-            const data = d.data();
-            pinsToSave.push({
-                title: data.title,
-                desc: data.desc || '',
-                photo: data.photo || '',
-                lat: data.lat,
-                lng: data.lng
-            });
-        });
-
-        await addDoc(collection(firestoreDb, "saved_date_courses"), {
+        // 1. 메인 코스 문서 생성 (사진 데이터 제외하고 가벼운 메타 정보만 기록)
+        const courseDocRef = await addDoc(collection(firestoreDb, "saved_date_courses"), {
             courseTitle: courseTitle.trim(),
-            pinCount: pinsToSave.length,
-            pins: pinsToSave,
+            pinCount: snapshot.size,
             savedAt: Date.now()
         });
 
-        const clearCurrent = confirm(`[${courseTitle}] 데이트 코스가 저장되었습니다! 🎉\n\n새로운 데이트 핀을 찍기 위해 현재 지도의 핀들을 비우시겠습니까?`);
+        // 2. 각 핀 데이터를 코스 문서 내부의 'pins' 서브컬렉션에 개별 문서로 분산 저장 (1MB 제한 우회)
+        let order = 1;
+        for (const d of snapshot.docs) {
+            const pinData = d.data();
+            await addDoc(collection(firestoreDb, "saved_date_courses", courseDocRef.id, "pins"), {
+                title: pinData.title || '',
+                desc: pinData.desc || '',
+                photo: pinData.photo || '',
+                lat: pinData.lat,
+                lng: pinData.lng,
+                order: order++
+            });
+        }
+
+        const clearCurrent = confirm(`[${courseTitle}] 데이트 코스가 안전하게 저장되었습니다! 🎉\n\n새로운 데이트 핀을 찍기 위해 현재 지도의 핀들을 비우시겠습니까?`);
         if (clearCurrent) {
             for (const docSnap of snapshot.docs) {
                 await deleteDoc(doc(firestoreDb, "date_map_pins", docSnap.id));
@@ -1690,6 +1692,7 @@ window.saveCurrentDateCourse = async function() {
         alert("저장 실패: " + e.message);
     }
 };
+    
 
 // -------------------------------------------------------------------------
 // 📂 [신규] 8. 저장된 데이트 목록 모달 열기/닫기
@@ -1736,27 +1739,39 @@ window.closeCourseListModal = function() {
 };
 
 // -------------------------------------------------------------------------
-// 👀 [신규] 9. 특정 데이트 코스 뷰어로 불러오기
+// 👀 9. 특정 데이트 코스 뷰어로 불러오기 (서브컬렉션에서 로드)
 // -------------------------------------------------------------------------
 window.viewSavedCourse = async function(courseId) {
     try {
         const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+        
+        // 1. 코스 기본 정보 확인
         const snap = await getDoc(doc(firestoreDb, "saved_date_courses", courseId));
         if (!snap.exists()) return;
-
         const courseData = snap.data();
+
+        // 2. 하위 pins 서브컬렉션에서 핀 목록 가져오기
+        const pinsQuery = query(collection(firestoreDb, "saved_date_courses", courseId, "pins"), orderBy("order", "asc"));
+        const pinsSnap = await getDocs(pinsQuery);
+
+        const loadedPins = [];
+        pinsSnap.forEach(p => loadedPins.push(p.data()));
+
         closeCourseListModal();
 
+        // 상단 열람 바 켜기
         const viewerBar = document.getElementById('course-viewer-bar');
         const viewerTitle = document.getElementById('viewer-title');
         viewerTitle.innerText = `👀 코스 열람 중: ${courseData.courseTitle}`;
         viewerBar.style.display = 'flex';
 
-        renderPinsOnMap(courseData.pins || [], true);
+        // 뷰어 지도 그리기
+        renderPinsOnMap(loadedPins, true);
     } catch (e) {
         alert("코스 불러오기 실패: " + e.message);
     }
 };
+    
 
 // -------------------------------------------------------------------------
 // ✕ [신규] 10. 뷰어 모드 닫기 (원래 작업용 핀으로 복귀)
@@ -1790,11 +1805,21 @@ window.updatePinPhoto = async function(pinId, inputElement) {
     }
 };
     
-// 저장된 코스 삭제
+// -------------------------------------------------------------------------
+// 🗑️ 저장된 코스 삭제 (하위 서브컬렉션 핀들까지 깔끔 정리)
+// -------------------------------------------------------------------------
 window.deleteSavedCourse = async function(courseId, courseTitle) {
     if (!confirm(`[${courseTitle}] 코스를 정말 삭제하시겠습니까?`)) return;
     try {
         const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+        
+        // 하위 핀들 삭제
+        const subPinsSnap = await getDocs(collection(firestoreDb, "saved_date_courses", courseId, "pins"));
+        for (const p of subPinsSnap.docs) {
+            await deleteDoc(doc(firestoreDb, "saved_date_courses", courseId, "pins", p.id));
+        }
+
+        // 부모 코스 문서 삭제
         await deleteDoc(doc(firestoreDb, "saved_date_courses", courseId));
         openCourseListModal();
     } catch (e) {
