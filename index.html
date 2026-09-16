@@ -1562,19 +1562,31 @@ function renderPinsOnMap(pinList, isReadOnly = false) {
             popupAnchor: [0, -40]
         });
 
+        // 팝업 내용 (사진 추가/변경 버튼 포함)
         const popupHtml = `
-            <div style="min-width:150px; max-width:220px; font-family:sans-serif; padding:4px 0;">
+            <div style="min-width:160px; max-width:220px; font-family:sans-serif; padding:4px 0;">
                 <div style="font-weight:bold; font-size:14px; color:#2e7d32; margin-bottom:6px;">
                     <span style="background:#e8f5e9; color:#2e7d32; padding:2px 6px; border-radius:10px; font-size:11px; margin-right:4px;">#${stepNumber}</span>
                     ${data.title}
                 </div>
+
                 ${data.photo ? `<img src="${data.photo}" style="width:100%; border-radius:8px; margin-bottom:8px; object-fit:cover; max-height:130px; display:block;" />` : ''}
+
                 <div style="font-size:12px; color:#444; white-space:pre-wrap; word-break:break-all; line-height:1.4; margin-bottom:10px;">${data.desc || ''}</div>
                 
                 ${!isReadOnly ? `
-                <div style="border-top:1px solid #eee; padding-top:8px; text-align:right;">
+                <div style="border-top:1px solid #eee; padding-top:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <!-- 숨겨진 파일 선택창 -->
+                    <input type="file" id="edit-photo-${data.id}" accept="image/*" style="display:none;" onchange="updatePinPhoto('${data.id}', this)" />
+                    
+                    <!-- 사진 추가/변경 버튼 -->
+                    <button onclick="document.getElementById('edit-photo-${data.id}').click()" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
+                        ${data.photo ? '사진 변경 📷' : '사진 추가 📷'}
+                    </button>
+
+                    <!-- 삭제 버튼 -->
                     <button onclick="deleteDatePin('${data.id}')" style="background:#ffebee; color:#d32f2f; border:1px solid #ffcdd2; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
-                        이 핀 삭제 🗑️
+                        삭제 🗑️
                     </button>
                 </div>` : ''}
             </div>
@@ -1753,6 +1765,31 @@ window.exitViewerMode = function() {
     loadDatePins();
 };
 
+    // -------------------------------------------------------------------------
+// 📷 기존 핀에 사진 추가 / 교체 함수
+// -------------------------------------------------------------------------
+window.updatePinPhoto = async function(pinId, inputElement) {
+    const file = inputElement.files[0];
+    if (!file) return;
+
+    try {
+        // 기존 압축 함수 재사용
+        const photoBase64 = await processImage(file);
+        const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+
+        // 해당 핀의 photo 필드만 갱신
+        await updateDoc(doc(firestoreDb, "date_map_pins", pinId), {
+            photo: photoBase64
+        });
+
+        alert("사진이 등록되었습니다! 📸");
+        await loadDatePins(); // 지도 새로고침
+    } catch (e) {
+        console.error("사진 업데이트 실패:", e);
+        alert("사진 업로드 실패: " + e.message);
+    }
+};
+    
 // 저장된 코스 삭제
 window.deleteSavedCourse = async function(courseId, courseTitle) {
     if (!confirm(`[${courseTitle}] 코스를 정말 삭제하시겠습니까?`)) return;
