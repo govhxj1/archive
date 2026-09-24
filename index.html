@@ -3342,8 +3342,8 @@ function renderMapPath(pathData, drawLine = true) {
                         if (weekendBox) weekendBox.style.display = 'block'; 
                         if (oldText) {
                             oldText.innerHTML = `
-                                ${pastData.유미 ? `<b>🕰️ 유미의 5월 답변:</b> <span style="color:#ff8fab;">${pastData.유미}</span><br>` : ''}
-                                ${pastData.거니 ? `<b>🕰️ 거니의 5월 답변:</b> <span style="color:#7ed6df;">${pastData.거니}</span>` : ''}
+                                ${pastData.유미 ? `<b>🕰️ 유미의 6월 답변:</b> <span style="color:#ff8fab;">${pastData.유미}</span><br>` : ''}
+                                ${pastData.거니 ? `<b>🕰️ 거니의 6월 답변:</b> <span style="color:#7ed6df;">${pastData.거니}</span>` : ''}
                             `;
                         }
             
@@ -3442,7 +3442,7 @@ window.submitDailyAnswer = async () => {
                 }
             }
         } catch (e) {
-            console.error("5월 데이터 이사 중 오류 발생 😭:", e);
+            console.error("6월 데이터 이사 중 오류 발생 😭:", e);
         }
     }
 
