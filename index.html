@@ -22,33 +22,39 @@
             animation: star-twinkle 5s infinite ease-in-out;
         }
         
-        /* 🚶 데이트맵 걸어가는 사람 */
-        .walker { position: relative; width: 22px; height: 32px; pointer-events: none; }
+        /* 🐥 데이트맵 걸어가는 노란 캐릭터 */
+        .walker { position: relative; width: 30px; height: 34px; pointer-events: none; }
         .walker-body {
-            filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 2px 2px rgba(0,0,0,0.3));
-            transform: rotate(6deg);
-            animation: walker-bob 0.45s infinite ease-in-out;
+            position: relative; z-index: 1;
+            filter: drop-shadow(0 0 1px #fff) drop-shadow(0 2px 2px rgba(0,0,0,0.25));
+            transform-origin: 50% 100%;
+            animation: walker-waddle 0.5s infinite ease-in-out;
         }
-        .walker.face-left .walker-body { transform: scaleX(-1) rotate(6deg); }
         .walker-body svg { display: block; overflow: visible; }
-        .walker-arm-a, .walker-arm-b { transform-origin: 12px 11px; }
-        .walker-leg-a, .walker-leg-b { transform-origin: 12px 19px; }
-        .walker-arm-a, .walker-leg-b { animation: walker-swing 0.45s infinite ease-in-out alternate; }
-        .walker-arm-b, .walker-leg-a { animation: walker-swing 0.45s infinite ease-in-out alternate-reverse; }
+        .walker.face-left .walker-body svg { transform: scaleX(-1); }
+        .walker-leg-a { transform-origin: 11.3px 22.5px; }
+        .walker-leg-b { transform-origin: 16.7px 22.5px; }
+        .walker-arm-a { transform-origin: 8.4px 18.4px; }
+        .walker-arm-b { transform-origin: 19.6px 18.4px; }
+        .walker-arm-a, .walker-leg-b { animation: walker-swing 0.25s infinite ease-in-out alternate; }
+        .walker-arm-b, .walker-leg-a { animation: walker-swing 0.25s infinite ease-in-out alternate-reverse; }
         .walker-shadow {
-            position: absolute; left: 50%; bottom: 0; width: 14px; height: 4px; margin-left: -7px;
-            background: rgba(0,0,0,0.25); border-radius: 50%;
+            position: absolute; left: 50%; bottom: 0; width: 16px; height: 4px; margin-left: -8px;
+            background: rgba(0,0,0,0.22); border-radius: 50%;
         }
-        /* 핀에 도착하면 잠깐 멈춰 서기 */
+        /* 핀에 도착하면 잠깐 똑바로 서서 쉬기 */
         .walker.resting .walker-body,
-        .walker.resting line { animation-play-state: paused; }
+        .walker.resting .walker-body * { animation: none; }
         @keyframes walker-swing {
-            from { transform: rotate(-28deg); }
-            to { transform: rotate(28deg); }
+            from { transform: rotate(-22deg); }
+            to { transform: rotate(22deg); }
         }
-        @keyframes walker-bob {
-            0%, 100% { margin-top: 0; }
-            50% { margin-top: -2px; }
+        /* 뒤뚱뒤뚱 */
+        @keyframes walker-waddle {
+            0%, 100% { transform: rotate(-7deg) translateY(0); }
+            25% { transform: rotate(0deg) translateY(-2px); }
+            50% { transform: rotate(7deg) translateY(0); }
+            75% { transform: rotate(0deg) translateY(-2px); }
         }
 
         @font-face {
@@ -1664,15 +1670,27 @@ function startWalker(path) {
     el.className = 'walker';
     el.innerHTML = `
         <div class="walker-body">
-            <svg viewBox="0 0 24 32" width="22" height="30">
-                <circle cx="12" cy="5" r="3.6" fill="#1b5e20"/>
-                <g stroke="#1b5e20" stroke-width="2.6" stroke-linecap="round" fill="none">
-                    <line x1="12" y1="9.5" x2="12" y2="19"/>
-                    <line class="walker-arm-a" x1="12" y1="11" x2="12" y2="17.5"/>
-                    <line class="walker-arm-b" x1="12" y1="11" x2="12" y2="17.5"/>
-                    <line class="walker-leg-a" x1="12" y1="19" x2="12" y2="28"/>
-                    <line class="walker-leg-b" x1="12" y1="19" x2="12" y2="28"/>
+            <svg viewBox="0 0 28 30" width="30" height="32">
+                <g fill="#FEE500" stroke="#3C1E1E" stroke-width="1.2" stroke-linejoin="round">
+                    <!-- 짧은 다리 -->
+                    <rect class="walker-leg-a" x="9.6" y="22" width="3.4" height="5" rx="1.7"/>
+                    <rect class="walker-leg-b" x="15" y="22" width="3.4" height="5" rx="1.7"/>
+                    <!-- 짧은 팔 -->
+                    <ellipse class="walker-arm-a" cx="7.4" cy="20.2" rx="1.8" ry="2.6"/>
+                    <ellipse class="walker-arm-b" cx="20.6" cy="20.2" rx="1.8" ry="2.6"/>
+                    <!-- 동글동글 몸통 -->
+                    <ellipse cx="14" cy="20.5" rx="5.6" ry="4.4"/>
+                    <!-- 큰 머리 -->
+                    <ellipse cx="14" cy="10" rx="9" ry="8.2"/>
                 </g>
+                <!-- 얼굴 (걷는 방향 쪽으로 살짝 치우치게) -->
+                <circle cx="11.6" cy="10" r="1.2" fill="#3C1E1E"/>
+                <circle cx="17.6" cy="10" r="1.2" fill="#3C1E1E"/>
+                <circle cx="11.2" cy="9.6" r="0.4" fill="#fff"/>
+                <circle cx="17.2" cy="9.6" r="0.4" fill="#fff"/>
+                <ellipse cx="9.6" cy="12.8" rx="1.6" ry="1" fill="#FF9AA2" opacity="0.8"/>
+                <ellipse cx="19.8" cy="12.8" rx="1.6" ry="1" fill="#FF9AA2" opacity="0.8"/>
+                <path d="M13.4 12.4 q1.2 1.2 2.4 0" fill="none" stroke="#3C1E1E" stroke-width="0.9" stroke-linecap="round"/>
             </svg>
         </div>
         <div class="walker-shadow"></div>`;
@@ -3106,30 +3124,33 @@ window.updateSummaryView = async function(dateKey) {
     
     document.getElementById('summary-date-title').innerText = `💕 ${dayName} 데이트 (${parseInt(m)}/${parseInt(day)})`;
 
+    // 각 장소가 어느 기록(ci)의 몇 번째 장소(li)인지 기억해 둬야 그 장소만 정확히 지울 수 있음
     let cloudLocations = [];
     const data = cloudRecords[dateKey] || { comments: [] };
-    if (data.comments) {
-        data.comments.forEach(c => {
-            if (c.locations) cloudLocations.push(...c.locations);
+    if (Array.isArray(data.comments)) {
+        data.comments.forEach((c, ci) => {
+            (c.locations || []).forEach((loc, li) => cloudLocations.push({ ...loc, ci, li }));
         });
     }
 
+    // allPaths(코드에 적어둔 옛날 코스)는 DB에 없어서 삭제 버튼을 달지 않음
     const combined = [...(allPaths[dateKey] || []), ...cloudLocations];
 
     if (combined.length > 0) {
-        summaryList.innerHTML = combined.map((loc, idx) => `
+        summaryList.innerHTML = combined.map((loc) => `
             <div class="place-summary-card" style="display:flex; align-items:center; gap:12px; background:white; padding:12px; border-radius:15px; border:1px solid #ffe5ec; margin-bottom:10px; position:relative;">
                 <div style="font-size:1.5rem;">${loc.icon || '📍'}</div>
                 <div style="flex:1;">
                     <div style="font-weight:900; color:#444;">${loc.name}</div>
                     <div class="view-map-btn" onclick="openMap(); focusMap(${loc.lat}, ${loc.lng});" style="color:#ff8fab; font-size:12px; cursor:pointer; font-weight:bold;">📍 지도 보기</div>
                 </div>
-                <div 
-                    onclick="window.deleteSummaryLocation('${dateKey}', ${idx})" 
+                ${loc.ci !== undefined ? `
+                <div
+                    onclick="window.deleteSummaryLocation('${dateKey}', ${loc.ci}, ${loc.li})"
                     style="cursor:pointer; color:#ffafcc; font-size:1.2rem; padding:5px 10px; font-weight:bold;"
                 >
                     ✕
-                </div>
+                </div>` : ''}
             </div>
         `).join('');
         sv.style.display = 'block';
@@ -3141,35 +3162,30 @@ window.updateSummaryView = async function(dateKey) {
     }
 };
 
-window.deleteSummaryLocation = async function(dateKey, index) {
-    if (!confirm("이 항목 하나만 삭제할까요? ⚡")) return;
+// 🗑️ 장소 하나만 삭제 (기록의 글/사진은 그대로 두고, 그 기록에 붙은 장소만 뺌)
+window.deleteSummaryLocation = async function(dateKey, commentIndex, locationIndex) {
+    // 화면에 보이던 장소 정보 (삭제 직전에 DB 내용과 같은지 확인용)
+    const shown = cloudRecords[dateKey]?.comments?.[commentIndex]?.locations?.[locationIndex];
+    if (!shown) return alert("장소 정보를 찾을 수 없어요. 새로고침 후 다시 시도해 주세요!");
+    if (!confirm(`[${shown.name}] 장소만 삭제할까요? ⚡\n(기록한 글과 사진은 그대로 남아요)`)) return;
 
     try {
         const docRef = doc(window.db, "artifacts", "shared-gomi-diary-app", "public", "data", "diaryRecords", dateKey);
         const docSnap = await getDoc(docRef);
+        const comments = docSnap.exists() ? docSnap.data().comments : null;
+        const target = Array.isArray(comments) ? comments[commentIndex]?.locations?.[locationIndex] : null;
 
-        if (docSnap.exists()) {
-            let data = docSnap.data();
-            
-            if (data.comments && Array.isArray(data.comments)) {
-                data.comments.splice(index, 1);
-                await updateDoc(docRef, {
-                    comments: data.comments
-                });
-            } 
-            else {
-                const keys = Object.keys(data).sort((a, b) => Number(a) - Number(b));
-                const keyToDelete = keys[index];
-                
-                if (keyToDelete) {
-                    delete data[keyToDelete];
-                    await updateDoc(docRef, data);
-                }
-            }
-
+        // 그 사이에 다른 폰에서 기록이 바뀌었으면 엉뚱한 걸 지우지 않도록 중단
+        if (!target || target.name !== shown.name || target.lat !== shown.lat || target.lng !== shown.lng) {
             window.updateSummaryView(dateKey);
-            alert("하나만 깔끔하게 삭제되었습니다! ⚡");
+            return alert("기록이 그 사이에 바뀌었어요. 목록을 새로 불러왔으니 다시 시도해 주세요!");
         }
+
+        comments[commentIndex].locations.splice(locationIndex, 1);
+        await updateDoc(docRef, { comments });
+
+        window.updateSummaryView(dateKey);
+        alert("장소 하나만 깔끔하게 삭제되었습니다! ⚡");
     } catch (error) {
         console.error("❌ 삭제 수술 실패:", error);
         alert("삭제 중 오류가 발생했어요. 콘솔을 확인해주세요!");
