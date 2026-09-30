@@ -33,14 +33,7 @@ body {
     border: 1px solid #fff0f3;
 }
 
-/* 2. 장소 이름과 지도보기 버튼 (이미지 속 핑크 텍스트 적용) */
-.place-name-text {
-    font-weight: 800;
-    font-size: 16px;
-    color: #444;
-    margin-bottom: 2px;
-}
-
+/* 2. 지도보기 버튼 (이미지 속 핑크 텍스트 적용) */
 .view-map-btn {
     color: #ff8fab; /* 📍 지도 보기 텍스트 색상 */
     font-size: 13px;
@@ -94,10 +87,6 @@ body {
     align-items: stretch;   /* 자식들이 너비 100%를 꽉 채우게 강제함 */
 }
 
-#diary-modal::-webkit-scrollbar {
-    display: none;
-}
-
 /* 스크롤바 숨기기 (더 깔끔하게) */
 #diary-modal::-webkit-scrollbar {
     display: none;
@@ -133,12 +122,6 @@ body {
     z-index: 999;
 }
 
-.fortune-badge { 
-    font-size: 10px; 
-    font-weight: bold; 
-    color: #ff6f91; /* 💖 진한 핑크 글씨 */
-}
-
 .fortune-box {
     background: white; 
     padding: 30px; 
@@ -154,38 +137,6 @@ body {
     margin: 20px 0; 
     line-height: 1.6; 
     color: #333;
-}
-
-#fortune-text { font-size: 1.1rem; font-weight: 900; margin: 20px 0; line-height: 1.6; }
-
-
-#admin-secret-gate {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 50px;
-    height: 50px;
-    z-index: 9999;
-    
-    /* 1. 터치 하이라이트 제거 (가장 중요) */
-    -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
-    -webkit-tap-highlight-color: transparent !important;
-    
-    /* 2. 클릭 시 생기는 아웃라인/음영 제거 */
-    outline: none !important;
-    box-shadow: none !important;
-    background: none !important;
-    border: none !important;
-
-    /* 3. 모바일에서 꾹 눌렀을 때 나오는 컨텍스트 메뉴(복사 등) 방지 */
-    -webkit-touch-callout: none !important;
-    
-    /* 4. 드래그 및 선택 방지 */
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    
-    /* 5. 마우스 커서 및 반응 제거 */
-    cursor: default !important;
 }
 
 @keyframes pulse-center {

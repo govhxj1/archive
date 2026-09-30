@@ -3,8 +3,6 @@
 <head>
     <link rel="icon" href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
     <link rel="stylesheet" href="archive.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e12174f6753a399a28edc31022a362ef&autoload=false"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <meta charset="UTF-8">
@@ -24,6 +22,35 @@
             animation: star-twinkle 5s infinite ease-in-out;
         }
         
+        /* 🚶 데이트맵 걸어가는 사람 */
+        .walker { position: relative; width: 22px; height: 32px; pointer-events: none; }
+        .walker-body {
+            filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+            transform: rotate(6deg);
+            animation: walker-bob 0.45s infinite ease-in-out;
+        }
+        .walker.face-left .walker-body { transform: scaleX(-1) rotate(6deg); }
+        .walker-body svg { display: block; overflow: visible; }
+        .walker-arm-a, .walker-arm-b { transform-origin: 12px 11px; }
+        .walker-leg-a, .walker-leg-b { transform-origin: 12px 19px; }
+        .walker-arm-a, .walker-leg-b { animation: walker-swing 0.45s infinite ease-in-out alternate; }
+        .walker-arm-b, .walker-leg-a { animation: walker-swing 0.45s infinite ease-in-out alternate-reverse; }
+        .walker-shadow {
+            position: absolute; left: 50%; bottom: 0; width: 14px; height: 4px; margin-left: -7px;
+            background: rgba(0,0,0,0.25); border-radius: 50%;
+        }
+        /* 핀에 도착하면 잠깐 멈춰 서기 */
+        .walker.resting .walker-body,
+        .walker.resting line { animation-play-state: paused; }
+        @keyframes walker-swing {
+            from { transform: rotate(-28deg); }
+            to { transform: rotate(28deg); }
+        }
+        @keyframes walker-bob {
+            0%, 100% { margin-top: 0; }
+            50% { margin-top: -2px; }
+        }
+
         @font-face {
             font-family: 'Pretendard-Regular';
             src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
@@ -316,9 +343,6 @@
             flex-direction: column;
             flex: 1; min-width: 0; padding-right: 10px;
         }
-        .comment-img {
-            width: 100%; max-width: 200px; border-radius: 12px; margin-bottom: 8px; display: block;
-        }
         .comment-text {
             font-size: 0.95rem; color: #444; line-height: 1.4; word-break: break-all;
         }
@@ -379,6 +403,10 @@
         @keyframes simpleFade {
         from { opacity: 0; transform: translate(-50%, -45%); } 
         to { opacity: 1; transform: translate(-50%, -50%); }   
+        }
+        @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
         }
     
         #side-menu {
@@ -564,13 +592,6 @@
     </span>
 
     <div style="display:flex; flex-direction:column; gap:12px; width:100%; box-sizing:border-box; padding:0 10px;">
-    <!-- 1. 추억지도 (기존 버튼 주석 처리) -->
-    <!--
-    <button class="confirm-btn" style="width:100%; height:55px; background:var(--main-pink); color:white; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="openMap()">
-        🗺️ 추억지도
-    </button>
-    -->
-
     <!-- 📍 데이트맵 (동일한 디자인 적용) -->
     <button class="confirm-btn" style="width:100%; height:55px; background:var(--main-pink); color:white; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="openDateMap()">
         📍 데이트맵
@@ -651,7 +672,7 @@
         </div>
 
         <!-- 지도 영역 -->
-        <div id="leaflet-map" style="flex:1; width:100%; min-height:300px; background:#eee;"></div>
+        <div id="date-kakao-map" style="flex:1; width:100%; min-height:300px; background:#eee;"></div>
 
         <!-- 하단 컨트롤 영역 -->
         <div style="padding:12px 15px; background:#fafafa; border-top:1px solid #eee; display:flex; flex-direction:column; gap:8px;">
@@ -988,13 +1009,6 @@
 </button>
 
 <style>
-/* 📍 중앙 전용 두근두근 애니메이션 (transform 유지용) */
-@keyframes pulse-center {
-    0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(255, 175, 204, 0.7); }
-    70% { transform: translate(-50%, -50%) scale(1.15); box-shadow: 0 0 0 25px rgba(255, 175, 204, 0); }
-    100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(255, 175, 204, 0); }
-}
-
     /* 🍿 질문 모달창 전용 이쁜 분홍빛 스크롤바 디자인 */
 #question-overlay .surprise-box::-webkit-scrollbar {
     width: 6px;
@@ -1425,29 +1439,42 @@ let dateMapInstance = null;
 let currentCoords = null;
 let currentMarkers = [];
 let routeLine = null;
+let pinPopup = null;
+let walker = null;
+let walkerFrame = null;
 
-// 1. 데이트맵 모달 열기 & 초기화
+// 1. 데이트맵 모달 열기 & 초기화 (카카오맵)
 window.openDateMap = function() {
-    const modal = document.getElementById('date-map-modal');
-    modal.style.display = 'flex';
-
-    if (!dateMapInstance) {
-        dateMapInstance = L.map('leaflet-map').setView([35.859918, 128.536339], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 18,
-            attribution: '© OpenStreetMap'
-        }).addTo(dateMapInstance);
+    if (typeof kakao === 'undefined') {
+        return alert("지도 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요! ✨");
     }
+    document.getElementById('date-map-modal').style.display = 'flex';
 
-    setTimeout(() => {
-        dateMapInstance.invalidateSize();
-        loadDatePins();
-    }, 200);
+    kakao.maps.load(() => {
+        if (!dateMapInstance) {
+            dateMapInstance = new kakao.maps.Map(document.getElementById('date-kakao-map'), {
+                center: new kakao.maps.LatLng(35.859918, 128.536339),
+                level: 4
+            });
+            // 지도 빈 곳을 누르면 핀 정보창 닫기
+            kakao.maps.event.addListener(dateMapInstance, 'click', closePinPopup);
+        }
+        setTimeout(() => {
+            dateMapInstance.relayout();
+            loadDatePins();
+        }, 200);
+    });
 };
 
 window.closeDateMap = function() {
     document.getElementById('date-map-modal').style.display = 'none';
+    stopWalker();
 };
+
+function closePinPopup() {
+    if (pinPopup) pinPopup.setMap(null);
+    pinPopup = null;
+}
 
 // 2. 현재 GPS 위치 가져오기
 window.checkInCurrentLocation = function() {
@@ -1534,39 +1561,37 @@ window.savePinData = async function() {
 function renderPinsOnMap(pinList, isReadOnly = false) {
     if (!dateMapInstance) return;
 
-    currentMarkers.forEach(m => dateMapInstance.removeLayer(m));
+    currentMarkers.forEach(m => m.setMap(null));
     currentMarkers = [];
-    if (routeLine) dateMapInstance.removeLayer(routeLine);
+    if (routeLine) routeLine.setMap(null);
+    routeLine = null;
+    closePinPopup();
+    stopWalker();
 
     const pathCoords = [];
 
     pinList.forEach((data, index) => {
         const stepNumber = index + 1;
-        const pos = [data.lat, data.lng];
+        const pos = new kakao.maps.LatLng(data.lat, data.lng);
         pathCoords.push(pos);
 
-        const numberIcon = L.divIcon({
-            className: '',
-            html: `
-                <div style="background: transparent !important; border: none !important; width: 32px; height: 42px; display: flex; justify-content: center; align-items: center;">
-                    <svg viewBox="0 0 24 24" width="32" height="42" style="filter: drop-shadow(0 2px 5px rgba(0,0,0,0.4)); overflow: visible;">
-                        <path fill="#2e7d32" stroke="#ffffff" stroke-width="1" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                        <circle cx="12" cy="9" r="6" fill="#ffffff" />
-                        <text x="12" y="9.5" text-anchor="middle" dominant-baseline="central" font-size="8" font-weight="900" fill="#1b5e20" font-family="sans-serif">
-                            ${stepNumber}
-                        </text>
-                    </svg>
-                </div>
-            `,
-            iconSize: [32, 42],
-            iconAnchor: [16, 42],
-            popupAnchor: [0, -40]
-        });
+        // 숫자 핀 (카카오 CustomOverlay는 DOM 요소를 넣어야 클릭 이벤트를 받을 수 있음)
+        const pinEl = document.createElement('div');
+        pinEl.style.cssText = "width:32px; height:42px; cursor:pointer;";
+        pinEl.innerHTML = `
+            <svg viewBox="0 0 24 24" width="32" height="42" style="filter: drop-shadow(0 2px 5px rgba(0,0,0,0.4)); overflow: visible;">
+                <path fill="#2e7d32" stroke="#ffffff" stroke-width="1" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                <circle cx="12" cy="9" r="6" fill="#ffffff" />
+                <text x="12" y="9.5" text-anchor="middle" dominant-baseline="central" font-size="8" font-weight="900" fill="#1b5e20" font-family="sans-serif">
+                    ${stepNumber}
+                </text>
+            </svg>`;
 
         // 팝업 내용 (사진 추가/변경 버튼 포함)
         const popupHtml = `
-            <div style="min-width:160px; max-width:220px; font-family:sans-serif; padding:4px 0;">
-                <div style="font-weight:bold; font-size:14px; color:#2e7d32; margin-bottom:6px;">
+            <div style="position:relative; min-width:160px; max-width:220px; font-family:sans-serif; padding:12px; background:#fff; border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.25); margin-bottom:48px;">
+                <button onclick="closePinPopup()" style="position:absolute; top:4px; right:6px; background:none; border:none; font-size:14px; color:#999; cursor:pointer;">✕</button>
+                <div style="font-weight:bold; font-size:14px; color:#2e7d32; margin-bottom:6px; padding-right:16px;">
                     <span style="background:#e8f5e9; color:#2e7d32; padding:2px 6px; border-radius:10px; font-size:11px; margin-right:4px;">#${stepNumber}</span>
                     ${data.title}
                 </div>
@@ -1593,23 +1618,113 @@ function renderPinsOnMap(pinList, isReadOnly = false) {
             </div>
         `;
 
-        const marker = L.marker(pos, { icon: numberIcon }).addTo(dateMapInstance).bindPopup(popupHtml);
+        pinEl.addEventListener('click', () => {
+            closePinPopup();
+            const popupEl = document.createElement('div');
+            popupEl.innerHTML = popupHtml;
+            pinPopup = new kakao.maps.CustomOverlay({ position: pos, content: popupEl, yAnchor: 1, zIndex: 20 });
+            pinPopup.setMap(dateMapInstance);
+        });
+
+        const marker = new kakao.maps.CustomOverlay({ position: pos, content: pinEl, yAnchor: 1, zIndex: 5 });
+        marker.setMap(dateMapInstance);
         currentMarkers.push(marker);
     });
 
+    // 찍은 순서대로 실선 연결 + 걸어가는 사람
     if (pathCoords.length > 1) {
-        routeLine = L.polyline(pathCoords, {
-            color: '#43a047',
-            weight: 4,
-            opacity: 0.8,
-            dashArray: '6, 8'
-        }).addTo(dateMapInstance);
+        routeLine = new kakao.maps.Polyline({
+            path: pathCoords,
+            strokeWeight: 4,
+            strokeColor: '#43a047',
+            strokeOpacity: 0.85,
+            strokeStyle: 'solid'
+        });
+        routeLine.setMap(dateMapInstance);
+        startWalker(pathCoords);
     }
 
-    if (pathCoords.length > 0) {
-        dateMapInstance.fitBounds(L.latLngBounds(pathCoords), { padding: [50, 50] });
+    if (pathCoords.length === 1) {
+        dateMapInstance.setLevel(4);
+        dateMapInstance.setCenter(pathCoords[0]);
+    } else if (pathCoords.length > 1) {
+        const bounds = new kakao.maps.LatLngBounds();
+        pathCoords.forEach(p => bounds.extend(p));
+        dateMapInstance.setBounds(bounds, 60, 40, 40, 40);
     }
 }
+
+// -------------------------------------------------------------------------
+// 🚶 핀 1 → 2 → 3 ... 순서로 걸어가는 작은 사람 애니메이션
+// -------------------------------------------------------------------------
+function startWalker(path) {
+    stopWalker();
+
+    const el = document.createElement('div');
+    el.className = 'walker';
+    el.innerHTML = `
+        <div class="walker-body">
+            <svg viewBox="0 0 24 32" width="22" height="30">
+                <circle cx="12" cy="5" r="3.6" fill="#1b5e20"/>
+                <g stroke="#1b5e20" stroke-width="2.6" stroke-linecap="round" fill="none">
+                    <line x1="12" y1="9.5" x2="12" y2="19"/>
+                    <line class="walker-arm-a" x1="12" y1="11" x2="12" y2="17.5"/>
+                    <line class="walker-arm-b" x1="12" y1="11" x2="12" y2="17.5"/>
+                    <line class="walker-leg-a" x1="12" y1="19" x2="12" y2="28"/>
+                    <line class="walker-leg-b" x1="12" y1="19" x2="12" y2="28"/>
+                </g>
+            </svg>
+        </div>
+        <div class="walker-shadow"></div>`;
+
+    walker = new kakao.maps.CustomOverlay({ position: path[0], content: el, yAnchor: 1, zIndex: 10 });
+    walker.setMap(dateMapInstance);
+
+    // 구간 길이에 비례해서 시간 배분 (짧은 구간도 최소 0.8초는 걷게)
+    const segs = [];
+    for (let i = 0; i < path.length - 1; i++) {
+        const a = path[i], b = path[i + 1];
+        const len = Math.hypot(b.getLat() - a.getLat(), b.getLng() - a.getLng());
+        segs.push({ a, b, len });
+    }
+    const totalLen = segs.reduce((s, g) => s + g.len, 0) || 1;
+    const totalWalk = Math.max(3000, segs.length * 1800);
+    segs.forEach(g => g.dur = Math.max(800, totalWalk * g.len / totalLen));
+
+    const PAUSE = 600; // 각 핀에서 잠깐 쉬기
+    let segIndex = 0;
+    let segStart = performance.now();
+
+    const step = (now) => {
+        const g = segs[segIndex];
+        const t = (now - segStart) / g.dur;
+
+        if (t >= 1 + PAUSE / g.dur) {
+            // 다음 구간으로, 마지막이면 처음부터 다시
+            segIndex = (segIndex + 1) % segs.length;
+            segStart = now;
+        } else {
+            const p = Math.min(t, 1);
+            walker.setPosition(new kakao.maps.LatLng(
+                g.a.getLat() + (g.b.getLat() - g.a.getLat()) * p,
+                g.a.getLng() + (g.b.getLng() - g.a.getLng()) * p
+            ));
+            el.classList.toggle('resting', t >= 1);
+            el.classList.toggle('face-left', g.b.getLng() < g.a.getLng());
+        }
+        walkerFrame = requestAnimationFrame(step);
+    };
+    walkerFrame = requestAnimationFrame(step);
+}
+
+function stopWalker() {
+    if (walkerFrame) cancelAnimationFrame(walkerFrame);
+    walkerFrame = null;
+    if (walker) walker.setMap(null);
+    walker = null;
+}
+
+window.closePinPopup = closePinPopup;
 
 // 5. 기본 작업용 핀 불러오기
 async function loadDatePins() {
@@ -2007,7 +2122,6 @@ async function loadTolkTolkData() {
             }, { merge: true });
 
             // 활성 공간은 깨끗이 삭제하여 리셋!
-            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
             await deleteDoc(activeDocRef);
         }
 
@@ -2124,55 +2238,6 @@ window.handleQuestionEdit = async function() {
     await loadTolkTolkData();
 };
 
-// ✍️ [기능 2] 답변 등록 기믹
-window.handleAnswerWrite = async function() {
-    const newA = prompt("비밀 답변을 적어주세요! (금요일 밤 10시에 열립니다.) 💌");
-    if (!newA || !newA.trim()) return;
-
-    const pw = prompt("답변 수정 및 봉인용 비밀번호를 지정해 주세요! 🔑\n(나중에 수정할 때 비밀번호를 입력해야 합니다)");
-    if (!pw || !pw.trim()) {
-        alert("보안을 위해 반드시 비밀번호를 입력해 주셔야 답변 저장이 가능합니다! 🔒");
-        return;
-    }
-
-    const activeDocRef = doc(window.db, "settings", "tolktolk_active");
-    await setDoc(activeDocRef, { 
-        answer: newA.trim(), 
-        password: pw.trim() 
-    }, { merge: true });
-
-    alert("답변이 성공적으로 잠금 보관되었습니다! 🔒✨");
-    await loadTolkTolkData();
-};
-
-// ✍️ [기능 3] 답변 수정하기 기믹
-window.handleAnswerEdit = async function(registeredPassword) {
-    const inputPw = prompt("등록하신 비밀번호를 입력해 주세요! 🔑");
-    if (inputPw === null) return;
-
-    if (inputPw.trim() !== registeredPassword) {
-        alert("비밀번호가 틀렸습니다!  비밀번호를 공유해 보세요 😜🗝️");
-        return;
-    }
-
-    const activeDocRef = doc(window.db, "settings", "tolktolk_active");
-    const activeSnap = await getDoc(activeDocRef);
-    const currentA = activeSnap.exists() ? activeSnap.data().answer : "";
-
-    const newA = prompt("새로운 비밀 답변으로 수정해 주세요! 📝", currentA);
-    if (newA === null) return;
-
-    const newPw = prompt("비밀번호도 새로 변경하시겠어요? (그대로 쓰려면 원래 비번 입력)", registeredPassword);
-    if (!newPw || !newPw.trim()) return alert("수정 실패: 비밀번호는 필수로 유지되어야 합니다.");
-
-    await setDoc(activeDocRef, {
-        answer: newA.trim(),
-        password: newPw.trim()
-    }, { merge: true });
-
-    alert("답변이 성공적으로 수정되어 잠금 상태로 덮어씌워졌습니다! ✨");
-    await loadTolkTolkData();
-};
     
     
     
@@ -2269,28 +2334,12 @@ window.closeMenuSecret = () => {
     }
 };
 
-// ==============================================
-// 🗺️ 카카오 맵 및 장소 기능
-// ==============================================
-function initKakaoMap() {
-    const container = document.getElementById('map');
-    if (!container) return; 
-    
-    const options = {
-        center: new kakao.maps.LatLng(36.3537, 127.3415), // 유성온천역 기준
-        level: 4
-    };
-    kakaoMap = new kakao.maps.Map(container, options);
-}
     
 const dateContainer = document.getElementById('calendar-dates'), monthTitle = document.getElementById('month-title'), loadingOverlay = document.getElementById('loading-overlay');
     
 const allStickers = ['💛', '💖', '💓', '🧡', '💚', '💙', '💜', '❣️', '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇', '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️', '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️', '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕', '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤', '🐱', '🐶', '🧸', '🦄', '🐰', '🐥', '🐼', '🦁', '🎧', '🎬', '🎮', '⚽', '📚', '💻', '🎸', '📷', '🎈', '🎁', '💎', '💌', '🌻', '🌳', '🐚', '🏔️', '💒', '💍', '💐', '🥂', '🌃', '🎇', '🌠', '🎠', '🎡', '🧶', '👗', '💄', '👠', '👒', '🧤', '🧣', '🧥', '🧦', '🌂', '👜', '💼', '👓', '👟', '👞', '🎨', '🎤', '🧗', '🚵', '🚣', '🏊', '🏄', '🌋', '⛺', '🎢', '🏰', '🗼', '🗽', '🗺️', '🗾', '🏢', '🏤', '🏥', '🏦', '🏪', '🏫', '🏬', '🏩', '🎡'];
 const holidays2026 = {"01-01": "신정", "02-16": "설날 연휴", "02-17": "설날", "02-18": "설날 연휴", "03-01": "삼일절", "03-02": "대체공휴일", "05-05": "어린이날", "05-24": "부처님오신날", "05-25": "대체공휴일", "06-03": "지방선거", "06-06": "현충일", "08-15": "광복절", "08-17": "대체공휴일", "09-24": "추석 연휴", "09-25": "추석", "09-26": "추석 연휴", "10-03": "개천절", "10-05": "대체공휴일", "10-09": "한글날", "12-25": "성탄절"};
 const allPaths = { "2026-02-14": [{ name: "1. 저스트슬립 호텔", lat: 36.354441, lng: 127.349343, memo: "우리의 아늑한 숙소 🏨" }, { name: "2. NC백화점 유성점", lat: 36.353746, lng: 127.344029, memo: "즐거운 쇼핑 데이트! 🛍️" }, { name: "3. 어묵사랑애", lat: 36.358807, lng: 127.349159, memo: "따끈한 오뎅바에서 한잔 🍢" }, { name: "4. 숙소 앞 산책", lat: 36.357320, lng: 127.354823, memo: "밤공기 마시며 걷기 🌙" }], "2026-02-15": [{ name: "1. 저스트슬립 호텔", lat: 36.354441, lng: 127.349343, memo: "우리의 아늑한 숙소 🏨" }, { name: "2. 오월드 사파리", lat: 36.288478, lng: 127.397009, memo: "사자랑 호랑이 보러 가기 🦁" }, { name: "3. 아리네 닭볶음탕", lat: 36.320661, lng: 127.373775, memo: "맛있는 저녁 냠냠 🥘" }], "2026-02-16": [{ name: "1. 농민뜨끈이", lat: 36.356835, lng: 127.348079, memo: "옥천 뼈구이 맛집! 🍖" }, { name: "2. 홈즈앤루팡", lat: 36.358767, lng: 127.343918, memo: "보드게임 한판 대결 🎲" }] };
-const oldQuestions2 = ["최근에 본 영화나 드라마 속 인물 중 우리와 닮은 커플은?", "만약 우리가 내일 당장 복권에 당첨된다면, 가장 먼저 같이 하고 싶은 일은?", "요즘 내가 가장 자주 하는 생각이나 고민은 뭐야?", "우리가 처음 만난 날, 나의 첫인상은 구체적으로 어땠어?", "너와 함께 가본 곳 중, 눈을 감으면 가장 먼저 떠오르는 풍경은?", "내가 생각하는 '가장 나다운 모습'은 어떤 거야?", "최근에 나 때문에 가장 크게 웃었던 순간이 언제야?", "우리가 나중에 함께 살게 된다면, 집안일 역할 분담은 어떻게 하고 싶어?", "서로에게 '이것만은 절대 변하지 않았으면 좋겠다' 하는 점은?", "내가 요즘 가장 꽂혀있는 음식이나 취미가 있어?", "만약 우리가 단 하루 동안 서로 몸이 바뀐다면, 뭘 제일 해보고 싶어?", "너의 플레이리스트 중에서 나에게 꼭 들려주고 싶은 노래는?", "요즘 나를 가장 행복하게 만드는 사소한 습관은?", "우리가 만난 이후로 너에게 생긴 가장 큰 변화는 뭐야?", "너의 어린 시절 꿈은 무엇이었고, 지금은 어떤 꿈을 꾸고 있어?", "내가 생각하는 '완벽한 데이트'의 조건 3가지는?", "최근에 나에게 말하지 못했던 고마운 순간이 있었어?", "만약 우리에게 한 달간의 휴가가 주어진다면, 어디로 떠나고 싶어?", "내가 가장 좋아하는 나의 신체 부위나 성격은 어디야?", "우리가 나중에 할아버지가, 할머니가 되었을 때 어떤 모습일 것 같아?", "너에게 '사랑'이란 단어를 정의한다면 어떤 문장으로 표현하고 싶어?", "내가 요즘 가장 받고 싶은 위로나 응원은 뭐야?", "우리가 함께 찍은 사진 중 너의 원픽은? 그 이유는?", "나를 보면서 '아, 이 사람 정말 내 사람이구나'라고 느꼈던 순간은?", "1년 뒤의 우리에게 보내는 짧은 영상 편지를 찍는다면 어떤 말을 남길래?", "내가 가진 의외의 매력 포인트라고 생각하는 건 뭐야?", "요즘 너를 가장 설레게 하는 것은 무엇이야?", "우리가 싸웠을 때, 가장 빨리 화해할 수 있는 '비밀 신호'를 만든다면?", "만약 우리가 다시 태어나도 서로를 선택할 것 같아?", "오늘 하루 중 나에게 가장 들려주고 싶은 한 문장은?","우리 처음 만났을 때, 나의 첫인상은 어땠어? 😊", "나랑 가장 먹고싶은 음식 어떤거야? 🥘", "내가 가장 귀여워 보일 때는 언제야? 💛", "상대방을 생각하면 가장 먼저 떠오르는 노래가 있어?", "지구 마지막 날이라면, 나랑 가장 먼저 하고 싶은 일은 뭐야? 🌎", "'이 사람 만나길 잘했다'라고 확신이 들었던 순간은? 💍", "상대방이 지쳐 보일 때, 내가 해줄 수 있는 최고의 위로는?", "우리가 닮은 점은 무엇이고, 서로 달라서 좋은 점은 뭐야?", "서로에게 꼭 전하고 싶은 '오늘의 응원' 한마디!", "만약 우리가 내일 당장 세계여행을 떠난다면, 가장 먼저 가고 싶은 나라는?", "거니와 유미, 우리 둘을 가장 잘 표현하는 단어 하나는 뭘까?", "나랑 연애하며 새롭게 발견한 너의 모습은? ✨", "우리가 함께한 날 중 가장 기억에 남는 날은? 🌸", "나랑 꼭 같이 해보고 싶은 버킷리스트가 있어? ✨", "우리 관계에서 가장 고마웠던 순간은 언제야? 💝", "서운할 때 내가 어떻게 다가와 주면 마음이 풀려? 🧸", "10년 뒤 우리 모습은 어떨 것 같아? ⏳", "나를 세 단어로 표현한다면? 🏷️"];
-const oldQuestions = ["우리가 처음 만났을 때 너의 첫인상은 어땠어?", "거니,유미가 제일 보고싶을때는 언제일까?", "내가 사랑받는구나 라고 느낄때는?!(가장많이 느끼는 상황 또는 말)", "나랑 연애하면서 가장 행복했던 순간은 언제야?", "내가 했던 말 중에 가장 기억에 남는 예쁜 말이 있어?", "너는 연애할 때 '연락의 빈도'가 얼마나 중요하다고 생각해?", "우리가 만약 싸우게 된다면, 너는 바로 푸는 게 좋아 아니면 시간을 갖는 게 좋아?", "너에게 '사랑해'라는 말은 어떤 의미야?", "나를 보면서 '아, 이 사람이랑 사귀길 잘했다' 싶었던 순간은?", "연인 사이에 절대 해서는 안 될 행동 한 가지만 꼽는다면?", "네가 생각하는 이상적인 데이트는 어떤 모습이야?", "내가 고쳤으면 하는 점 딱 하나만 말해줄 수 있어?", "너는 나랑 어디까지 미래를 그려봤어?", "우리가 서로에게 가장 힘이 되었던 순간은 언제였을까?", "연인이 이성 친구와 어디까지 허용될 수 있다고 생각해?", "너의 사랑의 매개체는 뭐야? (스킨십, 대화, 선물, 함께하는 시간 등)", "내가 갑자기 아프다고 하면 너는 어떻게 해줄 거야?", "나랑 꼭 같이 가보고 싶은 여행지는 어디야?", "너는 내가 어떤 모습일 때 가장 귀엽거나 멋있어 보여?", "우리가 서로 닮았다고 생각하는 점이 있어?", "연애를 하면서 가장 중요하게 생각하는 가치관은 뭐야? (신뢰, 재미, 안정감 등)", "내가 너의 하루 중 어떤 존재가 되었으면 좋겠어?", "너는 나에게 비밀이 생기면 말하는 편이야, 숨기는 편이야?", "너의 슬픔을 내가 어떻게 위로해주면 좋겠어?", "우리가 나중에 나이가 들어서도 꼭 지켰으면 하는 약속이 있어?", "나를 위해 기꺼이 포기할 수 있는 게 있을까?", "내가 준 선물 중에 가장 마음에 드는 건 뭐야?", "너는 '깻잎 논쟁' 같은 이슈에 대해 어떻게 생각해?", "내가 너의 어떤 점을 가장 좋아한다고 생각해?", "나랑 같이 있으면 어떤 기분이 들어?", "우리가 만약 몸이 바뀐다면 가장 먼저 해보고 싶은 건?", "오늘 하루 나에게 꼭 듣고 싶은 말이 있어?", "우리 관계에서 가장 고마웠던 순간은 언제야? 💝", "서운할 때 내가 어떻게 다가와 주면 마음이 풀려? 🧸", "10년 뒤 우리 모습은 어떨 것 같아? ⏳", "나를 세 단어로 표현한다면? 🏷️"];
-const oldQuestions3 = ["우리가 처음 만났을 때, 서로의 첫인상보다 더 반전이었던 모습은 무엇이야?", "요즘 들어 내가 너를 보며 가장 많이 하는 생각은 뭐야?", "상대방의 사소한 행동 중 '아, 진짜 사랑스럽다'고 느껴지는 게 있어?", "나를 보며 '이 사람 정말 내 스타일이다'라고 처음 느꼈던 순간이 언제야?", "우리 둘의 분위기를 한 가지 색깔로 표현한다면 무슨 색일까?", "나를 위해 해줄 수 있는 가장 헌신적인 일은 어디까지일까?", "최근에 나에게 왠지 모르게 미안하거나 고마웠던 사소한 일이 있어?", "우리가 처음으로 '진짜 연인'이 되었다고 실감했던 때는 언제야?", "나에게 '가장 편안한 안식처'가 되어준다고 느꼈던 순간은?", "우리 사이에 '이건 정말 잘 맞는다' 싶은 가치관이 있다면?", "상대방의 외모 중 가장 '나답게' 예쁘다고 생각하는 부위는 어디야?", "내가 화났을 때, 너만의 '화 풀기 필살기'가 있다면?", "우리 관계를 더 단단하게 만들기 위해 꼭 지키고 싶은 나만의 다짐이 있어?", "내가 너의 인생에 등장해서 가장 크게 바뀐 점이 있다면 뭐야?", "너에게 연애란 '성장'이야, '휴식'이야? 그 이유는?", "우리가 함께할 때 가장 '시간 가는 줄 모르는' 활동은 뭐야?", "혹시 내가 너의 꿈에 나온 적 있어? 있다면 어떤 내용이었어?", "상대방에게 '이것만큼은 절대 양보할 수 없다'는 나만의 기준이 있다면?", "나를 보며 '정말 정직하고 순수한 사람이다'라고 느꼈던 적이 있어?", "우리가 나중에 '우리만의 공간'을 만든다면, 가장 먼저 사고 싶은 가구는?", "너의 인생에서 내가 '가장 필요한 존재'가 되고 싶다면 어떤 도움을 주면 될까?", "내가 너의 연락을 기다릴 때, 너는 어떤 기분으로 연락을 해?", "사랑을 표현하는 방식 중에, 내가 모르는 너만의 특별한 습관이 있을까?", "우리 둘만의 '암호'나 '눈빛'으로 대화가 통했던 순간이 있어?", "10년 후에도 서로에게 놓지 않았으면 하는 습관 한 가지는?", "나를 생각할 때 가장 먼저 떠오르는 계절이나 날씨는 뭐야?", "우리가 서로의 가족이나 친구에게 어떤 사람으로 기억되었으면 좋겠어?", "너의 스트레스를 내가 가장 확실하게 날려줄 수 있는 방법은?", "만약 우리가 오늘 하루를 '서로의 역할'을 바꿔서 산다면 무엇부터 해볼까?", "올해가 가기 전에 꼭 하고 싶은 것은?", "둘이 있다가 갑자기 심쿵 하는 순간이 있다면?", "형식적인 대답할 때 vs 단답으로 대답할 때 어떤게 더 싫어?", "내가 더 좋아하는 것 같다고 느낄 때는?", "상대방을 동물로 표현한다면 어떤 동물이랑 비슷해?", "하루에 전화 1통만 하기 vs 하루종일 카톡으로만 연락하기", "우리에게 권태기가 온다면 어떻게 할거야?", "알고리즘 점검 vs 위치어플 깔기", "다툴 때, 아무말도 하지 않고 울기 vs 분노조절장애 어떤게 더 싫어?", "나와 함께 하고 싶은 이색 데이트는?", "오늘 밤 자기 전에 나에게 꼭 해주고 싶은 말이 있다면?"];
 const dailyQuestions = ["처음 서로에게 호감을 느꼈던 정확한 순간과 이유는 무엇인가요?",
 "우리 통화 목록이나 카카오톡 대화 중 가장 기억에 남는 단어는 무엇인가요?",
 "상대방이 내 옷을 입었을 때 가장 귀여워 보였던 적이 있나요?",
@@ -2667,10 +2716,6 @@ window.setupOriginalDiary = function(dateKey) {
     selectedSticker = data.sticker || ""; 
     comments = data.comments || [];
     
-    const contentArea = document.getElementById('modal-content-area');
-    if (!contentArea) {
-        document.getElementById('diary-modal').innerHTML = `<button class="close-modal-btn" onclick="closeModal()">✕</button><div id="modal-content-area" style="height:100%; display:flex; flex-direction:column;"></div>`;
-    }
     const targetArea = document.getElementById('modal-content-area');
 
     targetArea.innerHTML = `
@@ -3091,6 +3136,7 @@ window.updateSummaryView = async function(dateKey) {
         rv.style.display = 'none';
     } 
     else {
+        summaryList.innerHTML = `<p style="text-align:center; color:#ccc; font-size:14px;">아직 기록된 장소가 없어요 📍</p>`;
         window.showRecordView();
     }
 };
@@ -3099,7 +3145,6 @@ window.deleteSummaryLocation = async function(dateKey, index) {
     if (!confirm("이 항목 하나만 삭제할까요? ⚡")) return;
 
     try {
-        const { doc, getDoc, updateDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         const docRef = doc(window.db, "artifacts", "shared-gomi-diary-app", "public", "data", "diaryRecords", dateKey);
         const docSnap = await getDoc(docRef);
 
@@ -3140,6 +3185,15 @@ function showRecordView() {
 }
 
 window.showRecordView = showRecordView;
+
+// ⬅️ 기록 화면 → 장소 요약 화면으로 돌아가기
+window.showSummaryView = function() {
+    const summary = document.getElementById('summary-view');
+    if (summary) summary.style.display = 'block';
+
+    const record = document.getElementById('record-view');
+    if (record) record.style.display = 'none';
+};
     
 // 📍 [업그레이드] 마커 렌더링 함수 (디자인 강화 버전)
 function renderMapPath(pathData, drawLine = true) {
@@ -3862,7 +3916,6 @@ window.openFortune = async function() {
     
     try {
         // 파이어베이스에서 예약 메시지 가져오기
-        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         const docRef = doc(window.db, "fortune_messages", dateKey);
         const snap = await getDoc(docRef);
         
@@ -3891,20 +3944,6 @@ window.closeFortune = () => {
     if (fortuneOverlay) fortuneOverlay.style.display = 'none';
 };
 
-// 2. [핵심] 버튼을 직접 찾아서 클릭 기능 강제 주입
-const fortuneBtn = document.getElementById('fortune-button');
-if (fortuneBtn) {
-    fortuneBtn.onclick = () => {
-        window.openFortune();
-    };
-}
-
-
-// 2. HTML 요소를 직접 찾아서 한 번 더 연결 (보험용)
-const adminGate = document.getElementById('admin-secret-gate');
-if (adminGate) {
-    adminGate.onclick = window.handleSecretClick;
-}
     
 // 🔒 글로벌 마스터 인증 상태 변수 초기화
 window.isAdminVerified = false;
@@ -3950,7 +3989,6 @@ window.openFortuneEditor = async function() {
     if (inputArea) inputArea.value = ""; 
 
     try {
-        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         const docRef = doc(window.db, "fortune_messages", tomorrowKey);
         const snap = await getDoc(docRef);
 
@@ -4011,7 +4049,6 @@ window.openTimeSetting = async function() {
             const timeArray = times.split(',').map(t => t.trim()).filter(t => t !== "");
             
             // 3. 파이어베이스에 즉시 저장
-            const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
             await setDoc(doc(window.db, "settings", "attack_times"), { times: timeArray });
             
             alert("타임어택 예약 완료! ⚡ 유미 모르게 잘 숨겨둘게요.");
@@ -4032,62 +4069,40 @@ onSnapshot(doc(window.db, "settings", "attack_times"), (snap) => {
     }
 });
 
-// 🕵️ 1초마다 체크하는 상시 감시 타이머
-// 🕵️ [오타 완벽 교정] 1초마다 체크하는 상시 감시 타이머 (31번째 히든 미션 연동 버전)
-setInterval(async () => {
+// 📚 유미가 모은 도감 개수 (바뀔 때만 파이어베이스가 알려줌 → 1초마다 읽지 않아서 무료 한도 절약)
+let ownedCount = null;
+onSnapshot(collection(window.db, "collections"), (snap) => {
+    ownedCount = snap.size;
+});
+
+// 🕵️ 1초마다 체크하는 상시 감시 타이머 (31번째 히든 미션 연동 버전)
+setInterval(() => {
     const now = new Date();
-    // 🚨 '0 Parth' 오타를 깔끔하게 지우고 원래의 포맷으로 완벽 복구했습니다! ⭐
     const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     const btn = document.getElementById('time-attack-btn');
-    
+
     if (!btn) return;
 
     // 브라우저 저장소에서 '이미 수집한 시간'을 꺼내옵니다.
     const lastDone = localStorage.getItem('lastCollectedTime');
 
-    try {
-        // 🚨 [실시간 도감 개수 파악] 파이어베이스 라이브러리를 동적으로 땡겨와서 유미가 지금 몇 개 모았는지 실시간으로 개수를 셉니다!
-        const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-        const querySnapshot = await getDocs(collection(window.db, "collections"));
-        
-        const ownedItems = [];
-        querySnapshot.forEach((doc) => ownedItems.push(doc.id));
-        const ownedCount = ownedItems.length; // 유미가 현재 보유한 도감 개수 (29개, 30개, 31개)
+    // 👑 조건 1: 대망의 31개를 '완전히' 꽉 채웠다면? 미션 진짜 종결이므로 버튼 완전 영구 삭제! 🔒
+    if (ownedCount !== null && ownedCount >= 31) {
+        btn.style.setProperty('display', 'none', 'important');
+        return;
+    }
 
-        // -------------------------------------------------------------------------
-        // 👑 조건 1: 대망의 31개를 '완전히' 꽉 채웠다면? 미션 진짜 종결이므로 버튼 완전 영구 삭제! 🔒
-        // -------------------------------------------------------------------------
-        if (ownedCount >= 31) {
-            btn.style.setProperty('display', 'none', 'important');
-            return;
-        }
+    // 🎁 조건 2: 딱 30개를 모아서 '마지막 31번째 히든 조각'만 남겨둔 상태라면? 시간표 무시하고 24시간 상시 노출! ⭐
+    if (ownedCount === 30) {
+        btn.style.setProperty('display', 'block', 'important');
+        return;
+    }
 
-        // -------------------------------------------------------------------------
-        // 🎁 조건 2: 딱 30개를 모아서 '마지막 31번째 히든 조각'만 남겨둔 상태라면? ⭐
-        // -------------------------------------------------------------------------
-        if (ownedCount === 30) {
-            // 🚨 관리자가 예약해 둔 시간표 조건 싹 다 무시하고, 상자를 화면에 24시간 상시 노출시킵니다!
-            btn.style.setProperty('display', 'block', 'important');
-            return;
-        }
-
-        // -------------------------------------------------------------------------
-        // ⏰ 조건 3: 아직 30개 미만인 평소 상태라면? 원래 팀장님이 짜두신 시간표대로 작동!
-        // -------------------------------------------------------------------------
-        if (window.attackTimes && window.attackTimes.includes(currentTimeStr) && lastDone !== currentTimeStr) {
-            btn.style.display = 'block';
-        } else {
-            btn.style.display = 'none'; 
-        }
-
-    } catch (e) {
-        console.error("타임어택 실시간 감시 에러 감지:", e);
-        // 혹시 인터넷 끊김 등으로 에러가 나면, 멈추지 말고 기존 원래 시간표 로직으로 안전하게 백업 작동
-        if (window.attackTimes && window.attackTimes.includes(currentTimeStr) && lastDone !== currentTimeStr) {
-            btn.style.display = 'block';
-        } else {
-            btn.style.display = 'none'; 
-        }
+    // ⏰ 조건 3: 아직 30개 미만인 평소 상태(또는 개수 불러오는 중)라면? 관리자가 예약한 시간표대로 작동!
+    if (window.attackTimes && window.attackTimes.includes(currentTimeStr) && lastDone !== currentTimeStr) {
+        btn.style.display = 'block';
+    } else {
+        btn.style.display = 'none'; 
     }
 }, 1000);
 
@@ -4199,7 +4214,6 @@ window.saveSpecialFortune = async function() {
 
     try {
         // [수정 포인트] 상단에서 선언된 window.db와 import된 함수들을 정확히 사용합니다.
-        const { doc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
         await setDoc(doc(window.db, "fortune_messages", tomorrowKey), {
             specialMessage: textInput.value.trim(),
@@ -4230,7 +4244,6 @@ window.saveSpecialFortune = async function() {
     if (!confirm("이 숙소 리뷰를 삭제하시겠습니까? 😱\n삭제하면 되돌릴 수 없어요!")) return;
 
     try {
-        const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         await deleteDoc(doc(window.db, "stay_reviews", id));
         alert("리뷰가 깨끗하게 삭제되었어! ✨");
     } catch (e) {
@@ -4263,7 +4276,6 @@ window.createNewStay = async function() {
     if (!name) return alert("숙소 이름을 적어줘! ⚡");
 
     try {
-        const { collection, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         await addDoc(collection(window.db, "stay_reviews"), {
             hotelName: name,
             location: loc,
@@ -4306,7 +4318,6 @@ window.updateReview = async function() {
     }
 
     try {
-        const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         await updateDoc(doc(window.db, "stay_reviews", id), updateData);
         alert("리뷰 저장 완료! ✨");
         closeEdit();
@@ -4314,14 +4325,15 @@ window.updateReview = async function() {
 };
 
    // 5. 목록 불러오기 (삭제 버튼 포함 버전)
+let stayReviewsUnsub = null; // 여기어때 실시간 감시 (여러 번 열어도 하나만 유지)
 window.loadStayReviews = async function() {
     const listDiv = document.getElementById('stay-list');
     if (!listDiv) return;
 
-    const { collection, query, orderBy, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
     const q = query(collection(window.db, "stay_reviews"), orderBy("timestamp", "desc"));
     
-    onSnapshot(q, (snapshot) => {
+    if (stayReviewsUnsub) stayReviewsUnsub();
+    stayReviewsUnsub = onSnapshot(q, (snapshot) => {
         listDiv.innerHTML = "";
         snapshot.forEach((d) => {
             const data = d.data();
@@ -4455,7 +4467,6 @@ window.collectItem = async function() {
 
     try {
         // 1. 파이어베이스 라이브러리 로드 및 유미 보유 리스트 실시간 조회
-        const { doc, setDoc, serverTimestamp, collection, getDocs } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         const querySnapshot = await getDocs(collection(window.db, "collections"));
         
         const ownedItems = [];
@@ -4543,7 +4554,6 @@ const collectionData = {
 
     try {
         // 3. 파이어베이스 데이터 가져오기
-        const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         const querySnapshot = await getDocs(collection(window.db, "collections"));
         const ownedItems = [];
         querySnapshot.forEach((doc) => ownedItems.push(doc.id));
@@ -4669,7 +4679,6 @@ window.switchGameView = function(type) {
     // ③ [핵심 UX 수술] 나갔다 다시 들어왔을 때는 애니메이션 스킵하고 결과만 즉시 표출! 🔍
     setTimeout(async () => {
         try {
-            const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
             
         
            // 🪜 사다리방 재진입 검사 (마지막 벌칙 문구 기억 장치 연동)
@@ -4778,67 +4787,6 @@ window.backToGameLobby = function() {
     }
 }; // 함수 끝나는 괄호
 
-    // =======================================================
-// 🪄 [UX 스킵 가젯] 재진입 시 애니메이션 없이 즉시 결과를 꽂아주는 헬퍼
-// =======================================================
-
-// 사다리 즉시 정산 복원
-window.showLadderResultDirectly = function(startX, penaltyText) {
-    const resBox = document.getElementById('ladder-result');
-    if (!resBox) return;
-    
-    // 구슬은 최종 목적지(바닥)에 고정 렌더링
-    let endX = startX;
-    // 사다리 3번 다리 꺾임 물리 대리 연산 (기존 다리 위치 기반 최종 목적지 역추적)
-    // 40, 85, 130 다리를 만나면 무조건 교체되므로 홀수번(3번) 교체되어 무조건 반대편으로 감!
-    endX = startX === 55 ? 165 : 55;
-
-    window.drawBaseLadder(endX, 170); // 바닥에 구슬 안착 고정
-
-    let winnerText = "", bgColor = "", textColor = "";
-    if (endX === 55) { winnerText = "💥 거니 당첨!! 👦"; bgColor = "#FFF9C4"; textColor = "#F57F17"; } 
-    else { winnerText = "👑 유미 당첨!! 👧"; bgColor = "#FCE4EC"; textColor = "#C2185B"; }
-
-    resBox.style.cssText = `width: 100%; background: ${bgColor}; color: ${textColor}; padding: 10px; border-radius: 12px; font-weight: 900; text-align: center; box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.05);`;
-    resBox.innerHTML = `<span style="font-size:1.25rem;">${winnerText}</span><br><span style="color:#444; font-size:0.85rem; font-weight:bold;">[ ${penaltyText} ] 수행하기! 힇히 🤣</span>`;
-};
-
-window.showWheelResultDirectly = async function(targetAngle, winnerPrize) {
-    const wheelGraphic = document.getElementById('wheel-graphic');
-    const wheelResult = document.getElementById('wheel-result');
-    const wheelBtn = document.getElementById('wheel-btn');
-    
-    if (wheelGraphic) {
-        wheelGraphic.style.transition = "none"; 
-        wheelGraphic.style.transform = `rotate(${targetAngle}deg)`; 
-    }
-    if (wheelResult) wheelResult.innerHTML = `🎯 당첨 결과:<br><span style="color:#1565c0; font-size:1.25rem;">[ ${winnerPrize} ]</span> 확정! 🎉`;
-    if (wheelBtn) wheelBtn.disabled = false;
-
-    try {
-        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-        const snap = await getDoc(doc(window.db, "games", "wheelMatch"));
-        
-        const defaultLabels = ["안마권", "뽀뽀권", "소원권", "야식권"];
-        const defaultTexts = ["안마", "뽀뽀", "소원", "야식"];
-
-        for (let i = 0; i < 4; i++) {
-            const inputField = document.getElementById(`wheel-input-${i}`);
-            const txtDiv = document.getElementById(`wheel-txt-${i}`);
-            
-            // 🚨 [핵심 수정] 결과가 이미 뜬 상태(spinning 완료)라면 인풋창을 잠가서 내기 조작 방지! 🔒
-            if (inputField) {
-                inputField.value = (snap.exists() && snap.data()[`text_${i}`]) ? snap.data()[`text_${i}`] : defaultLabels[i];
-                inputField.disabled = true; // 결과 떴으니 수정 불가!
-            }
-            if (txtDiv) {
-                txtDiv.innerText = (snap.exists() && snap.data()[`text_${i}`]) ? snap.data()[`text_${i}`] : defaultTexts[i];
-            }
-        }
-    } catch(e) { console.error("재진입 룰렛 텍스트 최종 복원 실패:", e); }
-};
-    
-
 // =======================================================
 // 🪜 [실시간 이름 셔플 및 숨김] 거니 💛 유미 네트워크 사다리 엔진
 // =======================================================
@@ -4871,7 +4819,6 @@ window.drawBaseLadder = function(ballX = null, ballY = null) {
 window.startLadderRealtimeListener = async function() {
     if (ladderDbListener) return;
     try {
-        const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
         ladderDbListener = onSnapshot(doc(window.db, "games", "ladderMatch"), (docSnap) => {
             const btn = document.getElementById('ladder-btn');
@@ -4929,7 +4876,6 @@ window.startLadderGame = async function() {
     const p2Name = names[1];
 
     try {
-        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
         // 튕김 인지용 idle 스위칭
         await setDoc(doc(window.db, "games", "ladderMatch"), { status: 'idle' }, { merge: true });
@@ -5078,7 +5024,6 @@ window.submitRSPChoice = async function(hand) {
     if (rspCurrentPlayer === '유미' && currentServerData.yumi) return;
 
     try {
-        const { doc, setDoc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
         const fieldName = rspCurrentPlayer === '거니' ? 'geonny' : 'yumi';
         const docRef = doc(window.db, "games", "rspMatch");
@@ -5119,7 +5064,6 @@ window.startRSPRealtimeListener = async function() {
     if (rspDbListener) return;
 
     try {
-        const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
         rspDbListener = onSnapshot(doc(window.db, "games", "rspMatch"), (docSnap) => {
             const btnGeonny = document.getElementById('rsp-player-geonny');
@@ -5204,7 +5148,6 @@ window.executeRSPCalculation = function(gChoice, yChoice) {
 // 🔄 5. 서버 데이터까지 시원하게 날려버리는 무결점 2인용 서버 리셋기
 window.resetRSPMatchOnly = async function() {
     try {
-        const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
         await deleteDoc(doc(window.db, "games", "rspMatch"));
         currentServerData = {}; // 로컬 캐시 데이터도 공초 🧼
@@ -5250,7 +5193,6 @@ window.syncWheelText = function(index) {
 window.startWheelRealtimeListener = async function() {
     if (wheelDbListener) return;
     try {
-        const { doc, onSnapshot, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         
         // ① 진입 즉시 모든 인풋창 잠금(disabled) 해제
         for (let i = 0; i < 4; i++) {
@@ -5343,7 +5285,6 @@ window.spinWheel = async function() {
     const finalTotalRotation = 2520 + targetRandomAngle; 
 
     try {
-        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
 
         // 사다리식 오버라이트 덮어쓰기 연출 점화 (merge를 제거하여 매번 완벽한 새 판으로 인식시킵니다!)
         await setDoc(doc(window.db, "games", "wheelMatch"), { status: 'idle' }, { merge: true });
@@ -5421,7 +5362,6 @@ window.showWheelResultDirectly = async function(targetAngle, winnerPrize) {
     if (wheelBtn) wheelBtn.disabled = false;
 
     try {
-        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         const snap = await getDoc(doc(window.db, "games", "wheelMatch"));
         
         if (snap.exists()) {
@@ -5449,7 +5389,6 @@ window.showWheelResultDirectly = async function(targetAngle, winnerPrize) {
 // 🔄 2-6. 룰렛 전용 서버 리셋 스위치
 window.resetWheelMatch = async function() {
     try {
-        const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
         await deleteDoc(doc(window.db, "games", "wheelMatch"));
         
         const wheelGraphic = document.getElementById('wheel-graphic');
