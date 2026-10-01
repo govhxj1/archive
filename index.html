@@ -734,12 +734,12 @@
     </div>
 </div>
 
-    <!-- 📸 사진 모아보기 (다이어리에 올린 사진을 월별로) -->
+    <!-- 📸 추억앨범 (다이어리에 올린 사진을 월별로) -->
 <div id="photo-gallery-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9800; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
     <div style="background:#fff; width:95%; max-width:500px; height:88vh; border-radius:20px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.3); position:relative;">
         <div style="padding:15px; background:#fff0f3; border-bottom:1px solid #ffe5ec; display:flex; justify-content:space-between; align-items:center;">
             <div>
-                <div style="font-weight:900; font-size:16px; color:#ff8fab;">📸 우리 사진 모아보기</div>
+                <div style="font-weight:900; font-size:16px; color:#ff8fab;">📸 우리들의 추억앨범</div>
                 <div id="photo-gallery-count" style="font-size:11px; color:#bbb; font-weight:bold; margin-top:2px;"></div>
             </div>
             <button onclick="closePhotoGallery()" style="background:none; border:none; font-size:18px; cursor:pointer; font-weight:bold; color:#555;">✕</button>
@@ -2594,7 +2594,7 @@ window.openCourseFromDiary = function(courseId) {
 };
 
 // =======================================================
-// 📸 사진 모아보기 (다이어리에 올린 사진을 월별로 모아서 보기)
+// 📸 추억앨범 (다이어리에 올린 사진을 월별로 모아서 보기)
 // =======================================================
 let galleryPhotos = [];
 let galleryIndex = 0;
