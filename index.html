@@ -548,7 +548,6 @@
             </div>
         </div>
 
-        
                 <div id="weekend-old-record" style="display: none; background: #fffdf0; color: #5d4037; padding: 16px; border-radius: 18px; margin-bottom: 18px; font-size: 0.85rem; text-align: left; border: 2px dashed #ffeaa7; box-shadow: 0 4px 12px rgba(255, 222, 89, 0.15); box-sizing: border-box; width: 100%;">
     <div style="font-weight: 900; color: #d4a373; margin-bottom: 10px; font-size: 0.8rem; display: flex; align-items: center; gap: 5px; letter-spacing: -0.5px;">
         <span>🕰️ 우리가 예전에는 이렇게 생각했었어! ⏳</span>
@@ -557,7 +556,6 @@
         </div>
 </div>
 
-        
         <div id="answers-display" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
             <div id="yumi-answer" style="font-size: 0.85rem; background: #ffe5ec; padding: 12px; border-radius: 12px; display: none; color: #d63384; border: 1px solid #ffc1cc;">
                 <b>유미:</b> <span class="text"></span>
@@ -625,9 +623,6 @@
     💬 유미톡톡
     </button>
 
-        
-
-
         <button id="dday-mission-btn" class="confirm-btn" onclick="handleDdayMission()" 
     style="width:100%; height:55px; background:#fff0f3; color:#ff8fab; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;">
     <span id="dday-mission-text">데이트 기다리는 중.. 💌</span>
@@ -653,7 +648,6 @@
         </button>
     </div>
 </div>
-
 
     <!-- 🌸 데이트맵 모달 창 -->
 <div id="date-map-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
@@ -708,7 +702,6 @@
         </div>
     </div>
 </div>
-    
 
 <!-- 📝 핀 등록 모달 (제목, 설명, 사진) -->
 <div id="pin-input-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9500; align-items:center; justify-content:center;">
@@ -728,9 +721,6 @@
         </div>
     </div>
 </div>
-
-    
-    
 
     <!-- 🌿 유미톡톡 모달 팝업 뼈대 -->
 <div id="tolktolk-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
@@ -774,9 +764,7 @@
         </button>
     </div>
 </div>
-</div>
-    
-    
+
 <div id="map-container" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; flex-direction: column;">
     <div class="map-header" style="padding: 15px; background: var(--main-pink); color: white; display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin:0; font-weight: 900;">📍 우리들의 추억 지도</h3>
@@ -878,7 +866,6 @@
         </div>
     </div>
 </div>
-    
 
 <div id="menu-secret-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div class="surprise-box" style="background: #fffbe6; border: 3px solid #ffde59; width: 85%; max-width: 340px; padding: 20px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
@@ -902,7 +889,6 @@
     </div>
 </div>
 
-
     <button id="time-attack-btn" onclick="collectItem()" 
     style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:100px; height:100px; border-radius:50%; background:var(--main-pink); border:none; box-shadow:0 0 30px rgba(255,143,171,0.6); z-index:9999; cursor:pointer; animation: pulse-center 1s infinite;">
     <span style="font-size:45px;">🎁</span>
@@ -922,8 +908,7 @@
     border-radius: 10px;
 }
 </style>
-    
-    
+
 <script>
     const secretLetters = {
         1: `귀염둥이 곰돌이 거니야💛 <br><br>
@@ -1107,7 +1092,6 @@
     </div>
 </div>
 
-    
 <div id="fortune-pw-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div style="background: #111; padding: 30px; border-radius: 15px; text-align: center; width: 280px; border: 1px solid #333; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
         
@@ -1126,8 +1110,6 @@
     </div>
 </div>
 
-    
-    
 <!-- 🖤 Goni's Admin Center (이중 인증 박스 철거 완료 버전) -->
 <div id="admin-hub-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6001; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
     <div style="background: #111; width: 85%; max-width: 340px; padding: 30px 25px; border-radius: 25px; text-align: center; border: 1px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.7); box-sizing: border-box;">
@@ -1242,11 +1224,9 @@
         </div>
     </div>
 </div>
-    
-    
+
 <script type="module">
-    
-    
+
 // [1] 파이어베이스 라이브러리 로드 (🔥 가장 맨 위에 있어야 에러가 안 납니다!)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -1305,7 +1285,6 @@ function checkAdminAccess() {
 }
 
 checkAdminAccess();
-    
 
 const appId = 'shared-gomi-diary-app';
 
@@ -1331,8 +1310,6 @@ let tempLocations = [];
 let kakaoMap; 
 let kakaoMarkers = [];
 let kakaoPolyline = null;
-
-
 
 // ============================================== 데이트맵 전체 로직
 let dateMapInstance = null;
@@ -1719,7 +1696,6 @@ window.saveCurrentDateCourse = async function() {
         alert("저장 실패: " + e.message);
     }
 };
-    
 
 // -------------------------------------------------------------------------
 // 📂 [신규] 8. 저장된 데이트 목록 모달 열기/닫기
@@ -1798,7 +1774,6 @@ window.viewSavedCourse = async function(courseId) {
         alert("코스 불러오기 실패: " + e.message);
     }
 };
-    
 
 // -------------------------------------------------------------------------
 // ✕ [신규] 10. 뷰어 모드 닫기 (원래 작업용 핀으로 복귀)
@@ -1854,9 +1829,6 @@ window.deleteSavedCourse = async function(courseId, courseTitle) {
     }
 };
 
-    
-
-    
 // ==============================================
 // 🌌 밤하늘 은하수 기능
 // ==============================================
@@ -1954,10 +1926,6 @@ function renderStars() {
     });
 }
 
-
-   
-    
-
 // 유미톡톡
 function getMondayOfThisWeek() {
     const today = new Date();
@@ -1982,7 +1950,6 @@ function checkTolkReleaseState() {
     const isAfterFriday10PM = (currentDay === 5 && currentHour >= 22) || (currentDay === 6);
     return { isReleased: isAfterFriday10PM, isResetDay: false };
 }
-
 
 // 🪄 [수정본] 유미톡톡 창 열기 (열릴 때 비밀 메뉴 자동으로 숨기기)
 window.openTolkTolk = async function() {
@@ -2150,9 +2117,6 @@ window.handleQuestionEdit = async function() {
     await loadTolkTolkData();
 };
 
-    
-    
-    
 // ==============================================
 // 💛 비밀 메뉴 및 하트 알림 기능
 // ==============================================
@@ -2246,7 +2210,6 @@ window.closeMenuSecret = () => {
     }
 };
 
-    
 const dateContainer = document.getElementById('calendar-dates'), monthTitle = document.getElementById('month-title'), loadingOverlay = document.getElementById('loading-overlay');
     
 const allStickers = ['💛', '💖', '💓', '🧡', '💚', '💙', '💜', '❣️', '😊', '🥰', '😭', '😡', '🤩', '😴', '🥳', '😇', '✨', '🌸', '🍀', '🌈', '☀️', '☁️', '🌙', '❄️', '🔥', '🍠', '🚗', '🚲', '✈️', '🚢', '🏠', '🏖️', '🍰', '☕', '🍱', '🍦', '🍎', '🍓', '🥑', '🍕', '🍔', '🍟', '🍭', '🍩', '🥨', '🍺', '🍹', '🥤', '🐱', '🐶', '🧸', '🦄', '🐰', '🐥', '🐼', '🦁', '🎧', '🎬', '🎮', '⚽', '📚', '💻', '🎸', '📷', '🎈', '🎁', '💎', '💌', '🌻', '🌳', '🐚', '🏔️', '💒', '💍', '💐', '🥂', '🌃', '🎇', '🌠', '🎠', '🎡', '🧶', '👗', '💄', '👠', '👒', '🧤', '🧣', '🧥', '🧦', '🌂', '👜', '💼', '👓', '👟', '👞', '🎨', '🎤', '🧗', '🚵', '🚣', '🏊', '🏄', '🌋', '⛺', '🎢', '🏰', '🗼', '🗽', '🗺️', '🗾', '🏢', '🏤', '🏥', '🏦', '🏪', '🏫', '🏬', '🏩', '🎡'];
@@ -3205,8 +3168,6 @@ function renderMapPath(pathData, drawLine = true) {
     }
 };
 
-    
-    
                     window.showRandomQuestion = function() {
                 const today = new Date();
                 const currentDay = today.getDay(); // 0(일) ~ 6(토) 구하기
@@ -3228,8 +3189,7 @@ function renderMapPath(pathData, drawLine = true) {
                 
                 // 🎲 평일용 시드와 화/목 타임머신용 시드가 겹치지 않도록 미세하게 수식을 다르게 조율합니다.
                 const dailySeed = (yearFactor * 31 + monthFactor * 7 + dayFactor);
-            
-            
+
                 // 📅 1. [평일 모드 진입] 화요일(2)과 목요일(4)이 아니라면? 평일 무작위 중복방지 가동!
                 if (currentDay !== 2 && currentDay !== 4) {
                     console.log("📅 평일 모드: 중복 없는 무작위 동기화 질문을 장부에서 추출합니다.");
@@ -3265,8 +3225,7 @@ function renderMapPath(pathData, drawLine = true) {
                     
                     return; // ⛔ 평일 강제 종료 (아래 타임머신 코드 차단)
                 }
-            
-            
+
                 // =================================================================
                 // 🕰️ 여기서부터는 오직 [화요일, 목요일]에만 작동하는 타임머신 영역!
                 // =================================================================
@@ -3338,8 +3297,6 @@ function renderMapPath(pathData, drawLine = true) {
             
                 window.currentPastDateKey = targetPastDateKey; 
             };
-    
-    
 
 window.openInput = (name) => { 
     currentWriter = name; 
@@ -3369,7 +3326,6 @@ window.openInput = (name) => {
 
     inputTextArea.focus(); 
 };
-    
 
 window.submitDailyAnswer = async () => {
     const input = document.getElementById('q-answer-input'); 
@@ -3628,7 +3584,6 @@ function setupHeartNotification() {
     }
 } // 함수 끝나는 중괄호
 
-
     // ==============================================
 // 💛 오늘의 한마디 (Fortune) 기능 최종 복구
 // ==============================================
@@ -3775,7 +3730,6 @@ function renderLetterList() {
     if (listView) listView.style.display = 'flex';
     if (contentView) contentView.style.display = 'none';
 }
-    
 
 // 3. [본문 개방] 특정 편지 클릭했을 때 내용을 팝업에 띄우는 함수
 window.openLetterContent = function(num) {
@@ -3798,7 +3752,6 @@ window.backToLetterList = function() {
     if (document.getElementById('letter-list-view')) document.getElementById('letter-list-view').style.display = 'flex';
     if (document.getElementById('letter-content-view')) document.getElementById('letter-content-view').style.display = 'none';
 };
-
 
 // 5. [스위치] 노란 하트 1회 터치 시 즉시 위의 모든 시스템 격발!
 if (document.getElementById('secret-heart-trigger')) {
@@ -3854,7 +3807,6 @@ window.closeFortune = () => {
     if (fortuneOverlay) fortuneOverlay.style.display = 'none';
 };
 
-    
 // 🔒 글로벌 마스터 인증 상태 변수 초기화
 window.isAdminVerified = false;
 
@@ -3919,7 +3871,6 @@ window.openFortuneEditor = async function() {
     if (adminHub) adminHub.style.display = 'none';
     if (fortuneEditor) fortuneEditor.style.display = 'flex';
 };
-    
 
 // 📅 메뉴 2: 데이트 D-DAY 설정 (Prompt)
 window.openDdayEditor = async function() {
@@ -4016,8 +3967,6 @@ setInterval(() => {
     }
 }, 1000);
 
-    
-
     // -------------------------------------------------------------------------
 // 🛠️ [Goni Admin 신규 추가] 허브에서 유미톡톡 비밀번호 힌트 설정하는 함수
 // -------------------------------------------------------------------------
@@ -4050,7 +3999,6 @@ window.openTolkHintEditor = async function() {
     document.getElementById('admin-hub-overlay').style.display = 'flex';
 };
 
-
 // -------------------------------------------------------------------------
 // ✍️ [유미톡톡 스크립트 구역 교체] 답변 등록 기믹 (허브 힌트 자동 연동형)
 // -------------------------------------------------------------------------
@@ -4074,8 +4022,6 @@ window.handleAnswerWrite = async function() {
     alert("답변이 성공적으로 잠금 보관되었습니다! 🔒✨");
     await loadTolkTolkData();
 };
-
-
 
 // -------------------------------------------------------------------------
 // ✍️ [기능 개조 완료] 자물쇠 비밀번호 통과 시 답변 미리보기 기믹 🔓
@@ -4107,7 +4053,6 @@ window.handleAnswerEdit = async function(registeredPassword) {
     // 화면 새로고침 없이 깔끔하게 대기 완료!
     await loadTolkTolkData();
 };
-    
 
 // 💌 오늘의 한마디 저장 (나우의 긴급 수리 ⚡)
 window.saveSpecialFortune = async function() {
@@ -4143,7 +4088,6 @@ window.saveSpecialFortune = async function() {
         alert("저장에 실패했습니다. 😭 콘솔창을 확인해주세요!");
     }
 };
-    
 
     // 🛌 [잠자리] 관련 최종 함수들 (사진X, 2열 그리드, 상호 입력 방식)
 
@@ -4284,7 +4228,6 @@ window.loadStayReviews = async function() {
     });
 };
 
-
     // 💖 데이트 미션 데이터 초기화
 let dateMission = { targetDate: "", message: "" };
 
@@ -4360,7 +4303,6 @@ onSnapshot(doc(window.db, "settings", "date_mission"), (snap) => {
     }
 });
 
- 
 window.collectItem = async function() {
     const btn = document.getElementById('time-attack-btn');
     const now = new Date();
@@ -4443,7 +4385,6 @@ const collectionData = {
 
 };
 
-    
    window.openCollection = async function() {
     // 🪄 [마법의 1줄] 도감 상자가 비밀 메뉴 안에 갇혀있다면, 밖(body)으로 강제로 이사시킵니다!
     const collectionOverlay = document.getElementById('collection-overlay');
@@ -4541,10 +4482,6 @@ const collectionData = {
         if (grid) grid.innerHTML = '<div style="grid-column: 1 / -1; color:#ff8fab; text-align:center;">기록을 불러오지 못했어요. 😢</div>';
     }
 };
-
-
-
-// =======================================================
-</script>       
+</script>
 </body>
 </html>
