@@ -248,8 +248,16 @@
             text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.05);
         }
 
-        .record-heart { 
-            position: absolute; 
+        /* 데이트맵 코스가 있는 날 (왼쪽 위) */
+        .course-pin {
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            font-size: 0.45rem;
+        }
+
+        .record-heart {
+            position: absolute;
             right: 3px; 
             top: 3px; 
             font-size: 0.4rem; 
@@ -619,6 +627,10 @@
     💎 아카이브
     </button>
 
+    <button class="confirm-btn" onclick="openPhotoGallery()" style="width:100%; height:55px; background:#fff0f3; color:#ff8fab; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;">
+    📸 사진 모아보기
+    </button>
+
     <button class="confirm-btn" onclick="openTolkTolk()" style="width:100%; height:55px; background:#e8f5e9; color:#2e7d32; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;">
     💬 유미톡톡
     </button>
@@ -718,6 +730,35 @@
         <div style="display:flex; gap:8px;">
             <button onclick="closePinInputModal()" style="flex:1; height:40px; background:#e0e0e0; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">취소</button>
             <button onclick="savePinData()" style="flex:1; height:40px; background:#558b2f; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">등록 ⚡</button>
+        </div>
+    </div>
+</div>
+
+    <!-- 📸 사진 모아보기 (다이어리에 올린 사진을 월별로) -->
+<div id="photo-gallery-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9800; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+    <div style="background:#fff; width:95%; max-width:500px; height:88vh; border-radius:20px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.3); position:relative;">
+        <div style="padding:15px; background:#fff0f3; border-bottom:1px solid #ffe5ec; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div style="font-weight:900; font-size:16px; color:#ff8fab;">📸 우리 사진 모아보기</div>
+                <div id="photo-gallery-count" style="font-size:11px; color:#bbb; font-weight:bold; margin-top:2px;"></div>
+            </div>
+            <button onclick="closePhotoGallery()" style="background:none; border:none; font-size:18px; cursor:pointer; font-weight:bold; color:#555;">✕</button>
+        </div>
+        <div id="photo-gallery-list" style="flex:1; overflow-y:auto; padding:12px;"></div>
+
+        <!-- 사진 크게 보기 -->
+        <div id="photo-viewer" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:#141414; flex-direction:column; align-items:center; justify-content:center; padding:20px; box-sizing:border-box; gap:12px;">
+            <div id="photo-viewer-date" style="color:#ffafcc; font-weight:900; font-size:15px;"></div>
+            <div style="position:relative; width:100%; flex:1; min-height:0; display:flex; align-items:center; justify-content:center;">
+                <button onclick="movePhotoViewer(-1)" style="position:absolute; left:0; background:rgba(255,255,255,0.15); color:#fff; border:none; border-radius:50%; width:36px; height:36px; font-size:18px; cursor:pointer;">‹</button>
+                <img id="photo-viewer-img" src="" style="max-width:100%; max-height:100%; border-radius:12px; object-fit:contain;">
+                <button onclick="movePhotoViewer(1)" style="position:absolute; right:0; background:rgba(255,255,255,0.15); color:#fff; border:none; border-radius:50%; width:36px; height:36px; font-size:18px; cursor:pointer;">›</button>
+            </div>
+            <div id="photo-viewer-text" style="color:#eee; font-size:14px; text-align:center; line-height:1.4; max-height:4.2em; overflow-y:auto; white-space:pre-wrap; word-break:break-all;"></div>
+            <div style="display:flex; gap:8px; width:100%;">
+                <button onclick="goToPhotoDiary()" style="flex:1; height:44px; background:#ff8fab; color:#fff; border:none; border-radius:12px; font-weight:900; font-size:14px; cursor:pointer;">📖 그날 일기 보기</button>
+                <button onclick="closePhotoViewer()" style="flex:1; height:44px; background:#444; color:#fff; border:none; border-radius:12px; font-weight:900; font-size:14px; cursor:pointer;">닫기</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1321,7 +1362,8 @@ let walker = null;
 let walkerFrame = null;
 
 // 1. 데이트맵 모달 열기 & 초기화 (카카오맵)
-window.openDateMap = function() {
+// afterReady: 지도가 준비된 뒤 실행할 일 (예: 다이어리에서 특정 코스 바로 열기). 없으면 작업용 핀을 불러옴
+window.openDateMap = function(afterReady) {
     if (typeof kakao === 'undefined') {
         return alert("지도 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요! ✨");
     }
@@ -1338,7 +1380,8 @@ window.openDateMap = function() {
         }
         setTimeout(() => {
             dateMapInstance.relayout();
-            loadDatePins();
+            if (typeof afterReady === 'function') afterReady();
+            else loadDatePins();
         }, 200);
     });
 };
@@ -1378,8 +1421,8 @@ window.closePinInputModal = function() {
     document.getElementById('pin-input-modal').style.display = 'none';
 };
 
-// 3. 사진 파일 Base64 리사이징
-function processImage(file) {
+// 3. 사진 파일 Base64 리사이징 (긴 쪽을 maxDim 픽셀로 줄이고 JPEG로 압축)
+function processImage(file, maxDim = 320, quality = 0.55) {
     return new Promise((resolve) => {
         if (!file) return resolve("");
         const reader = new FileReader();
@@ -1387,17 +1430,20 @@ function processImage(file) {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const maxDim = 320;
                 let w = img.width, h = img.height;
                 if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
                 else if (h > maxDim) { w *= maxDim / h; h = maxDim; }
                 canvas.width = w; canvas.height = h;
                 const ctx = canvas.getContext('2d');
+                ctx.fillStyle = "#fff"; // 투명 PNG가 검게 나오지 않도록
+                ctx.fillRect(0, 0, w, h);
                 ctx.drawImage(img, 0, 0, w, h);
-                resolve(canvas.toDataURL('image/jpeg', 0.55));
+                resolve(canvas.toDataURL('image/jpeg', quality));
             };
+            img.onerror = () => resolve(""); // 브라우저가 못 여는 사진 형식이면 빈 값
             img.src = e.target.result;
         };
+        reader.onerror = () => resolve("");
         reader.readAsDataURL(file);
     });
 }
@@ -1663,11 +1709,16 @@ window.saveCurrentDateCourse = async function() {
             return alert("저장할 핀이 없습니다! 먼저 핀을 1개 이상 찍어주세요.");
         }
 
+        // 코스 날짜 = 첫 번째 핀을 찍은 날 (다이어리 달력에 📍로 표시할 때 사용)
+        const firstAt = new Date(snapshot.docs[0].data().createdAt || Date.now());
+        const courseDate = `${firstAt.getFullYear()}-${String(firstAt.getMonth() + 1).padStart(2, '0')}-${String(firstAt.getDate()).padStart(2, '0')}`;
+
         // 1. 메인 코스 문서 생성 (사진 데이터 제외하고 가벼운 메타 정보만 기록)
         const courseDocRef = await addDoc(collection(firestoreDb, "saved_date_courses"), {
             courseTitle: courseTitle.trim(),
             pinCount: snapshot.size,
-            savedAt: Date.now()
+            savedAt: Date.now(),
+            courseDate
         });
 
         // 2. 각 핀 데이터를 코스 문서 내부의 'pins' 서브컬렉션에 개별 문서로 분산 저장 (1MB 제한 우회)
@@ -2270,18 +2321,17 @@ const dailyQuestions = ["처음 서로에게 호감을 느꼈던 정확한 순�
 function setupDiaryEvents() {
     const imgInput = document.getElementById('img-upload');
     if (imgInput) { 
-        imgInput.onchange = (e) => {
+        imgInput.onchange = async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                selectedImgBase64 = ev.target.result;
-                const previewImg = document.getElementById('img-preview');
-                const previewBox = document.getElementById('preview-box');
-                if (previewImg) previewImg.src = selectedImgBase64;
-                if (previewBox) previewBox.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
+            // 📉 원본 그대로 넣으면 하루 기록 한도(1MB)를 바로 넘기므로, 화면용 크기로 줄여서 저장 (약 100KB)
+            const resized = await processImage(file, 900, 0.7);
+            if (!resized) return alert("이 사진은 열 수 없어요. 다른 사진으로 시도해 주세요! 📷");
+            selectedImgBase64 = resized;
+            const previewImg = document.getElementById('img-preview');
+            const previewBox = document.getElementById('preview-box');
+            if (previewImg) previewImg.src = selectedImgBase64;
+            if (previewBox) previewBox.style.display = 'block';
         };
     }
 
@@ -2303,11 +2353,18 @@ function setupDiaryEvents() {
             if (!diaryInput || (!diaryInput.value.trim() && !selectedImgBase64 && tempLocations.length === 0)) return;
 
             try {
-                const newComment = { 
-                    text: diaryInput.value.trim() || (tempLocations.length > 0 ? "장소 기록 ✨" : "사진 기록"), 
-                    img: selectedImgBase64 || "", 
-                    locations: tempLocations.length > 0 ? [...tempLocations] : [] 
+                const newComment = {
+                    text: diaryInput.value.trim() || (tempLocations.length > 0 ? "장소 기록 ✨" : "사진 기록"),
+                    img: selectedImgBase64 || "",
+                    locations: tempLocations.length > 0 ? [...tempLocations] : []
                 };
+
+                // 🚧 하루 기록은 데이터베이스 한도(1MB)를 넘으면 저장이 안 되므로 미리 확인
+                const DAY_LIMIT = (newComment.img ? 950 : 1020) * 1024; // 글만 쓰는 건 조금 더 여유 있게
+                const nextSize = JSON.stringify([...comments, newComment]).length;
+                if (nextSize > DAY_LIMIT) {
+                    return alert(`이 날은 사진이 너무 많아서 더 저장할 수 없어요 😭\n(사진을 빼고 글만 올리거나, 다른 날에 올려 주세요)`);
+                }
 
                 comments.push(newComment);
 
@@ -2478,8 +2535,11 @@ function renderCalendar() {
             ? false 
             : (data.comments && data.comments.length > 0);
 
+        const hasCourse = !!(window.coursesByDate || {})[dateKey];
+
         cell.innerHTML = `
             <div class="date-header">
+                ${hasCourse ? '<span class="course-pin">📍</span>' : ''}
                 <span class="date-num">${i}</span>
                 ${shouldShowHeart ? '<span class="record-heart">💛</span>' : ''}
             </div>
@@ -2503,6 +2563,128 @@ function renderCalendar() {
         dateContainer.appendChild(cell);
     }
 }
+
+// =======================================================
+// 🗺️ 데이트맵 코스 ↔ 다이어리 달력 연결
+// =======================================================
+// 코스 날짜: 새로 저장한 코스는 courseDate, 예전 코스는 이름 앞의 "260214" 같은 숫자로 판단
+function courseDateOf(data) {
+    if (data.courseDate) return data.courseDate;
+    const m = (data.courseTitle || "").match(/^(\d{2})(\d{2})(\d{2})/);
+    return m ? `20${m[1]}-${m[2]}-${m[3]}` : null;
+}
+
+window.coursesByDate = {};
+onSnapshot(collection(db, "saved_date_courses"), (snap) => {
+    const byDate = {};
+    snap.forEach(d => {
+        const data = d.data();
+        const key = courseDateOf(data);
+        if (!key) return;
+        (byDate[key] = byDate[key] || []).push({ id: d.id, title: data.courseTitle || "데이트 코스" });
+    });
+    window.coursesByDate = byDate;
+    renderCalendar();
+});
+
+// 다이어리 창을 닫고 데이트맵에서 그 코스를 바로 열기
+window.openCourseFromDiary = function(courseId) {
+    window.closeModal();
+    window.openDateMap(() => window.viewSavedCourse(courseId));
+};
+
+// =======================================================
+// 📸 사진 모아보기 (다이어리에 올린 사진을 월별로 모아서 보기)
+// =======================================================
+let galleryPhotos = [];
+let galleryIndex = 0;
+const GALLERY_HIDDEN_DATES = ["2025-12-29"]; // 달력에서도 하트를 숨기는 날짜는 여기서도 숨김
+
+window.openPhotoGallery = function() {
+    const sideMenu = document.getElementById('side-menu');
+    const mainOverlay = document.getElementById('overlay');
+    if (sideMenu) sideMenu.style.display = 'none';
+    if (mainOverlay) mainOverlay.style.display = 'none';
+
+    // 최신 날짜부터, 같은 날은 올린 순서대로
+    galleryPhotos = [];
+    Object.keys(cloudRecords).sort().reverse().forEach(dateKey => {
+        if (GALLERY_HIDDEN_DATES.includes(dateKey)) return;
+        (cloudRecords[dateKey].comments || []).forEach(c => {
+            if (c.img) galleryPhotos.push({ dateKey, img: c.img, text: c.text || "" });
+        });
+    });
+
+    const list = document.getElementById('photo-gallery-list');
+    document.getElementById('photo-gallery-count').innerText = `사진 ${galleryPhotos.length}장`;
+
+    if (galleryPhotos.length === 0) {
+        list.innerHTML = `<p style="text-align:center; color:#ccc; font-size:14px; margin-top:40px;">아직 다이어리에 올린 사진이 없어요 📷</p>`;
+    } else {
+        // 월별로 묶기
+        let html = "";
+        let currentMonth = "";
+        galleryPhotos.forEach((p, idx) => {
+            const [y, m] = p.dateKey.split('-');
+            const monthKey = `${y}-${m}`;
+            if (monthKey !== currentMonth) {
+                if (currentMonth) html += `</div>`;
+                const count = galleryPhotos.filter(q => q.dateKey.startsWith(monthKey)).length;
+                html += `<div style="font-weight:900; color:#ff8fab; font-size:14px; margin:14px 2px 8px;">${y}년 ${parseInt(m)}월 <span style="color:#ccc; font-size:11px;">${count}장</span></div>`;
+                html += `<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:4px;">`;
+                currentMonth = monthKey;
+            }
+            html += `
+                <div onclick="openPhotoViewer(${idx})" style="position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden; cursor:pointer; background:#fff0f3;">
+                    <img src="${p.img}" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;">
+                    <span style="position:absolute; left:4px; bottom:3px; font-size:10px; font-weight:900; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,0.6);">${parseInt(p.dateKey.split('-')[2])}일</span>
+                </div>`;
+        });
+        html += `</div>`;
+        list.innerHTML = html;
+        list.scrollTop = 0;
+    }
+
+    document.getElementById('photo-viewer').style.display = 'none';
+    document.getElementById('photo-gallery-overlay').style.display = 'flex';
+};
+
+window.closePhotoGallery = function() {
+    document.getElementById('photo-gallery-overlay').style.display = 'none';
+};
+
+window.openPhotoViewer = function(idx) {
+    galleryIndex = idx;
+    const p = galleryPhotos[idx];
+    if (!p) return;
+    const [y, m, d] = p.dateKey.split('-');
+    const dayName = ['일', '월', '화', '수', '목', '금', '토'][new Date(+y, +m - 1, +d).getDay()];
+    document.getElementById('photo-viewer-date').innerText = `${y}.${m}.${d} (${dayName}) · ${idx + 1} / ${galleryPhotos.length}`;
+    document.getElementById('photo-viewer-img').src = p.img;
+    document.getElementById('photo-viewer-text').innerText = (p.text === "사진 기록") ? "" : p.text;
+    document.getElementById('photo-viewer').style.display = 'flex';
+};
+
+window.movePhotoViewer = function(step) {
+    const next = galleryIndex + step;
+    if (next >= 0 && next < galleryPhotos.length) window.openPhotoViewer(next);
+};
+
+window.closePhotoViewer = function() {
+    document.getElementById('photo-viewer').style.display = 'none';
+};
+
+// 사진을 올린 날의 다이어리로 이동
+window.goToPhotoDiary = function() {
+    const p = galleryPhotos[galleryIndex];
+    if (!p) return;
+    const [y, m, d] = p.dateKey.split('-').map(Number);
+    window.closePhotoGallery();
+    viewYear = y;
+    viewMonth = m - 1;
+    renderCalendar();
+    window.openModal(d);
+};
 
 window.openModal = async function(day) {
     const mStr = String(viewMonth + 1).padStart(2, '0');
@@ -2599,6 +2781,8 @@ window.setupOriginalDiary = function(dateKey) {
             <h3 id="summary-date-title" class="modal-title" style="color: #ff8fab; font-weight: 800;">💕 데이트 기록</h3>
         </div>
         
+        <div id="summary-course-list" style="display: flex; flex-direction: column; gap: 8px; padding-top: 10px;"></div>
+
         <div id="summary-place-list" style="padding: 10px 0; display: flex; flex-direction: column; gap: 12px;">
             <p style="text-align:center; color:#ccc; font-size:14px;">장소를 불러오는 중...</p>
         </div>
@@ -2993,7 +3177,23 @@ window.updateSummaryView = async function(dateKey) {
     // allPaths(코드에 적어둔 옛날 코스)는 DB에 없어서 삭제 버튼을 달지 않음
     const combined = [...(allPaths[dateKey] || []), ...cloudLocations];
 
-    if (combined.length > 0) {
+    // 🗺️ 이 날 데이트맵에 저장된 코스가 있으면 바로 열 수 있는 버튼
+    const courses = (window.coursesByDate || {})[dateKey] || [];
+    const courseBox = document.getElementById('summary-course-list');
+    if (courseBox) {
+        courseBox.innerHTML = courses.map(c => `
+            <button onclick="window.openCourseFromDiary('${c.id}')" style="width:100%; padding:12px 14px; background:#f1f8e9; border:1.5px solid #c5e1a5; border-radius:15px; cursor:pointer; text-align:left; display:flex; align-items:center; gap:10px;">
+                <span style="font-size:1.4rem;">🗺️</span>
+                <span style="flex:1;">
+                    <span style="display:block; font-size:11px; font-weight:800; color:#558b2f;">데이트 코스 보기</span>
+                    <span style="display:block; font-size:14px; font-weight:900; color:#33691e;">${c.title}</span>
+                </span>
+                <span style="color:#7cb342; font-weight:900;">›</span>
+            </button>
+        `).join('');
+    }
+
+    if (combined.length > 0 || courses.length > 0) {
         summaryList.innerHTML = combined.map((loc) => `
             <div class="place-summary-card" style="display:flex; align-items:center; gap:12px; background:white; padding:12px; border-radius:15px; border:1px solid #ffe5ec; margin-bottom:10px; position:relative;">
                 <div style="font-size:1.5rem;">${loc.icon || '📍'}</div>
