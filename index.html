@@ -527,7 +527,19 @@
     </style>
 </head>
 <body>
-    
+
+<!-- 🔐 로그인 화면 (거니/유미 구글 계정으로 로그인해야 사라져요) -->
+<div id="login-gate" style="display:flex; position:fixed; top:0; left:0; width:100%; height:100%; z-index:2147483000; background:#fff0f3; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:24px; box-sizing:border-box; text-align:center;">
+    <div style="font-size:3rem;">💛</div>
+    <div style="font-weight:900; font-size:1.3rem; color:#ff8fab;">우리들의 행복한 추억</div>
+    <div id="login-gate-msg" style="font-size:0.9rem; color:#999; font-weight:bold; white-space:pre-line; line-height:1.5;">불러오는 중...</div>
+    <button id="login-gate-btn" style="width:100%; max-width:280px; height:52px; background:#fff; color:#444; border:1.5px solid #ffcfdf; border-radius:15px; font-weight:900; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 4px 12px rgba(255,143,171,0.2);">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+        구글로 로그인
+    </button>
+    <button id="login-gate-switch" style="display:none; background:none; border:none; color:#ff8fab; font-weight:bold; font-size:13px; cursor:pointer; text-decoration:underline;">다른 계정으로 로그인</button>
+</div>
+
 <div id="sky-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #001524 0%, #000000 100%); z-index: 8000; flex-direction: column; overflow: hidden;">
     <button onclick="resetSky()" style="position: absolute; top: 20px; left: 20px; background: none; border: 1px solid #777; color: #aaa; font-size: 0.7rem; padding: 5px 10px; border-radius: 10px; z-index: 8002;">REBOOT</button>
     <button onclick="closeSky()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 1.5rem; z-index: 8002;">✕</button>
@@ -639,6 +651,10 @@
     style="width:100%; height:55px; background:#fff0f3; color:#ff8fab; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;">
     <span id="dday-mission-text">데이트 기다리는 중.. 💌</span>
 </button>    
+
+    <button onclick="window.logout()" style="width:100%; height:44px; background:#fff; color:#bbb; border:1.5px solid #eee; border-radius:15px; font-weight:700; font-size:14px; cursor:pointer; box-sizing:border-box;">
+    🚪 로그아웃
+    </button>
 
     <button onclick="document.getElementById('side-menu').style.display='none'; if(document.getElementById('overlay')) document.getElementById('overlay').style.display='none';"style="width:100%; height:50px; background:#eee; color:#666; border:none; border-radius:15px; font-weight:700; margin-top:5px; cursor:pointer; box-sizing:border-box;">
     닫기
@@ -1270,7 +1286,7 @@
 
 // [1] 파이어베이스 라이브러리 로드 (🔥 가장 맨 위에 있어야 에러가 안 납니다!)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { 
     getFirestore, 
     doc, 
@@ -1301,6 +1317,76 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 window.db = db;
+
+// =======================================================
+// 🔐 구글 로그인: 거니와 유미 계정만 들어올 수 있음
+// (Firebase 보안 규칙에도 같은 이메일을 넣어야 데이터까지 잠겨요)
+// =======================================================
+const ALLOWED_USERS = {
+    "goni.email@gmail.com": "거니",   // ✏️ 거니 구글 이메일 (소문자로)
+    "yumi.email@gmail.com": "유미"    // ✏️ 유미 구글 이메일 (소문자로)
+};
+
+function waitForAllowedUser() {
+    const gate = document.getElementById('login-gate');
+    const msg = document.getElementById('login-gate-msg');
+    const loginBtn = document.getElementById('login-gate-btn');
+    const switchBtn = document.getElementById('login-gate-switch');
+    const ua = navigator.userAgent;
+
+    loginBtn.onclick = async () => {
+        // 구글은 카톡·인스타 같은 앱 안의 브라우저에서 로그인을 막아서, 기본 브라우저로 열어야 함
+        if (/KAKAOTALK/i.test(ua)) {
+            location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location.href);
+            return;
+        }
+        if (/Instagram|FBAN|FBAV|Line\//i.test(ua)) {
+            msg.innerText = "앱 안의 브라우저에서는 구글 로그인이 안 돼요 😭\n오른쪽 위 메뉴에서 'Chrome' 또는 'Safari로 열기'를 눌러주세요!";
+            return;
+        }
+        try {
+            msg.innerText = "구글 로그인 창을 여는 중...";
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' }); // 매번 계정 고르기
+            await signInWithPopup(auth, provider);
+        } catch (e) {
+            console.error("로그인 실패:", e);
+            msg.innerText =
+                e.code === 'auth/popup-blocked' ? "팝업이 막혔어요. 팝업을 허용하고 다시 눌러주세요!" :
+                (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') ? "로그인 창이 닫혔어요. 다시 눌러주세요!" :
+                `로그인에 실패했어요 😭 (${e.code})`;
+        }
+    };
+    switchBtn.onclick = () => signOut(auth);
+
+    return new Promise((resolve) => {
+        let entered = false;
+        onAuthStateChanged(auth, async (u) => {
+            if (entered) { if (!u) location.reload(); return; } // 들어온 뒤 로그아웃하면 처음 화면으로
+            if (u && u.isAnonymous) { await signOut(auth); return; } // 예전 익명 로그인 정리
+
+            const who = u ? ALLOWED_USERS[(u.email || '').toLowerCase()] : null;
+            if (who) {
+                entered = true;
+                gate.style.display = 'none';
+                resolve(who);
+                return;
+            }
+            gate.style.display = 'flex';
+            switchBtn.style.display = u ? 'block' : 'none';
+            msg.innerText = u
+                ? `${u.email} 계정은 들어올 수 없어요 🔒\n거니나 유미 계정으로 로그인해 주세요.`
+                : "거니와 유미만 들어올 수 있어요 💛";
+        });
+    });
+}
+
+// "거니" 또는 "유미" — 이 아래 코드(데이터 불러오기 포함)는 로그인한 다음에만 실행돼요
+window.me = await waitForAllowedUser();
+
+window.logout = async () => {
+    if (confirm(`${window.me} 계정에서 로그아웃할까요?`)) await signOut(auth);
+};
 
 function checkAdminAccess() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -3868,6 +3954,13 @@ window.showRandomQuestion = async function() {
     if (document.getElementById('writer-selector')) document.getElementById('writer-selector').style.display = 'flex';
     if (document.getElementById('question-overlay')) document.getElementById('question-overlay').style.display = 'flex';
 
+    // 로그인한 사람 버튼만 보이게 (거니로 로그인했으면 '거니가 쓰기'만)
+    document.querySelectorAll('#writer-selector button').forEach(btn => {
+        const click = btn.getAttribute('onclick') || "";
+        const who = click.includes("'유미'") ? '유미' : click.includes("'거니'") ? '거니' : null;
+        if (who) btn.style.display = (window.me && who !== window.me) ? 'none' : '';
+    });
+
     // 2. 오늘 두 사람 답변 실시간 표시
     questionUnsubs.push(onSnapshot(doc(db, "daily_answers", todayDateKey), (todaySnap) => {
         const d = todaySnap.exists() ? todaySnap.data() : {};
@@ -4081,10 +4174,7 @@ window.closeTimeTravel = () => {
 onAuthStateChanged(auth, async (u) => {
     const loadingOverlay = document.getElementById('loading-overlay');
     
-    if (!u) {
-        await signInAnonymously(auth);
-        return; 
-    }
+    if (!u) return; // 로그아웃 처리는 위의 로그인 확인(waitForAllowedUser)에서 함
 
     user = u; 
     console.log("인증 완료:", user.uid);
