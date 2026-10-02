@@ -1,0 +1,14 @@
+{
+  "name": "우리들의 행복한 추억",
+  "short_name": "우리들의 추억",
+  "start_url": "/archive/",
+  "scope": "/archive/",
+  "display": "standalone",
+  "background_color": "#fff0f3",
+  "theme_color": "#fff0f3",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
