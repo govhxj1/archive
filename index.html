@@ -78,6 +78,20 @@
             position: absolute; left: 50%; bottom: 0; width: 16px; height: 4px; margin-left: -8px;
             background: rgba(0,0,0,0.22); border-radius: 50%;
         }
+        /* 💕 같이 찍은 핀: 둘이 나란히 손잡고 걷기 */
+        .walker.pair { width: 48px; }
+        .walker.pair .pair-row { display: flex; }
+        .walker.pair .pair-row .walker-body + .walker-body { margin-left: -12px; animation-delay: -0.25s; } /* 손이 맞닿게 */
+        .walker.pair .walker-shadow { width: 34px; margin-left: -17px; }
+        .pair-heart {
+            position: absolute; left: 50%; top: -10px; z-index: 2;
+            font-size: 11px; line-height: 1;
+            animation: pair-heart 1.4s ease-in-out infinite;
+        }
+        @keyframes pair-heart {
+            0%, 100% { transform: translate(-50%, 0) scale(0.9); opacity: 0.8; }
+            50% { transform: translate(-50%, -4px) scale(1.15); opacity: 1; }
+        }
         /* 핀에 도착하면 잠깐 똑바로 서서 쉬기 */
         .walker.resting .walker-body,
         .walker.resting .walker-body * { animation: none; }
@@ -792,6 +806,14 @@
         <div style="font-size:11px; color:#777; margin-bottom:4px;">사진 첨부 (선택):</div>
         <input id="pin-photo" type="file" accept="image/*" style="width:100%; font-size:12px; margin-bottom:15px;" />
 
+        <!-- 누가 찍은 핀인지 (기본: 로그인한 사람) -->
+        <div style="font-size:11px; color:#777; margin-bottom:4px;">누가 찍은 핀이야?</div>
+        <div id="pin-owner-choices" style="display:flex; gap:6px; margin-bottom:15px;">
+            <button type="button" data-owner="거니" onclick="selectPinOwner('거니')" style="flex:1; height:34px; border-radius:8px; border:1.5px solid #ffcfdf; background:#fff; font-size:12px; font-weight:bold; cursor:pointer;">💗 거니</button>
+            <button type="button" data-owner="유미" onclick="selectPinOwner('유미')" style="flex:1; height:34px; border-radius:8px; border:1.5px solid #ffe9a3; background:#fff; font-size:12px; font-weight:bold; cursor:pointer;">💛 유미</button>
+            <button type="button" data-owner="함께" onclick="selectPinOwner('함께')" style="flex:1; height:34px; border-radius:8px; border:1.5px solid #c8e6c9; background:#fff; font-size:12px; font-weight:bold; cursor:pointer;">💕 같이</button>
+        </div>
+
         <div style="display:flex; gap:8px;">
             <button onclick="closePinInputModal()" style="flex:1; height:40px; background:#e0e0e0; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">취소</button>
             <button onclick="savePinData()" style="flex:1; height:40px; background:#558b2f; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">등록 ⚡</button>
@@ -1440,10 +1462,23 @@ window.checkInCurrentLocation = function() {
         document.getElementById('pin-title').value = "";
         document.getElementById('pin-desc').value = "";
         document.getElementById('pin-photo').value = "";
+        selectPinOwner(window.me || "함께"); // 기본은 로그인한 사람
         document.getElementById('pin-input-modal').style.display = 'flex';
     }, (err) => {
         alert("GPS 위치 확인 실패: " + err.message + "\nHTTPS 환경인지 확인해주세요.");
     }, { enableHighAccuracy: true });
+};
+
+// 핀 등록창에서 누가 찍었는지 고르기
+let pinOwner = "";
+window.selectPinOwner = function(owner) {
+    pinOwner = owner;
+    const colors = { "거니": "#ffe3ec", "유미": "#fff6cc", "함께": "#e8f5e9" };
+    document.querySelectorAll('#pin-owner-choices button').forEach(btn => {
+        const on = btn.dataset.owner === owner;
+        btn.style.background = on ? colors[btn.dataset.owner] : "#fff";
+        btn.style.boxShadow = on ? "inset 0 0 0 1.5px rgba(0,0,0,0.15)" : "none";
+    });
 };
 
 window.closePinInputModal = function() {
@@ -1496,7 +1531,7 @@ window.savePinData = async function() {
             lat: currentCoords.lat,
             lng: currentCoords.lng,
             createdAt: Date.now(),
-            owner: window.me || "" // 누가 찍은 핀인지 (거니/유미)
+            owner: pinOwner || window.me || "" // 누가 찍은 핀인지 (거니/유미/함께)
         });
 
         alert("데이트 핀이 성공적으로 기록되었습니다! 📌");
@@ -1618,13 +1653,10 @@ function renderPinsOnMap(pinList, isReadOnly = false) {
             routeLines.push(line);
         }
 
-        // 🚶 거니 핀은 핑크 캐릭터, 유미 핀은 노란 캐릭터, 예전 핀은 둘이 같이 걷기
+        // 🚶 거니 핀은 핑크 캐릭터, 유미 핀은 노란 캐릭터, 같이 찍은 핀은 둘이 나란히
         if (owner === "거니") startWalker(pathCoords, "거니");
         else if (owner === "유미") startWalker(pathCoords, "유미");
-        else {
-            startWalker(pathCoords, "유미");
-            startWalker(pathCoords, "거니", 900); // 조금 뒤따라 걷기
-        }
+        else startWalker(pathCoords, "함께"); // 둘이 나란히 손잡고
     });
 
     if (allCoords.length === 1) {
@@ -1645,7 +1677,7 @@ const WALKER_LOOKS = {
     "거니": { fill: "#FFB3C7", line: "#5A2A3A", cheek: "#FF6F91", tuft: true }
 };
 
-function walkerSvg(who) {
+function walkerBody(who) {
     const c = WALKER_LOOKS[who] || WALKER_LOOKS["유미"];
     return `
         <div class="walker-body">
@@ -1672,8 +1704,18 @@ function walkerSvg(who) {
                 <ellipse cx="19.8" cy="12.8" rx="1.6" ry="1" fill="${c.cheek}" opacity="0.8"/>
                 <path d="M13.4 12.4 q1.2 1.2 2.4 0" fill="none" stroke="${c.line}" stroke-width="0.9" stroke-linecap="round"/>
             </svg>
-        </div>
+        </div>`;
+}
+
+function walkerSvg(who) {
+    // 💕 같이 찍은 핀: 유미와 거니가 나란히 손잡고 걷기
+    if (who === "함께") {
+        return `
+        <div class="pair-heart">💕</div>
+        <div class="pair-row">${walkerBody("유미")}${walkerBody("거니")}</div>
         <div class="walker-shadow"></div>`;
+    }
+    return walkerBody(who) + `<div class="walker-shadow"></div>`;
 }
 
 // who: "유미" 또는 "거니", delayMs: 같은 길을 같이 걸을 때 출발을 조금 늦추기
@@ -1681,7 +1723,7 @@ function startWalker(path, who = "유미", delayMs = 0) {
     if (!path || path.length === 0) return;
 
     const el = document.createElement('div');
-    el.className = 'walker';
+    el.className = who === "함께" ? 'walker pair' : 'walker';
     el.innerHTML = walkerSvg(who);
 
     const overlay = new kakao.maps.CustomOverlay({ position: path[0], content: el, yAnchor: 1, zIndex: who === "거니" ? 11 : 10 });
@@ -2866,7 +2908,8 @@ function setupDiaryEvents() {
                 const newComment = {
                     text: diaryInput.value.trim() || (tempLocations.length > 0 ? "장소 기록 ✨" : "사진 기록"),
                     img: selectedImgBase64 || "",
-                    locations: tempLocations.length > 0 ? [...tempLocations] : []
+                    locations: tempLocations.length > 0 ? [...tempLocations] : [],
+                    writer: window.me || "" // 쓴 사람 (로그인한 계정으로 자동)
                 };
 
                 // 🚧 하루 기록은 데이터베이스 한도(1MB)를 넘으면 저장이 안 되므로 미리 확인
@@ -3121,7 +3164,7 @@ window.openPhotoGallery = function() {
     Object.keys(cloudRecords).sort().reverse().forEach(dateKey => {
         if (GALLERY_HIDDEN_DATES.includes(dateKey)) return;
         (cloudRecords[dateKey].comments || []).forEach(c => {
-            if (c.img) galleryPhotos.push({ dateKey, img: c.img, text: c.text || "" });
+            if (c.img) galleryPhotos.push({ dateKey, img: c.img, text: c.text || "", writer: c.writer || "" });
         });
     });
 
@@ -3171,7 +3214,8 @@ window.openPhotoViewer = function(idx) {
     const dayName = ['일', '월', '화', '수', '목', '금', '토'][new Date(+y, +m - 1, +d).getDay()];
     document.getElementById('photo-viewer-date').innerText = `${y}.${m}.${d} (${dayName}) · ${idx + 1} / ${galleryPhotos.length}`;
     document.getElementById('photo-viewer-img').src = p.img;
-    document.getElementById('photo-viewer-text').innerText = (p.text === "사진 기록") ? "" : p.text;
+    const shownText = (p.text === "사진 기록") ? "" : p.text;
+    document.getElementById('photo-viewer-text').innerText = p.writer ? `${p.writer} : ${shownText}` : shownText;
     document.getElementById('photo-viewer').style.display = 'flex';
 };
 
@@ -3535,7 +3579,7 @@ function renderComments(scrollToBottom = false) {
         div.innerHTML = `
             <div class="comment-content">
                 ${c.img ? `<img src="${c.img}" style="width:100%; border-radius:10px; margin-bottom:5px;">` : ''}
-                <span class="comment-text">${c.text}</span>
+                <span class="comment-text">${c.writer ? `<b style="color:${c.writer === '거니' ? '#e75480' : '#c79100'};">${c.writer} :</b> ` : ''}${c.text}</span>
             </div>
             <button class="delete-btn" onclick="window.requestDel(${i})">✕</button>
         `;
@@ -4154,6 +4198,7 @@ async function saveData() {
         const cleanComments = comments.map(c => ({
             text: c.text || "", 
             img: c.img || "", 
+            writer: c.writer || "",
             locations: (c.locations || []).map(loc => ({
                 name: loc.name || "알 수 없는 장소",
                 lat: loc.lat || 36.3504,
