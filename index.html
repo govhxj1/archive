@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <!-- 🔄 버전 번호: 이 PC에서 커밋할 때마다 자동으로 바뀌어요 (.git/hooks/pre-commit) -->
-    <meta name="app-version" content="20261002-172353">
+    <meta name="app-version" content="20261002-172835">
     <script>
     // 🔄 사이트를 열 때마다 최신 버전인지 확인하고, 새로 올린 게 있으면 자동으로 새로고침
     (function () {
@@ -33,7 +33,7 @@
     </script>
 
     <link rel="icon" href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
-    <link rel="stylesheet" href="archive.css?v=20261002-172353">
+    <link rel="stylesheet" href="archive.css?v=20261002-172835">
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e12174f6753a399a28edc31022a362ef&autoload=false"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <meta charset="UTF-8">
@@ -741,11 +741,6 @@
     💬 유미톡톡
     </button>
 
-        <button id="dday-mission-btn" class="confirm-btn" onclick="handleDdayMission()" 
-    style="width:100%; height:55px; background:#fff0f3; color:#ff8fab; border:none; border-radius:15px; font-weight:900; font-size:16px; cursor:pointer; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:8px;">
-    <span id="dday-mission-text">데이트 기다리는 중.. 💌</span>
-</button>    
-
     <button onclick="window.logout()" style="width:100%; height:44px; background:#fff; color:#bbb; border:1.5px solid #eee; border-radius:15px; font-weight:700; font-size:14px; cursor:pointer; box-sizing:border-box;">
     🚪 로그아웃
     </button>
@@ -1151,11 +1146,6 @@
             <!-- 메뉴 1: 오늘의 한마디 -->
             <button onclick="openFortuneEditor()" style="width: 100%; background: #222; border: 1px solid #ff8fab; padding: 15px; border-radius: 12px; color: #ff8fab; font-weight: 900; cursor: pointer; font-size: 0.95rem;">
                 💌 오늘의 한마디 설정
-            </button>
-            
-            <!-- 메뉴 2: 데이트 D-DAY -->
-            <button onclick="openDdayEditor()" style="width: 100%; background: #222; border: 1px solid #ffde59; padding: 15px; border-radius: 12px; color: #ffde59; font-weight: 900; cursor: pointer; font-size: 0.95rem;">
-                📅 데이트 D-DAY 설정
             </button>
             
             <!-- 메뉴 3: 타임어택 시간 설정 -->
@@ -4513,27 +4503,6 @@ window.openFortuneEditor = async function() {
     if (fortuneEditor) fortuneEditor.style.display = 'flex';
 };
 
-// 📅 메뉴 2: 데이트 D-DAY 설정 (Prompt)
-window.openDdayEditor = async function() {
-    document.getElementById('admin-hub-overlay').style.display = 'none';
-    
-    // dateMission이 정의되어 있어야 합니다.
-    const newDate = prompt("새로운 데이트 날짜 (예: 2026-05-20)", dateMission.targetDate || "");
-    const newMsg = prompt("D-DAY 당일에 보여줄 서프라이즈 문구!", dateMission.message || "");
-    
-    if (newDate && newMsg) {
-        // 이미 상단에 import된 doc, setDoc 사용
-        await setDoc(doc(window.db, "settings", "date_mission"), { 
-            targetDate: newDate, 
-            message: newMsg 
-        });
-        alert("데이트 예약 완료! ⚡");
-        document.getElementById('admin-hub-overlay').style.display = 'flex';
-    } else {
-        document.getElementById('admin-hub-overlay').style.display = 'flex';
-    }
-};
-
     // ⏰ 1. 타임어택 전역 변수 초기화 (에러 방지)
 window.attackTimes = window.attackTimes || [];
 
@@ -4868,81 +4837,6 @@ window.loadStayReviews = async function() {
         });
     });
 };
-
-    // 💖 데이트 미션 데이터 초기화
-let dateMission = { targetDate: "", message: "" };
-
-// 1. UI 업데이트 함수
-window.updateDdayMissionUI = function() {
-    const btn = document.getElementById('dday-mission-btn');
-    const textSpan = document.getElementById('dday-mission-text');
-    if (!btn || !textSpan) return;
-
-    if (!dateMission.targetDate) {
-        textSpan.innerText = "새 데이트 예약하기 📅";
-        btn.style.background = "#eee";
-        btn.style.color = "#aaa";
-        return;
-    }
-
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const target = new Date(dateMission.targetDate);
-    target.setHours(0, 0, 0, 0);
-    const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
-
-    if (diff > 0) {
-        textSpan.innerText = `데이트 D-${diff} 🏃‍♂️💨`;
-        btn.style.background = "#fff0f3"; // 대기 중일 때 연한 핑크
-        btn.style.color = "#ff8fab";
-        btn.classList.remove('heart-active');
-    } else if (diff === 0) {
-        textSpan.innerText = `❤️ D-DAY! ❤️`;
-        btn.style.background = "var(--main-pink)"; // 당일은 진한 핑크
-        btn.style.color = "white";
-        btn.classList.add('heart-active'); 
-    } else {
-        // 날짜 지남
-        textSpan.innerText = "지난 추억 정리하기 🧹";
-        btn.style.background = "#f8f9fa";
-        btn.style.color = "#ccc";
-        btn.classList.remove('heart-active');
-    }
-};
-
-// 🧸 [유미 전용 힐링 팝업 버전]
-window.handleDdayMission = async function() {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    
-    const isPast = dateMission.targetDate && new Date(dateMission.targetDate) < now;
-    if (!dateMission.targetDate || isPast) {
-        // 🔒 관리자 창은 안 뜨고, 유미가 누르면 심쿵할 멘트 하나만 깔끔하게 뿜어줍니다!
-        alert("🗓️ 우리의 데이트 아직 없어!\n\n거니랑 같이 조금 기다려보쟈 희히 💛");
-        return;
-    }
-    
-    const target = new Date(dateMission.targetDate);
-    target.setHours(0, 0, 0, 0);
-    const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
-
-    if (diff > 0) {
-        alert(`💌 데이트 기다리는 중...\n\n유미야, 우리 만나기까지 딱 ${diff}일 남았어!\n조금만 더 기다려줘. 보고싶어 💛`);
-    } else if (diff === 0) {
-        alert(`✨ TODAY IS D-DAY! ✨\n\n"${dateMission.message}"`);
-    }
-};
-
-// UI 업데이트 함수 (상태에 따라 버튼 색상 자동 변경)
-    
-// 3. 파이어베이스 실시간 감시 (파일 상단의 import를 사용하므로 여기선 import 생략)
-// 이미 상단에 onSnapshot과 doc이 정의되어 있어야 합니다.
-onSnapshot(doc(window.db, "settings", "date_mission"), (snap) => {
-    if (snap.exists()) {
-        dateMission = snap.data();
-        updateDdayMissionUI();
-    }
-});
 
 window.collectItem = async function() {
     const btn = document.getElementById('time-attack-btn');
