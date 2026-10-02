@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <!-- 🔄 버전 번호: 이 PC에서 커밋할 때마다 자동으로 바뀌어요 (.git/hooks/pre-commit) -->
-    <meta name="app-version" content="20261002-175717">
+    <meta name="app-version" content="20261002-180438">
     <script>
     // 🔄 사이트를 열 때마다 최신 버전인지 확인하고, 새로 올린 게 있으면 자동으로 새로고침
     (function () {
@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-title" content="우리들의 추억">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#fff0f3">
-    <link rel="stylesheet" href="archive.css?v=20261002-175717">
+    <link rel="stylesheet" href="archive.css?v=20261002-180438">
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e12174f6753a399a28edc31022a362ef&autoload=false"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <meta charset="UTF-8">
@@ -627,6 +627,16 @@
         구글로 로그인
     </button>
     <button id="login-gate-switch" style="display:none; background:none; border:none; color:#ff8fab; font-weight:bold; font-size:13px; cursor:pointer; text-decoration:underline;">다른 계정으로 로그인</button>
+</div>
+
+<!-- 🔔 새 기록 알림 팝업 -->
+<div id="activity-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:2147482000; background:rgba(0,0,0,0.45); align-items:center; justify-content:center; padding:24px; box-sizing:border-box; backdrop-filter:blur(3px);">
+    <div style="background:#fff; width:100%; max-width:320px; border-radius:24px; padding:28px 22px 22px; text-align:center; box-shadow:0 12px 32px rgba(255,143,171,0.35); box-sizing:border-box;">
+        <div style="font-size:2.6rem; margin-bottom:6px;">💌</div>
+        <div id="activity-title" style="font-weight:900; font-size:1.05rem; color:#ff8fab; line-height:1.4; word-break:keep-all;"></div>
+        <div id="activity-list" style="margin:14px 0 18px; padding:10px 12px; background:#fff7f9; border-radius:14px; font-size:0.9rem; font-weight:bold; color:#666; text-align:left;"></div>
+        <button id="activity-ok" style="width:100%; height:48px; background:#ff8fab; color:#fff; border:none; border-radius:14px; font-weight:900; font-size:15px; cursor:pointer;">확인</button>
+    </div>
 </div>
 
 <div id="sky-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, #03061a 0%, #0a1233 40%, #1d1a4a 75%, #3b2457 100%); z-index: 8000; flex-direction: column; overflow: hidden;">
@@ -1268,6 +1278,7 @@ import {
     deleteDoc,
     query, 
     orderBy, 
+    where, 
     getDocs, 
     onSnapshot, 
     serverTimestamp 
@@ -1374,6 +1385,90 @@ try {
     console.error("편지·도감 불러오기 실패:", e);
 }
 window.secretLetters = privateContent.secretLetters || {};
+
+// =======================================================
+// 🔔 새 기록 알림: 상대가 다이어리·데이트핀·랜덤질문·유미톡톡에 남기면, 내가 들어올 때 팝업
+// - activity: 누가(who) 무엇을(type) 언제(at) 했는지 기록
+// - activity_seen/{거니|유미}: 내가 마지막으로 확인한 시각 (폰·PC 어디서 확인해도 같이 적용)
+// =======================================================
+const ACTIVITY_TYPES = {
+    diary:    { icon: "📖", text: "다이어리에 새 추억을 남겼어요" },
+    pin:      { icon: "📍", text: "데이트맵에 새 핀을 찍었어요" },
+    question: { icon: "💌", text: "오늘의 질문에 답했어요" },
+    tolk:     { icon: "💬", text: "유미톡톡에 글을 남겼어요" }
+};
+
+// 기록 남기기 (실패해도 원래 기능에는 영향 없게)
+window.logActivity = async function(type, extra = {}, who = window.me) {
+    if (!who || !ACTIVITY_TYPES[type]) return;
+    try {
+        await addDoc(collection(db, "activity"), { who, type, at: Date.now(), ...extra });
+    } catch (e) {
+        console.error("활동 기록 실패:", e);
+    }
+};
+
+async function checkNewActivity() {
+    const me = window.me;
+    const other = me === "거니" ? "유미" : "거니";
+    const seenRef = doc(db, "activity_seen", me);
+
+    try {
+        const seenSnap = await getDoc(seenRef);
+        if (!seenSnap.exists()) {
+            // 처음 한 번은 기준 시각만 저장 (예전 기록으로 알림이 쏟아지지 않게)
+            await setDoc(seenRef, { at: Date.now() });
+            return;
+        }
+        const since = seenSnap.data().at || 0;
+        const snap = await getDocs(query(collection(db, "activity"), where("at", ">", since), orderBy("at", "asc")));
+
+        // 상대가 한 것만, 종류별로 가장 최근 것 하나씩
+        const latestByType = {};
+        snap.forEach(d => {
+            const a = d.data();
+            if (a.who === other && ACTIVITY_TYPES[a.type]) latestByType[a.type] = a;
+        });
+        const types = Object.keys(ACTIVITY_TYPES).filter(t => latestByType[t]);
+        if (types.length === 0) {
+            await setDoc(seenRef, { at: Date.now() });
+            return;
+        }
+
+        document.getElementById('activity-title').innerText = `${other}가 우리의 다이어리를 채웠어요💗`;
+        document.getElementById('activity-list').innerHTML = types
+            .map(t => `<div style="padding:6px 0;">${ACTIVITY_TYPES[t].icon} ${ACTIVITY_TYPES[t].text}</div>`)
+            .join('');
+        document.getElementById('activity-ok').innerText = types.length === 1 ? "보러 가기 💕" : "확인";
+        document.getElementById('activity-overlay').style.display = 'flex';
+
+        document.getElementById('activity-ok').onclick = async () => {
+            document.getElementById('activity-overlay').style.display = 'none';
+            setDoc(seenRef, { at: Date.now() }).catch(e => console.error(e));
+            // 한 가지만 했으면 그 화면을 바로 열어주기
+            if (types.length === 1) openActivity(latestByType[types[0]]);
+        };
+    } catch (e) {
+        console.error("새 기록 확인 실패:", e);
+    }
+}
+
+function openActivity(a) {
+    if (a.type === "diary" && a.dateKey) {
+        const [y, m, d] = a.dateKey.split('-').map(Number);
+        viewYear = y;
+        viewMonth = m - 1;
+        renderCalendar();
+        window.openModal(d);
+        setTimeout(() => window.showRecordView && window.showRecordView(), 50); // 글 목록 화면으로
+    } else if (a.type === "pin") {
+        window.openDateMap();
+    } else if (a.type === "question") {
+        window.showRandomQuestion();
+    } else if (a.type === "tolk") {
+        window.openTolkTolk();
+    }
+}
 
 function checkAdminAccess() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1541,6 +1636,7 @@ window.savePinData = async function() {
             createdAt: Date.now(),
             owner: window.me || "" // 찍은 사람 = 로그인한 사람 (거니/유미)
         });
+        logActivity("pin"); // 🔔 상대에게 알림
 
         alert("데이트 핀이 성공적으로 기록되었습니다! 📌");
         closePinInputModal();
@@ -2322,6 +2418,7 @@ window.handleQuestionEdit = async function() {
     }
 
     await setDoc(activeDocRef, { question: newQ.trim() }, { merge: true });
+    logActivity("tolk"); // 🔔 상대에게 알림
     alert("이번 주의 질문이 정상 입력되었습니다! 🚀");
     await loadTolkTolkData();
 };
@@ -2940,6 +3037,7 @@ function setupDiaryEvents() {
                 
                 renderComments(true); 
                 await saveData();     
+                logActivity("diary", { dateKey: `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}` }); // 🔔 상대에게 알림
                 
             } catch (err) {
                 console.error("저장 중 에러 발생:", err);
@@ -4139,6 +4237,7 @@ window.submitDailyAnswer = async () => {
 
     // 🚀 합본 데이터 파이어베이스 전송!
     await setDoc(docRef, updateData, { merge: true });
+    logActivity("question", {}, currentWriter); // 🔔 상대에게 알림 (쓴 사람 기준)
 
     // UI 및 입력창 초기화
     input.value = ""; 
@@ -4258,6 +4357,12 @@ onAuthStateChanged(auth, async (u) => {
         }
         renderCalendar();
         if (typeof updateDday === 'function') updateDday();
+
+        // 🔔 처음 데이터를 다 불러왔을 때 한 번만 새 기록 알림 확인
+        if (!window.activityChecked) {
+            window.activityChecked = true;
+            checkNewActivity();
+        }
     }, (err) => {
         console.error("데이터 에러:", err);
         if (loadingOverlay) loadingOverlay.style.display = 'none';
@@ -4636,6 +4741,7 @@ window.handleAnswerWrite = async function() {
         answer: newA.trim(), 
         password: pw.trim() 
     }, { merge: true });
+    logActivity("tolk"); // 🔔 상대에게 알림
 
     alert("답변이 성공적으로 잠금 보관되었습니다! 🔒✨");
     await loadTolkTolkData();
