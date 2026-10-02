@@ -9,17 +9,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>우리들의 행복한 추억</title>
     <style>
-        /* 🌌 밤하늘 별 애니메이션 */
-        @keyframes star-twinkle {
-            0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
-            50% { opacity: 1; transform: scale(1.1) rotate(20deg); }
-        }
-
-        .star-common {
+        /* 🌌 밤하늘 별 */
+        .sky-star { position: absolute; width: 0; height: 0; pointer-events: none; }
+        .sky-star .core {
             position: absolute;
-            background: white;
-            /* clip-path는 JS에서 랜덤으로 주입합니다 */
-            animation: star-twinkle 5s infinite ease-in-out;
+            width: var(--s); height: var(--s);
+            margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff 0%, var(--c) 40%, transparent 72%);
+            box-shadow: 0 0 calc(var(--s) * 0.9) calc(var(--s) * 0.2) var(--g);
+            animation: star-twinkle var(--d) ease-in-out var(--delay) infinite;
+        }
+        /* 중간별·대왕별의 반짝이는 십자 빛 */
+        .sky-star.spark::before, .sky-star.spark::after {
+            content: ""; position: absolute;
+            width: calc(var(--s) * 4.5); height: 1.5px;
+            margin: -0.75px 0 0 calc(var(--s) * -2.25);
+            background: linear-gradient(90deg, transparent, var(--c), transparent);
+            border-radius: 2px;
+            animation: star-flare var(--d) ease-in-out var(--delay) infinite;
+        }
+        .sky-star.spark::after { transform: rotate(90deg); }
+        .sky-star.new .core { animation: star-born 1.4s ease-out, star-twinkle var(--d) ease-in-out 1.4s infinite; }
+        @keyframes star-twinkle {
+            0%, 100% { opacity: 0.6; transform: scale(0.85); }
+            50% { opacity: 1; transform: scale(1.15); }
+        }
+        @keyframes star-flare {
+            0%, 100% { opacity: 0.25; }
+            50% { opacity: 0.95; }
+        }
+        @keyframes star-born {
+            0% { opacity: 0; transform: scale(0); }
+            60% { opacity: 1; transform: scale(2.4); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        /* 별똥별 */
+        .shooting-star {
+            position: absolute; width: 130px; height: 2px; border-radius: 2px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0));
+            opacity: 0; transform: rotate(-28deg);
+            animation: shooting-star 11s linear infinite;
+        }
+        @keyframes shooting-star {
+            0% { opacity: 0; transform: translate(0, 0) rotate(-28deg); }
+            1.5% { opacity: 1; }
+            7% { opacity: 0; transform: translate(-300px, 160px) rotate(-28deg); }
+            100% { opacity: 0; transform: translate(-300px, 160px) rotate(-28deg); }
         }
         
         /* 🐥 데이트맵 걸어가는 노란 캐릭터 */
@@ -540,16 +576,29 @@
     <button id="login-gate-switch" style="display:none; background:none; border:none; color:#ff8fab; font-weight:bold; font-size:13px; cursor:pointer; text-decoration:underline;">다른 계정으로 로그인</button>
 </div>
 
-<div id="sky-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #001524 0%, #000000 100%); z-index: 8000; flex-direction: column; overflow: hidden;">
-    <button onclick="resetSky()" style="position: absolute; top: 20px; left: 20px; background: none; border: 1px solid #777; color: #aaa; font-size: 0.7rem; padding: 5px 10px; border-radius: 10px; z-index: 8002;">REBOOT</button>
+<div id="sky-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, #03061a 0%, #0a1233 40%, #1d1a4a 75%, #3b2457 100%); z-index: 8000; flex-direction: column; overflow: hidden;">
+    <!-- 은하수 -->
+    <div style="position: absolute; left: -40%; top: 22%; width: 180%; height: 38%; background: radial-gradient(ellipse at center, rgba(190,175,255,0.22) 0%, rgba(140,160,255,0.08) 40%, transparent 70%); filter: blur(18px); transform: rotate(-22deg); pointer-events: none;"></div>
+    <!-- 배경 잔별 (JS에서 채움) -->
+    <div id="sky-dust" style="position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none;"></div>
+    <!-- 별똥별 -->
+    <div class="shooting-star" style="top: 12%; left: 85%;"></div>
+    <div class="shooting-star" style="top: 30%; left: 110%; animation-delay: 5.5s;"></div>
+
+    <button onclick="resetSky()" style="position: absolute; top: 20px; left: 20px; background: none; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.4); font-size: 0.65rem; padding: 5px 10px; border-radius: 10px; z-index: 8002;">REBOOT</button>
     <button onclick="closeSky()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 1.5rem; z-index: 8002;">✕</button>
-    
+
+    <div style="position: absolute; top: 64px; width: 100%; text-align: center; z-index: 8002; pointer-events: none;">
+        <div id="sky-count" style="color: #fff6e0; font-weight: 900; font-size: 1.1rem; letter-spacing: 1px; text-shadow: 0 0 12px rgba(255,220,150,0.6);">우리의 별</div>
+        <div id="sky-count-detail" style="color: rgba(255,255,255,0.5); font-size: 0.75rem; margin-top: 4px;"></div>
+    </div>
+
     <div id="star-field" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 8001;"></div>
 
-    <div style="position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 8003;">
-        <button onclick="confirmStar('bronze')" style="background: #cd7f32; border: none; padding: 10px 15px; border-radius: 15px; color: white; font-weight: bold; box-shadow: 0 0 10px rgba(205,127,50,0.5);">작은별</button>
-        <button onclick="confirmStar('silver')" style="background: #c0c0c0; border: none; padding: 10px 15px; border-radius: 15px; color: #333; font-weight: bold; box-shadow: 0 0 10px rgba(192,192,192,0.5);">중간별</button>
-        <button onclick="confirmStar('gold')" style="background: #ffd700; border: none; padding: 10px 15px; border-radius: 15px; color: #5d4037; font-weight: bold; box-shadow: 0 0 10px rgba(255,215,0,0.5);">대왕별</button>
+    <div style="position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: center; gap: 12px; z-index: 8003;">
+        <button onclick="confirmStar('bronze')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(207,227,255,0.35); padding: 10px 14px; border-radius: 15px; color: #e6f0ff; font-weight: bold; backdrop-filter: blur(6px); display: flex; align-items: center; gap: 6px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #cfe3ff; box-shadow: 0 0 6px 2px rgba(170,200,255,0.8);"></span>작은별</button>
+        <button onclick="confirmStar('silver')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,246,224,0.4); padding: 10px 14px; border-radius: 15px; color: #fff6e0; font-weight: bold; backdrop-filter: blur(6px); display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #fff6e0; box-shadow: 0 0 8px 3px rgba(255,240,200,0.8);"></span>중간별</button>
+        <button onclick="confirmStar('gold')" style="background: rgba(255,216,107,0.15); border: 1px solid rgba(255,216,107,0.6); padding: 10px 14px; border-radius: 15px; color: #ffe08a; font-weight: bold; backdrop-filter: blur(6px); display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #ffd86b; box-shadow: 0 0 10px 4px rgba(255,200,80,0.85);"></span>대왕별</button>
     </div>
 </div>
     
@@ -1895,14 +1944,14 @@ window.resetSky = async function() {
 
 window.confirmStar = function(type) {
     if (confirm("거니와 유미의 즐거운 데이트!\n이 추억을 별로 등록할까요? ✨")) {
-        starCounts[type]++; 
-        saveStarData();     
+        starCounts[type] = (starCounts[type] || 0) + 1;
+        saveStarData(type);
     }
 };
 
-async function saveStarData() {
+async function saveStarData(newType) {
     await setDoc(doc(db, "settings", "our_sky"), starCounts);
-    renderStars(); 
+    renderStars(newType); // 방금 추가한 별은 반짝이며 등장
     makeHearts();  
 }
 
@@ -1914,48 +1963,74 @@ window.closeSky = () => {
     if (overlay) overlay.style.display = 'none';
 };
 
-function renderStars() {
+// 같은 숫자를 넣으면 항상 같은 값이 나오는 난수 (별이 열 때마다 같은 자리에 뜨게)
+function skyRandom(seed) {
+    let t = (seed * 2654435761) >>> 0;
+    return () => {
+        t = (t + 0x6D2B79F5) >>> 0;
+        let r = Math.imul(t ^ (t >>> 15), t | 1);
+        r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
+        return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+// 배경에 깔리는 작은 잔별 (개수와 상관없이 항상 같은 모양)
+function renderSkyDust() {
+    const dust = document.getElementById('sky-dust');
+    if (!dust || dust.dataset.ready) return;
+    const rand = skyRandom(7);
+    const w = window.innerWidth, h = window.innerHeight;
+    const dots = [];
+    for (let i = 0; i < 160; i++) {
+        const a = (0.15 + rand() * 0.45).toFixed(2);
+        dots.push(`${Math.round(rand() * w)}px ${Math.round(rand() * h)}px 0 ${rand() < 0.15 ? 0.5 : 0}px rgba(255,255,255,${a})`);
+    }
+    dust.style.boxShadow = dots.join(',');
+    dust.style.background = 'transparent';
+    dust.dataset.ready = "1";
+}
+
+// newType: 방금 추가한 별 종류 (그 별만 반짝이며 태어나는 효과)
+function renderStars(newType) {
     const field = document.getElementById('star-field');
     if (!field) return;
-    field.innerHTML = ""; 
-
-    // ⭐ 8각 별과 10각 별 랜덤 적용
-    const starShapes = [
-        "polygon(50% 0%, 58% 30%, 85% 15%, 70% 42%, 100% 50%, 70% 58%, 85% 85%, 58% 70%, 50% 100%, 42% 70%, 15% 85%, 30% 58%, 0% 50%, 30% 42%, 15% 15%, 42% 30%)",
-        "polygon(50% 0%, 55% 25%, 80% 10%, 65% 40%, 100% 30%, 75% 50%, 100% 70%, 65% 60%, 80% 90%, 55% 75%, 50% 100%, 45% 75%, 20% 90%, 35% 60%, 0% 70%, 25% 50%, 0% 30%, 35% 40%, 20% 10%, 45% 25%)"
-    ];
+    field.innerHTML = "";
+    renderSkyDust();
 
     const types = [
-        { key: 'bronze', size: '8px', color: '#cd7f32', glow: '4px' },
-        { key: 'silver', size: '12px', color: '#c0c0c0', glow: '8px' },
-        { key: 'gold', size: '16px', color: '#ffd700', glow: '12px' }
+        { key: 'bronze', size: 4,  color: '#cfe3ff', glow: 'rgba(170,200,255,0.65)', spark: false, seed: 1 },
+        { key: 'silver', size: 6,  color: '#fff6e0', glow: 'rgba(255,240,200,0.75)', spark: true,  seed: 2 },
+        { key: 'gold',   size: 9,  color: '#ffd86b', glow: 'rgba(255,200,80,0.9)',   spark: true,  seed: 3 }
     ];
 
+    let total = 0;
     types.forEach(t => {
-        for (let i = 0; i < starCounts[t.key]; i++) {
-            const star = document.createElement('div');
-            star.className = 'star-common';
-            
-            const randomShape = starShapes[Math.floor(Math.random() * starShapes.length)];
-            const x = Math.random() * 90 + 5;
-            const y = Math.random() * 85 + 5;
-            const delay = Math.random() * 5; 
-            const duration = 4 + Math.random() * 2; 
+        const count = starCounts[t.key] || 0;
+        total += count;
+        for (let i = 0; i < count; i++) {
+            // 별마다 정해진 자리 (위쪽 글씨와 아래 버튼은 피해서)
+            const rand = skyRandom(t.seed * 100003 + i);
+            const x = 5 + rand() * 90;
+            const y = 15 + rand() * 63;
 
-            star.style.cssText = `
-                left: ${x}%;
-                top: ${y}%;
-                width: ${t.size};
-                height: ${t.size};
-                background: ${t.color};
-                box-shadow: 0 0 ${t.glow} ${t.color};
-                clip-path: ${randomShape};
-                animation-duration: ${duration}s; 
-                animation-delay: ${delay}s;
-            `;
+            const star = document.createElement('div');
+            star.className = 'sky-star' + (t.spark ? ' spark' : '') + (newType === t.key && i === count - 1 ? ' new' : '');
+            star.style.left = x + '%';
+            star.style.top = y + '%';
+            star.style.setProperty('--s', (t.size * (0.85 + rand() * 0.3)).toFixed(1) + 'px');
+            star.style.setProperty('--c', t.color);
+            star.style.setProperty('--g', t.glow);
+            star.style.setProperty('--d', (3 + rand() * 3).toFixed(1) + 's');
+            star.style.setProperty('--delay', (-rand() * 6).toFixed(1) + 's');
+            star.innerHTML = '<div class="core"></div>';
             field.appendChild(star);
         }
     });
+
+    const countEl = document.getElementById('sky-count');
+    const detailEl = document.getElementById('sky-count-detail');
+    if (countEl) countEl.innerText = `✨ 우리의 별 ${total}개 ✨`;
+    if (detailEl) detailEl.innerText = `작은별 ${starCounts.bronze || 0} · 중간별 ${starCounts.silver || 0} · 대왕별 ${starCounts.gold || 0}`;
 }
 
 // 유미톡톡
