@@ -806,14 +806,6 @@
         <div style="font-size:11px; color:#777; margin-bottom:4px;">사진 첨부 (선택):</div>
         <input id="pin-photo" type="file" accept="image/*" style="width:100%; font-size:12px; margin-bottom:15px;" />
 
-        <!-- 누가 찍은 핀인지 (기본: 로그인한 사람) -->
-        <div style="font-size:11px; color:#777; margin-bottom:4px;">누가 찍은 핀이야?</div>
-        <div id="pin-owner-choices" style="display:flex; gap:6px; margin-bottom:15px;">
-            <button type="button" data-owner="거니" onclick="selectPinOwner('거니')" style="flex:1; height:34px; border-radius:8px; border:1.5px solid #ffcfdf; background:#fff; font-size:12px; font-weight:bold; cursor:pointer;">💗 거니</button>
-            <button type="button" data-owner="유미" onclick="selectPinOwner('유미')" style="flex:1; height:34px; border-radius:8px; border:1.5px solid #ffe9a3; background:#fff; font-size:12px; font-weight:bold; cursor:pointer;">💛 유미</button>
-            <button type="button" data-owner="함께" onclick="selectPinOwner('함께')" style="flex:1; height:34px; border-radius:8px; border:1.5px solid #c8e6c9; background:#fff; font-size:12px; font-weight:bold; cursor:pointer;">💕 같이</button>
-        </div>
-
         <div style="display:flex; gap:8px;">
             <button onclick="closePinInputModal()" style="flex:1; height:40px; background:#e0e0e0; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">취소</button>
             <button onclick="savePinData()" style="flex:1; height:40px; background:#558b2f; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">등록 ⚡</button>
@@ -1462,23 +1454,10 @@ window.checkInCurrentLocation = function() {
         document.getElementById('pin-title').value = "";
         document.getElementById('pin-desc').value = "";
         document.getElementById('pin-photo').value = "";
-        selectPinOwner(window.me || "함께"); // 기본은 로그인한 사람
         document.getElementById('pin-input-modal').style.display = 'flex';
     }, (err) => {
         alert("GPS 위치 확인 실패: " + err.message + "\nHTTPS 환경인지 확인해주세요.");
     }, { enableHighAccuracy: true });
-};
-
-// 핀 등록창에서 누가 찍었는지 고르기
-let pinOwner = "";
-window.selectPinOwner = function(owner) {
-    pinOwner = owner;
-    const colors = { "거니": "#ffe3ec", "유미": "#fff6cc", "함께": "#e8f5e9" };
-    document.querySelectorAll('#pin-owner-choices button').forEach(btn => {
-        const on = btn.dataset.owner === owner;
-        btn.style.background = on ? colors[btn.dataset.owner] : "#fff";
-        btn.style.boxShadow = on ? "inset 0 0 0 1.5px rgba(0,0,0,0.15)" : "none";
-    });
 };
 
 window.closePinInputModal = function() {
@@ -1531,7 +1510,7 @@ window.savePinData = async function() {
             lat: currentCoords.lat,
             lng: currentCoords.lng,
             createdAt: Date.now(),
-            owner: pinOwner || window.me || "" // 누가 찍은 핀인지 (거니/유미/함께)
+            owner: window.me || "" // 찍은 사람 = 로그인한 사람 (거니/유미)
         });
 
         alert("데이트 핀이 성공적으로 기록되었습니다! 📌");
